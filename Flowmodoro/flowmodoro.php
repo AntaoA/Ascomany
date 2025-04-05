@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 2.0
+Version: 2.0.1
 Author: Ascomany
 */
 
@@ -32,6 +32,22 @@ function flowmodoro_shortcode() {
         </div>
     </div>
 
+    <?php if (is_user_logged_in()) :
+        $user_id = get_current_user_id();
+        $history = get_user_meta($user_id, 'flowmodoro_history', true);
+    ?>
+        <script>
+        const savedHistory = <?php echo json_encode($history ?: []); ?>;
+        const userIsLoggedIn = true;
+        </script>
+    <?php else : ?>
+        <p style="color: red;">Connectez-vous pour sauvegarder votre historique.</p>
+        <script>
+        const savedHistory = [];
+        const userIsLoggedIn = false;
+        </script>
+    <?php endif; ?>
+    
     <script>
     (function(){
         let timer;
@@ -199,21 +215,6 @@ function flowmodoro_shortcode() {
         update();
     })();
     </script>
-    <?php if (is_user_logged_in()) :
-        $user_id = get_current_user_id();
-        $history = get_user_meta($user_id, 'flowmodoro_history', true);
-    ?>
-        <script>
-        const savedHistory = <?php echo json_encode($history ?: []); ?>;
-        const userIsLoggedIn = true;
-        </script>
-    <?php else : ?>
-        <p style="color: red;">Connectez-vous pour sauvegarder votre historique.</p>
-        <script>
-        const savedHistory = [];
-        const userIsLoggedIn = false;
-        </script>
-    <?php endif; ?>
     <?php
         return ob_get_clean();
 }
