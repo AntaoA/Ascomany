@@ -424,6 +424,7 @@ function flowmodoro_history_shortcode() {
     }
     
 
+    const dateInput = document.getElementById('datepicker');
     if (dateInput) {
         const activeDates = getActiveDates(allHistory);
         const picker = new Litepicker({
