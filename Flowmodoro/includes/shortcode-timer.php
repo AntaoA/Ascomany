@@ -27,7 +27,7 @@ function flowmodoro_shortcode() {
             <div id="flowmodoro-total" style="margin-top: 10px; font-weight: bold;"></div>
         </div>
 
-        <div id="flowmodoro-history" style="margin-top: 40px; text-align: right;">
+        <div id="flowmodoro-history" style="position: absolute; top: 120px; right: 40px; text-align: left; max-width: 300px;">
             <a href="/historique-flowmodoro" target="_blank">
                 <button id="show-history" style="margin-top: 20px;">📜 Voir l’historique</button>
             </a>
