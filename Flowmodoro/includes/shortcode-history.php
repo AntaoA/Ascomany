@@ -296,7 +296,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
                 div.appendChild(details);
 
-                div.addEventListener("click", () => {
+                div.addEventListener("click", (e) => {
+                    if (e.target.closest(".delete-session-btn")) return;
                     details.style.display = details.style.display === "block" ? "none" : "block";
                 });
 
