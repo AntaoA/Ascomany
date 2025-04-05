@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 1.6
+Version: 1.7
 Author: Ascomany
 */
 
@@ -26,8 +26,9 @@ function flowmodoro_shortcode() {
         </div>
 
         <div id="flowmodoro-history" style="position: absolute; top: 40px; right: 40px; text-align: left;">
-            h3>Historique</h3>
+            <h3>Historique</h3>
             <ul id="flowmodoro-log" style="list-style: none; padding: 0; font-family: monospace;"></ul>
+            <div id="flowmodoro-total" style="margin-top: 10px; font-weight: bold;"></div>
         </div>
     </div>
 
@@ -38,7 +39,9 @@ function flowmodoro_shortcode() {
         let working = false;
         let reversing = false;
         let pauseTarget = 0;
-        let pauseFactor = 2;
+        let pauseFactor = 5;
+        let totalWork = 0;
+        let totalPause = 0;
 
         const display = document.getElementById("flowmodoro-timer");
         const status = document.getElementById("flowmodoro-status");
@@ -66,16 +69,30 @@ function flowmodoro_shortcode() {
             display.textContent = `${min}:${sec}:${cs}`;
         }
 
+
         function logHistory(type, duration) {
             const log = document.getElementById("flowmodoro-log");
             const li = document.createElement("li");
             li.textContent = `${type} : ${formatTime(duration)}`;
+            li.style.color = (type === "Travail") ? "#e74c3c" : "#3498db"; // rouge / bleu
             log.prepend(li);
+
+            if (type === "Travail") {
+                totalWork += duration;
+            } else {
+                totalPause += duration;
+            }
+
+            updateTotals();
         }
 
-        settingsBtn.addEventListener("click", () => {
-            settingsMenu.style.display = settingsMenu.style.display === "none" ? "block" : "none";
-        });
+        function updateTotals() {
+            const totalDiv = document.getElementById("flowmodoro-total");
+            totalDiv.innerHTML = `
+                Total Travail : ${formatTime(totalWork)}<br>
+                Total Pause : ${formatTime(totalPause)}
+            `;
+        }
 
         saveBtn.addEventListener("click", () => {
             const value = parseFloat(pauseInput.value);
