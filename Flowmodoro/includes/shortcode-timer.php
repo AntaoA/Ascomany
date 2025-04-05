@@ -1,4 +1,3 @@
-
 function flowmodoro_shortcode() {
     ob_start();
     ?>
@@ -35,7 +34,7 @@ function flowmodoro_shortcode() {
         $raw_history = get_user_meta($user_id, 'flowmodoro_history', true);
         $history = is_string($raw_history) ? json_decode($raw_history, true) : $raw_history;
         if (!is_array($history)) $history = [];
-    ?>
+        ?>
         <script>
         const savedHistory = <?php echo json_encode($history); ?>;
         const userIsLoggedIn = true;
