@@ -17,6 +17,12 @@ function flowmodoro_shortcode() {
             <button id="save-settings" style="margin-left: 10px;">Enregistrer</button>
         </div>
 
+        <div id="flowmodoro-log-wrapper" style="margin-top: 30px;">
+            <h3>Historique (session)</h3>
+            <ul id="flowmodoro-log" style="list-style: none; padding: 0; font-family: monospace;"></ul>
+            <div id="flowmodoro-total" style="margin-top: 10px; font-weight: bold;"></div>
+        </div>
+
         <div id="flowmodoro-history" style="position: absolute; top: 40px; right: 40px; text-align: left; max-width: 300px;">
             <a href="/historique-flowmodoro" target="_blank">
                 <button id="show-history" style="margin-top: 20px;">📜 Voir l’historique</button>
@@ -134,32 +140,11 @@ function flowmodoro_shortcode() {
 
         function renderHistory(range) {
             const log = document.getElementById("flowmodoro-log");
+            if (!log) return;
+
             log.innerHTML = "";
 
-            let filtered = [];
-
-            const now = Date.now();
-            const startOfDay = new Date();
-            startOfDay.setHours(0, 0, 0, 0);
-
-            const startOfWeek = new Date();
-            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-            startOfWeek.setHours(0, 0, 0, 0);
-
-            switch (range) {
-                case "session":
-                    filtered = sessionHistory;
-                    break;
-                case "day":
-                    filtered = allHistory.filter(e => e.timestamp >= startOfDay.getTime());
-                    break;
-                case "week":
-                    filtered = allHistory.filter(e => e.timestamp >= startOfWeek.getTime());
-                    break;
-                case "all":
-                    filtered = allHistory;
-                    break;
-            }
+            const filtered = sessionHistory;
 
             filtered.forEach(item => {
                 const li = document.createElement("li");
@@ -167,8 +152,6 @@ function flowmodoro_shortcode() {
                 li.style.color = item.type === "Travail" ? "#e74c3c" : "#3498db";
                 log.appendChild(li);
             });
-
-            document.querySelector("#flowmodoro-history h3").textContent = `Historique (${range})`;
         }
 
         function updateTotals() {
@@ -241,22 +224,10 @@ function flowmodoro_shortcode() {
             }, 10);
         });
 
-        document.getElementById("show-history").addEventListener("click", () => {
-            const filters = document.getElementById("history-filters");
-            filters.style.display = filters.style.display === "none" ? "block" : "none";
-        });
-
-        document.querySelectorAll("#history-filters button").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const range = btn.dataset.range;
-                renderHistory(range);
-            });
-        });
-
         update();
     })();
     </script>
     <?php
-        return ob_get_clean();
+    return ob_get_clean();
 }
 add_shortcode('flowmodoro', 'flowmodoro_shortcode');
