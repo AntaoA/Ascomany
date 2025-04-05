@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 1.8
+Version: 1.8.1
 Author: Ascomany
 */
 
@@ -63,12 +63,18 @@ function flowmodoro_shortcode() {
 
         function update() {
             const totalCs = Math.floor(milliseconds / 10);
-            const h = String(Math.floor(totalCs / 360000)).padStart(2, '0');
+            const h = Math.floor(totalCs / 360000);
             const m = String(Math.floor((totalCs % 360000) / 6000)).padStart(2, '0');
             const s = String(Math.floor((totalCs % 6000) / 100)).padStart(2, '0');
             const cs = String(totalCs % 100).padStart(2, '0');
 
-            const timeFormatted = `${h}:${m}:${s}<span style="font-size: 60%;">:${cs}</span>`;
+            let timeFormatted;
+            if (h > 0) {
+                timeFormatted = `${String(h).padStart(2, '0')}:${m}:${s}<span style="font-size: 60%;">:${cs}</span>`;
+            } else {
+                timeFormatted = `${m}:${s}<span style="font-size: 60%;">:${cs}</span>`;
+            }
+
             display.innerHTML = timeFormatted;
         }
 
