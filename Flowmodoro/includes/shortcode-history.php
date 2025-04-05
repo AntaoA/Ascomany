@@ -34,8 +34,25 @@ function flowmodoro_history_shortcode() {
             echo json_encode($data);
         ?>;
 
-        const sessionStorageHistory = sessionStorage.getItem("flowmodoro_session");
-        const sessionHistory = sessionStorageHistory ? JSON.parse(sessionStorageHistory) : [];
+        function getQueryParam(key) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(key);
+        }
+
+        let sessionHistory = [];
+
+        const sessionParam = getQueryParam("session");
+        if (sessionParam) {
+            try {
+                sessionHistory = JSON.parse(decodeURIComponent(sessionParam));
+            } catch (e) {
+                sessionHistory = [];
+            }
+        } else {
+            const sessionStorageHistory = sessionStorage.getItem("flowmodoro_session");
+            sessionHistory = sessionStorageHistory ? JSON.parse(sessionStorageHistory) : [];
+        }
+
 
         const list = document.getElementById("history-list");
 

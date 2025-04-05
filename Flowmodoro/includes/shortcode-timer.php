@@ -27,10 +27,8 @@ function flowmodoro_shortcode() {
             <div id="flowmodoro-total" style="margin-top: 10px; font-weight: bold;"></div>
         </div>
 
-        <div id="flowmodoro-history" style="position: absolute; top: 120px; right: 40px; text-align: left; max-width: 300px;">
-            <a href="/historique-flowmodoro" target="_blank">
-                <button id="show-history" style="margin-top: 20px;">📜 Voir l’historique</button>
-            </a>
+        <div id="flowmodoro-history" style="position: absolute; top: 120px; right: 40px; text-align: left;">
+            <button id="show-history" style="margin-top: 20px;">📜 Voir l’historique</button>
         </div>
     </div>
 
@@ -271,3 +269,8 @@ function flowmodoro_shortcode() {
     return ob_get_clean();
 }
 add_shortcode('flowmodoro', 'flowmodoro_shortcode');
+
+document.getElementById("show-history").addEventListener("click", () => {
+    const encoded = encodeURIComponent(JSON.stringify(sessionHistory));
+    window.open("/historique-flowmodoro?session=" + encoded, "_blank");
+});
