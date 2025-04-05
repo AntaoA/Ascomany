@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 1.5
+Version: 1.6
 Author: Ascomany
 */
 
@@ -24,6 +24,11 @@ function flowmodoro_shortcode() {
             <input type="number" id="pause-factor" value="2" min="0.1" step="0.1" style="width: 60px;">
             <button id="save-settings" style="margin-left: 10px;">Enregistrer</button>
         </div>
+
+        <div id="flowmodoro-history" style="position: absolute; top: 40px; right: 40px; text-align: left;">
+            h3>Historique</h3>
+            <ul id="flowmodoro-log" style="list-style: none; padding: 0; font-family: monospace;"></ul>
+        </div>
     </div>
 
     <script>
@@ -44,12 +49,28 @@ function flowmodoro_shortcode() {
         const pauseInput = document.getElementById("pause-factor");
         const saveBtn = document.getElementById("save-settings");
 
+
+        function formatTime(ms) {
+            const totalSec = Math.floor(ms / 1000);
+            const h = String(Math.floor(totalSec / 3600)).padStart(2, '0');
+            const m = String(Math.floor((totalSec % 3600) / 60)).padStart(2, '0');
+            const s = String(totalSec % 60).padStart(2, '0');
+            return `${h}:${m}:${s}`;
+        }
+
         function update() {
             const totalCs = Math.floor(milliseconds / 10);
             const min = String(Math.floor(totalCs / 6000)).padStart(2, '0');
             const sec = String(Math.floor((totalCs % 6000) / 100)).padStart(2, '0');
             const cs = String(totalCs % 100).padStart(2, '0');
             display.textContent = `${min}:${sec}:${cs}`;
+        }
+
+        function logHistory(type, duration) {
+            const log = document.getElementById("flowmodoro-log");
+            const li = document.createElement("li");
+            li.textContent = `${type} : ${formatTime(duration)}`;
+            log.prepend(li);
         }
 
         settingsBtn.addEventListener("click", () => {
@@ -89,6 +110,7 @@ function flowmodoro_shortcode() {
             reversing = true;
 
             const pauseDuration = Math.floor(milliseconds / pauseFactor);
+            logHistory("Travail", milliseconds);
             let pauseRemaining = pauseDuration;
 
             timer = setInterval(() => {
@@ -100,6 +122,7 @@ function flowmodoro_shortcode() {
                     clearInterval(timer);
                     status.textContent = "";
                     milliseconds = 0;
+                    logHistory("Pause", pauseDuration);
                     update();
                     startBtn.disabled = false;
                 }
