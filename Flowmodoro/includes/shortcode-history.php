@@ -34,6 +34,9 @@ function flowmodoro_history_shortcode() {
             echo json_encode($data);
         ?>;
 
+        const sessionStorageHistory = sessionStorage.getItem("flowmodoro_session");
+        const sessionHistory = sessionStorageHistory ? JSON.parse(sessionStorageHistory) : [];
+
         const list = document.getElementById("history-list");
 
         function formatTime(ms) {
@@ -49,33 +52,49 @@ function flowmodoro_history_shortcode() {
             return d.toLocaleString();
         }
 
+        function setActiveButton(range) {
+            document.querySelectorAll(".history-filter").forEach(btn => {
+                if (btn.dataset.range === range) {
+                    btn.style.fontWeight = "bold";
+                    btn.style.backgroundColor = "#eee";
+                } else {
+                    btn.style.fontWeight = "normal";
+                    btn.style.backgroundColor = "";
+                }
+            });
+        }
+
         function render(range) {
             list.innerHTML = "";
-
-            const now = Date.now();
-            const startOfDay = new Date();
-            startOfDay.setHours(0,0,0,0);
-
-            const startOfWeek = new Date();
-            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
-            startOfWeek.setHours(0,0,0,0);
-
-            const sessionStart = window.performance.timing.navigationStart;
+            setActiveButton(range);
 
             let filtered = [];
-            switch (range) {
-                case "session":
-                    filtered = allHistory.filter(e => e.timestamp > sessionStart);
-                    break;
-                case "day":
-                    filtered = allHistory.filter(e => e.timestamp > startOfDay.getTime());
-                    break;
-                case "week":
-                    filtered = allHistory.filter(e => e.timestamp > startOfWeek.getTime());
-                    break;
-                case "all":
+
+            if (range === "session") {
+                filtered = sessionHistory;
+            } else {
+                const now = new Date();
+                now.setHours(0,0,0,0);
+
+                const startOfDay = now.getTime();
+
+                const startOfWeek = new Date();
+                startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+                startOfWeek.setHours(0,0,0,0);
+                const startWeekTs = startOfWeek.getTime();
+
+                if (range === "day") {
+                    filtered = allHistory.filter(e => e.timestamp >= startOfDay);
+                } else if (range === "week") {
+                    filtered = allHistory.filter(e => e.timestamp >= startWeekTs);
+                } else {
                     filtered = allHistory;
-                    break;
+                }
+            }
+
+            if (filtered.length === 0) {
+                list.innerHTML = "<li style='color:#999;'>Aucune entrée trouvée.</li>";
+                return;
             }
 
             filtered.forEach(e => {

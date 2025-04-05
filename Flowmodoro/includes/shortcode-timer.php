@@ -130,6 +130,7 @@ function flowmodoro_shortcode() {
 
             allHistory.push(entry);
             sessionHistory.push(entry);
+            sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
 
             renderHistory("session");
             updateTotals();
