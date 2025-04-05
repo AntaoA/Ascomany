@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Un timer Flowmodoro.
-Version: 1.0
+Version: 1.1
 Author: Ascomany
 */
 
@@ -11,14 +11,15 @@ function flowmodoro_shortcode() {
     ?>
     <div id="flowmodoro-container" style="text-align: center; padding: 40px;">
         <h2>Flowmodoro</h2>
-        <div id="flowmodoro-timer" style="font-size: 80px; margin: 30px 0;">25:00</div>
+        <div id="flowmodoro-timer" style="font-size: 80px; margin: 30px 0;">00:00</div>
         <button id="flowmodoro-start" style="font-size: 20px; padding: 10px 20px;">Démarrer</button>
         <button id="flowmodoro-stop" style="font-size: 20px; padding: 10px 20px;" disabled>Arrêter</button>
     </div>
     <script>
     (function(){
         let timer;
-        let time = 25 * 60;
+        let time = 0;
+        const limit = 25 * 60;
         const display = document.getElementById("flowmodoro-timer");
         const startBtn = document.getElementById("flowmodoro-start");
         const stopBtn = document.getElementById("flowmodoro-stop");
@@ -33,13 +34,13 @@ function flowmodoro_shortcode() {
             startBtn.disabled = true;
             stopBtn.disabled = false;
             timer = setInterval(() => {
-                if (time > 0) {
-                    time--;
+                if (time < limit) {
+                    time++;
                     update();
                 } else {
                     clearInterval(timer);
                     alert("Temps écoulé !");
-                    time = 25 * 60;
+                    time = 0;
                     update();
                     startBtn.disabled = false;
                     stopBtn.disabled = true;
@@ -49,7 +50,7 @@ function flowmodoro_shortcode() {
 
         stopBtn.addEventListener("click", () => {
             clearInterval(timer);
-            time = 25 * 60;
+            time = 0;
             update();
             startBtn.disabled = false;
             stopBtn.disabled = true;
@@ -62,4 +63,3 @@ function flowmodoro_shortcode() {
     return ob_get_clean();
 }
 add_shortcode('flowmodoro', 'flowmodoro_shortcode');
-
