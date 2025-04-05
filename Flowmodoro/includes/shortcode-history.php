@@ -181,7 +181,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     const output = document.getElementById("history-output");
     const toggleBtn = document.getElementById("toggle-view");
-    const filterBtn = document.getElementById("filter-button");
     const filterDropdown = document.getElementById("filter-dropdown");
 
     let currentView = "session"; // ou "phase"
@@ -362,14 +361,7 @@ document.addEventListener('DOMContentLoaded', function () {
             : "🔁 Affichage : par phase";
         render();
     });
-
-    // Ouvrir ou fermer le menu filtre
-    filterBtn.addEventListener("click", () => {
-        const state = filterDropdown.style.display;
-        filterDropdown.style.display = (state === "block") ? "none" : "block";
-        if (filterDropdown.innerHTML.trim() === "") renderFilterDropdown();
-    });
-
+    
     // Gérer le menu de filtre par jour
     function renderFilterDropdown() {
         const uniqueDays = extractAvailableDates(allHistory);
