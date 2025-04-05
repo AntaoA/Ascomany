@@ -16,12 +16,15 @@ function flowmodoro_history_shortcode() {
         <div class="history-controls">
             <button id="toggle-view" class="toggle-button">🔁 Affichage : par session</button>
             <div class="time-filter">
-                <button id="filter-button">📅 Filtrer par date</button>
-                <div class="filter-dropdown" id="filter-dropdown" style="display: none;"></div>
+            <input id="datepicker" placeholder="📅 Sélectionner une période" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer;" readonly />
+            <div class="filter-dropdown" id="filter-dropdown" style="display: none;"></div>
             </div>
         </div>
         <div id="history-output"></div>
     </div>
+    <!-- Litepicker CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
     <style>
         .flowmodoro-history-container {
             max-width: 800px;
@@ -163,6 +166,7 @@ function flowmodoro_history_shortcode() {
     const filterDropdown = document.getElementById("filter-dropdown");
 
     let currentView = "session"; // ou "phase"
+    let selectedRange = null;
     let selectedDate = null; // timestamp de jour sélectionné
 
     function formatTime(ms) {
@@ -211,13 +215,14 @@ function flowmodoro_history_shortcode() {
     }
 
     function getFilteredHistory() {
-        const source = selectedDate === "session" ? sessionHistory : allHistory;
-        if (!selectedDate || selectedDate === "all" || selectedDate === "session") return source;
+        const source = currentView === "session" ? allHistory : allHistory;
 
-        const start = new Date(parseInt(selectedDate));
-        const end = new Date(start);
-        end.setHours(23, 59, 59, 999);
-        return source.filter(e => e.timestamp >= start.getTime() && e.timestamp <= end.getTime());
+        if (!selectedRange || selectedRange.length !== 2) {
+            return source;
+        }
+
+        const [startTs, endTs] = selectedRange;
+        return source.filter(e => e.timestamp >= startTs && e.timestamp <= endTs);
     }
 
     function render() {
@@ -398,6 +403,27 @@ function flowmodoro_history_shortcode() {
         filterDropdown.innerHTML = "";
         filterDropdown.appendChild(container);
     }
+    
+    const picker = new Litepicker({
+        element: document.getElementById('datepicker'),
+        singleMode: false,
+        format: 'YYYY-MM-DD',
+        numberOfMonths: 2,
+        numberOfColumns: 2,
+        lang: 'fr',
+        autoApply: true,
+        tooltipText: {
+            one: 'jour sélectionné',
+            other: 'jours sélectionnés'
+        },
+        setup: (picker) => {
+            picker.on('selected', (start, end) => {
+                selectedRange = [start.dateInstance.getTime(), end.dateInstance.getTime()];
+                render();
+            });
+        }
+    });
+
 
 })(); // fin du IIFE
 </script>
