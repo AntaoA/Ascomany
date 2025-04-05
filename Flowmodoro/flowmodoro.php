@@ -4,7 +4,6 @@ Plugin Name: Flowmodoro
 Description: Timer Flowmodoro avec centièmes et validation des paramètres.
 Version: 1.4
 Author: Ascomany
-Update URI: https://github.com/AntaoA/Ascomany
 */
 
 
