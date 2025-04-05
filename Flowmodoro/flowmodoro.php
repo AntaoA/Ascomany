@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 2.0.3
+Version: 2.0.4
 Author: Ascomany
 */
 
@@ -43,16 +43,22 @@ function flowmodoro_shortcode() {
         const userIsLoggedIn = true;
         </script>
     <?php else : ?>
-        <p style="color: red;">Connectez-vous pour sauvegarder votre historique.</p>
-        <p>
-            <a href="<?php echo esc_url( wp_login_url( get_permalink() ) ); ?>">Se connecter</a> |
-            <a href="<?php echo esc_url( wp_registration_url() ); ?>">Créer un compte</a>
-        </p>
+        <div style="color: red; margin-top: 20px;">
+            <p>Connectez-vous pour sauvegarder votre historique.</p>
+            <p style="margin-top: 10px;">
+                <a href="<?php echo esc_url( wp_login_url( get_permalink() ) ); ?>" style="margin-right: 10px;">
+                    🔐 Se connecter
+                </a>
+                <a href="<?php echo esc_url( wp_registration_url() ); ?>">
+                    🆕 Créer un compte
+                </a>
+            </p>
+        </div>
         <script>
         const savedHistory = [];
         const userIsLoggedIn = false;
         </script>
-<?php endif; ?>
+    <?php endif; ?>
     <script>
     (function(){
         let timer;
