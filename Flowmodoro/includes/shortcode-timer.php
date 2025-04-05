@@ -1,7 +1,7 @@
 <?php
 /**
  * Flowmodoro Shortcode
- *  * 
+ * 
  * @package Flowmodoro
  */
 function flowmodoro_shortcode() {
@@ -15,7 +15,6 @@ function flowmodoro_shortcode() {
         <button id="flowmodoro-stop" style="font-size: 18px; padding: 10px 20px;" disabled>Arrêter</button>
         <button id="flowmodoro-settings" style="font-size: 18px; padding: 10px 20px;">Paramètres</button>
 
-        <!-- Menu des paramètres -->
         <div id="flowmodoro-settings-menu" style="display: none; margin-top: 20px; text-align: center;">
             <label for="pause-factor">Facteur de pause :</label>
             <input type="number" id="pause-factor" value="5" min="0.1" step="0.1" style="width: 75px;">
@@ -68,12 +67,13 @@ function flowmodoro_shortcode() {
         let milliseconds = 0;
         let working = false;
         let reversing = false;
-        let pauseTarget = 0;
         let pauseFactor = 5;
         let totalWork = 0;
         let totalPause = 0;
         let allHistory = [];
         let sessionHistory = [];
+        let currentLiveEntry = null;
+        let liveEntryInterval = null;
 
         const display = document.getElementById("flowmodoro-timer");
         const status = document.getElementById("flowmodoro-status");
@@ -83,16 +83,14 @@ function flowmodoro_shortcode() {
         const settingsMenu = document.getElementById("flowmodoro-settings-menu");
         const pauseInput = document.getElementById("pause-factor");
         const saveBtn = document.getElementById("save-settings");
-
-        
         const log = document.getElementById("flowmodoro-log");
 
         if (savedHistory.length > 0) {
             allHistory = savedHistory.map(e => ({
                 ...e,
-                timestamp: e.timestamp || Date.now() // fallback pour anciens formats
+                timestamp: e.timestamp || Date.now()
             }));
-            renderHistory("session"); // n'affiche que les entrées de session
+            renderHistory("session");
             updateTotals();
         }
 
@@ -111,16 +109,10 @@ function flowmodoro_shortcode() {
             const s = String(Math.floor((totalCs % 6000) / 100)).padStart(2, '0');
             const cs = String(totalCs % 100).padStart(2, '0');
 
-            let timeFormatted;
-            if (h > 0) {
-                timeFormatted = `${String(h).padStart(2, '0')}:${m}:${s}<span style="font-size: 60%;">:${cs}</span>`;
-            } else {
-                timeFormatted = `${m}:${s}<span style="font-size: 60%;">:${cs}</span>`;
-            }
-
-            display.innerHTML = timeFormatted;
+            display.innerHTML = h > 0
+                ? `${String(h).padStart(2, '0')}:${m}:${s}<span style="font-size: 60%;">:${cs}</span>`
+                : `${m}:${s}<span style="font-size: 60%;">:${cs}</span>`;
         }
-
 
         function logHistory(type, duration) {
             clearInterval(liveEntryInterval);
@@ -129,26 +121,20 @@ function flowmodoro_shortcode() {
                 currentLiveEntry.end = Date.now();
                 currentLiveEntry = null;
             }
+
             const entry = {
                 type,
                 duration,
                 timestamp: Date.now()
             };
 
-            let currentLiveEntry = null;
-            let liveEntryInterval = null;
-
             allHistory.push(entry);
             sessionHistory.push(entry);
 
-            if (type === "Travail") {
-                totalWork += duration;
-            } else if (type === "Pause") {
-                totalPause += duration;
-            }
+            if (type === "Travail") totalWork += duration;
+            else if (type === "Pause") totalPause += duration;
 
-
-            renderHistory("session"); // Affiche uniquement la session
+            renderHistory("session");
             updateTotals();
 
             if (userIsLoggedIn) {
@@ -160,15 +146,10 @@ function flowmodoro_shortcode() {
             }
         }
 
-        function renderHistory(range) {
-            const log = document.getElementById("flowmodoro-log");
+        function renderHistory() {
             if (!log) return;
-
             log.innerHTML = "";
-
-            const filtered = sessionHistory;
-
-            filtered.forEach(item => {
+            sessionHistory.forEach(item => {
                 const li = document.createElement("li");
                 li.textContent = `${item.type} : ${formatTime(item.duration)}`;
                 li.style.color = item.type === "Travail" ? "#e74c3c" : "#3498db";
@@ -186,11 +167,7 @@ function flowmodoro_shortcode() {
 
         function renderLiveEntry() {
             clearInterval(liveEntryInterval);
-
-            const log = document.getElementById("flowmodoro-log");
             if (!log || !currentLiveEntry) return;
-
-            log.innerHTML = "";
 
             const li = document.createElement("li");
             li.style.color = currentLiveEntry.type === "Travail" ? "#e74c3c" : "#3498db";
@@ -199,31 +176,23 @@ function flowmodoro_shortcode() {
             function updateLive() {
                 const now = Date.now();
                 const elapsed = now - currentLiveEntry.start;
-                let displayTime;
-
-                if (currentLiveEntry.type === "Travail") {
-                    displayTime = formatTime(elapsed);
-                } else {
-                    const remaining = currentLiveEntry.duration - elapsed;
-                    displayTime = formatTime(Math.max(0, remaining));
-                }
+                let displayTime = currentLiveEntry.type === "Travail"
+                    ? formatTime(elapsed)
+                    : formatTime(Math.max(0, currentLiveEntry.duration - elapsed));
 
                 li.textContent = `${currentLiveEntry.type} (en cours) : ${displayTime}`;
             }
 
-            updateLive(); // call immediately
+            updateLive();
             liveEntryInterval = setInterval(updateLive, 1000);
         }
 
         settingsBtn.addEventListener("click", () => {
-            console.log("settingsBtn clicked");
             settingsMenu.style.display = settingsMenu.style.display === "none" ? "block" : "none";
             pauseInput.value = pauseFactor;
         });
-        
+
         saveBtn.addEventListener("click", () => {
-            console.log("saveBtn clicked");
-            settingsMenu.style.display = "none";
             const value = parseFloat(pauseInput.value);
             if (!isNaN(value) && value > 0) {
                 pauseFactor = value;
@@ -235,17 +204,17 @@ function flowmodoro_shortcode() {
         });
 
         startBtn.addEventListener("click", () => {
-            console.log("startBtn clicked");
             if (timer) clearInterval(timer);
             startBtn.disabled = true;
             stopBtn.disabled = false;
             status.textContent = "";
             working = true;
             reversing = false;
+            milliseconds = 0;
 
             currentLiveEntry = {
                 type: "Travail",
-                start: timestamp: Date.now()
+                start: Date.now()
             };
             renderLiveEntry();
 
@@ -256,7 +225,6 @@ function flowmodoro_shortcode() {
         });
 
         stopBtn.addEventListener("click", () => {
-            console.log("stopBtn clicked");
             clearInterval(timer);
             stopBtn.disabled = true;
             status.textContent = "Pause";
@@ -265,12 +233,14 @@ function flowmodoro_shortcode() {
 
             const pauseDuration = Math.floor(milliseconds / pauseFactor);
             logHistory("Travail", milliseconds);
+
             currentLiveEntry = {
                 type: "Pause",
                 start: Date.now(),
                 duration: pauseDuration
             };
             renderLiveEntry();
+
             let pauseRemaining = pauseDuration;
 
             timer = setInterval(() => {
