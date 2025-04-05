@@ -148,6 +148,17 @@ function flowmodoro_history_shortcode() {
         .litepicker-day.has-session:hover {
             background-color: #a8d2ff !important;
         }
+
+        .delete-session-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .delete-session-btn:hover {
+            color: #e74c3c;
+        }
     </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -275,9 +286,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 div.innerHTML = `
-                    <h4>${formatDate(session[0].timestamp, false)}<br>
-                    <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
-                    </h4>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="margin: 0;">${formatDate(session[0].timestamp, false)}</h4>
+                            <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
+                        </div>
+                        <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
+                    </div>
                 `;
                 div.appendChild(details);
 
@@ -286,6 +301,37 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 output.appendChild(div);
+            // gestion des suppressions de session
+            output.querySelectorAll(".delete-session-btn").forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation(); // évite d’ouvrir/fermer les détails
+                    const ts = parseInt(btn.dataset.ts);
+                    const sessionToDelete = sessions.find(s => s[0].timestamp === ts);
+                    if (sessionToDelete && confirm("Supprimer cette session ?")) {
+                        // Supprimer tous les éléments de cette session
+                        const timestampsToDelete = sessionToDelete.map(e => e.timestamp);
+                        for (let i = allHistory.length - 1; i >= 0; i--) {
+                            if (timestampsToDelete.includes(allHistory[i].timestamp)) {
+                                allHistory.splice(i, 1);
+                            }
+                        }
+                        sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
+                        sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                        // si connecté → AJAX
+                        if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                            fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                                body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                            });
+                        }
+
+                        render(); // met à jour l'affichage
+                    }
+                });
+            });
+
             });
         } else {
             const sorted = [...data].sort((a, b) => b.timestamp - a.timestamp);
@@ -361,7 +407,7 @@ document.addEventListener('DOMContentLoaded', function () {
             : "🔁 Affichage : par phase";
         render();
     });
-    
+
     // Gérer le menu de filtre par jour
     function renderFilterDropdown() {
         const uniqueDays = extractAvailableDates(allHistory);
