@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 1.9.2
+Version: 2.0
 Author: Ascomany
 */
 
@@ -52,6 +52,20 @@ function flowmodoro_shortcode() {
         const pauseInput = document.getElementById("pause-factor");
         const saveBtn = document.getElementById("save-settings");
 
+        const log = document.getElementById("flowmodoro-log");
+
+        if (savedHistory.length > 0) {
+            savedHistory.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = `${item.type} : ${formatTime(item.duration)}`;
+                li.style.color = item.type === "Travail" ? "#e74c3c" : "#3498db";
+                log.appendChild(li);
+
+                if (item.type === "Travail") totalWork += item.duration;
+                else totalPause += item.duration;
+            });
+            updateTotals();
+        }
 
         function formatTime(ms) {
             const totalSec = Math.floor(ms / 1000);
@@ -83,7 +97,7 @@ function flowmodoro_shortcode() {
             const log = document.getElementById("flowmodoro-log");
             const li = document.createElement("li");
             li.textContent = `${type} : ${formatTime(duration)}`;
-            li.style.color = (type === "Travail") ? "#e74c3c" : "#3498db"; // rouge / bleu
+            li.style.color = (type === "Travail") ? "#e74c3c" : "#3498db";
             log.prepend(li);
 
             if (type === "Travail") {
@@ -93,6 +107,24 @@ function flowmodoro_shortcode() {
             }
 
             updateTotals();
+
+            // 🔐 SAUVEGARDE si connecté
+            if (userIsLoggedIn) {
+                const historyItems = [...document.querySelectorAll('#flowmodoro-log li')].map(li => {
+                    const [type, timeStr] = li.textContent.split(" : ");
+                    const [h, m, s] = timeStr.split(":").map(n => parseInt(n));
+                    return {
+                        type,
+                        duration: ((h * 3600) + (m * 60) + s) * 1000
+                    };
+                });
+
+                fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: "history=" + encodeURIComponent(JSON.stringify(historyItems))
+                });
+            }
         }
 
         function updateTotals() {
@@ -167,7 +199,33 @@ function flowmodoro_shortcode() {
         update();
     })();
     </script>
+    <?php if (is_user_logged_in()) :
+        $user_id = get_current_user_id();
+        $history = get_user_meta($user_id, 'flowmodoro_history', true);
+    ?>
+        <script>
+        const savedHistory = <?php echo json_encode($history ?: []); ?>;
+        const userIsLoggedIn = true;
+        </script>
+    <?php else : ?>
+        <p style="color: red;">Connectez-vous pour sauvegarder votre historique.</p>
+        <script>
+        const savedHistory = [];
+        const userIsLoggedIn = false;
+        </script>
+    <?php endif; ?>
     <?php
-    return ob_get_clean();
+        return ob_get_clean();
 }
 add_shortcode('flowmodoro', 'flowmodoro_shortcode');
+
+
+
+add_action('wp_ajax_save_flowmodoro', function() {
+    if (!is_user_logged_in()) wp_send_json_error('Non connecté');
+
+    $user_id = get_current_user_id();
+    $history = $_POST['history'] ?? [];
+    update_user_meta($user_id, 'flowmodoro_history', $history);
+    wp_send_json_success();
+});
