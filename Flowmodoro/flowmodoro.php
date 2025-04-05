@@ -63,10 +63,13 @@ function flowmodoro_shortcode() {
 
         function update() {
             const totalCs = Math.floor(milliseconds / 10);
-            const min = String(Math.floor(totalCs / 6000)).padStart(2, '0');
-            const sec = String(Math.floor((totalCs % 6000) / 100)).padStart(2, '0');
+            const h = String(Math.floor(totalCs / 360000)).padStart(2, '0');
+            const m = String(Math.floor((totalCs % 360000) / 6000)).padStart(2, '0');
+            const s = String(Math.floor((totalCs % 6000) / 100)).padStart(2, '0');
             const cs = String(totalCs % 100).padStart(2, '0');
-            display.textContent = `${min}:${sec}:${cs}`;
+
+            const timeFormatted = `${h}:${m}:${s}<span style="font-size: 60%;">:${cs}</span>`;
+            display.innerHTML = timeFormatted;
         }
 
 
