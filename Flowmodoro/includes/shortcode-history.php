@@ -1,4 +1,9 @@
-
+<?php
+/**
+ * Flowmodoro History Shortcode
+ *
+ * @package Flowmodoro
+ */
 function flowmodoro_history_shortcode() {
     if (!is_user_logged_in()) {
         return '<p>Vous devez être connecté pour consulter votre historique.</p>';

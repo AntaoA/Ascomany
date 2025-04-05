@@ -1,3 +1,9 @@
+<?php
+/**
+ * Flowmodoro Shortcode
+ *  * 
+ * @package Flowmodoro
+ */
 function flowmodoro_shortcode() {
     ob_start();
     ?>
