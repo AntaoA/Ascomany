@@ -123,11 +123,20 @@ function flowmodoro_shortcode() {
 
 
         function logHistory(type, duration) {
+            clearInterval(liveEntryInterval);
+            if (currentLiveEntry) {
+                currentLiveEntry.duration = duration;
+                currentLiveEntry.end = Date.now();
+                currentLiveEntry = null;
+            }
             const entry = {
                 type,
                 duration,
                 timestamp: Date.now()
             };
+
+            let currentLiveEntry = null;
+            let liveEntryInterval = null;
 
             allHistory.push(entry);
             sessionHistory.push(entry);
@@ -175,6 +184,37 @@ function flowmodoro_shortcode() {
             `;
         }
 
+        function renderLiveEntry() {
+            clearInterval(liveEntryInterval);
+
+            const log = document.getElementById("flowmodoro-log");
+            if (!log || !currentLiveEntry) return;
+
+            log.innerHTML = "";
+
+            const li = document.createElement("li");
+            li.style.color = currentLiveEntry.type === "Travail" ? "#e74c3c" : "#3498db";
+            log.appendChild(li);
+
+            function updateLive() {
+                const now = Date.now();
+                const elapsed = now - currentLiveEntry.start;
+                let displayTime;
+
+                if (currentLiveEntry.type === "Travail") {
+                    displayTime = formatTime(elapsed);
+                } else {
+                    const remaining = currentLiveEntry.duration - elapsed;
+                    displayTime = formatTime(Math.max(0, remaining));
+                }
+
+                li.textContent = `${currentLiveEntry.type} (en cours) : ${displayTime}`;
+            }
+
+            updateLive(); // call immediately
+            liveEntryInterval = setInterval(updateLive, 1000);
+        }
+
         settingsBtn.addEventListener("click", () => {
             console.log("settingsBtn clicked");
             settingsMenu.style.display = settingsMenu.style.display === "none" ? "block" : "none";
@@ -203,6 +243,12 @@ function flowmodoro_shortcode() {
             working = true;
             reversing = false;
 
+            currentLiveEntry = {
+                type: "Travail",
+                start: timestamp: Date.now()
+            };
+            renderLiveEntry();
+
             timer = setInterval(() => {
                 milliseconds += 10;
                 update();
@@ -219,6 +265,12 @@ function flowmodoro_shortcode() {
 
             const pauseDuration = Math.floor(milliseconds / pauseFactor);
             logHistory("Travail", milliseconds);
+            currentLiveEntry = {
+                type: "Pause",
+                start: Date.now(),
+                duration: pauseDuration
+            };
+            renderLiveEntry();
             let pauseRemaining = pauseDuration;
 
             timer = setInterval(() => {
