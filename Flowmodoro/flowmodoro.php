@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 2.0.1
+Version: 2.0.2
 Author: Ascomany
 */
 
@@ -34,10 +34,12 @@ function flowmodoro_shortcode() {
 
     <?php if (is_user_logged_in()) :
         $user_id = get_current_user_id();
-        $history = get_user_meta($user_id, 'flowmodoro_history', true);
+        $raw_history = get_user_meta($user_id, 'flowmodoro_history', true);
+        $history = is_string($raw_history) ? json_decode($raw_history, true) : $raw_history;
+        if (!is_array($history)) $history = [];
     ?>
         <script>
-        const savedHistory = <?php echo json_encode($history ?: []); ?>;
+        const savedHistory = <?php echo json_encode($history); ?>;
         const userIsLoggedIn = true;
         </script>
     <?php else : ?>
@@ -46,8 +48,7 @@ function flowmodoro_shortcode() {
         const savedHistory = [];
         const userIsLoggedIn = false;
         </script>
-    <?php endif; ?>
-    
+<?php endif; ?>
     <script>
     (function(){
         let timer;
@@ -68,6 +69,7 @@ function flowmodoro_shortcode() {
         const pauseInput = document.getElementById("pause-factor");
         const saveBtn = document.getElementById("save-settings");
 
+        
         const log = document.getElementById("flowmodoro-log");
 
         if (savedHistory.length > 0) {
