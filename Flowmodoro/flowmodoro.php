@@ -2,14 +2,16 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 2.3.1
+Version: 2.3.2
 Author: Ascomany
 */
 
 
-require_once plugin_dir_path(__FILE__) . 'includes/shortcode-timer.php';
-require_once plugin_dir_path(__FILE__) . 'includes/shortcode-history.php';
+$timer = plugin_dir_path(__FILE__) . 'includes/shortcode-timer.php';
+$history = plugin_dir_path(__FILE__) . 'includes/shortcode-history.php';
 
+if (file_exists($timer)) require_once $timer;
+if (file_exists($history)) require_once $history;
 
 add_action('wp_ajax_save_flowmodoro', function() {
     if (!is_user_logged_in()) wp_send_json_error('Non connecté');
