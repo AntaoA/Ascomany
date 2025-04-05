@@ -28,63 +28,83 @@ function flowmodoro_history_shortcode() {
             margin: auto;
             padding: 20px;
             font-family: sans-serif;
-            color: #222;
+            background: #fafafa;
+            color: #111;
         }
+
         .history-controls {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
+
         .toggle-button, #filter-button {
             padding: 8px 16px;
-            background: #eee;
+            background: #f0f0f0;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            color: #111;
         }
+
         .toggle-button:hover, #filter-button:hover {
             background: #ddd;
         }
+
         .session-block {
-            background: #f9f9f9;
-            border: 2px solid #ccc;
+            background: #fff;
+            border: 1px solid #ccc;
             border-radius: 5px;
             margin-bottom: 15px;
             padding: 10px 15px;
-            transition: background 0.2s;
             cursor: pointer;
+            color: #111;
         }
+
         .session-block:hover {
-            background: #f0f0f0;
+            background: #f2f2f2;
         }
+
         .session-details {
             margin-top: 10px;
             display: none;
         }
+
         .entry-line {
             font-family: monospace;
             margin: 5px 0;
+            color: #222;
         }
+
         .entry-travail {
             color: #e74c3c;
         }
+
         .entry-pause {
             color: #3498db;
         }
+
         .entry-phase {
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
+
         .view-session-btn {
             font-size: 0.8em;
             padding: 2px 6px;
             border: 1px solid #ccc;
             background: white;
+            color: #111;
             cursor: pointer;
             border-radius: 4px;
         }
+
+        .view-session-btn:hover {
+            background: #eee;
+        }
+
         .filter-dropdown {
             position: absolute;
             background: #fff;
@@ -93,22 +113,28 @@ function flowmodoro_history_shortcode() {
             z-index: 10;
             max-height: 300px;
             overflow-y: auto;
+            color: #111;
         }
+
         .filter-dropdown ul {
             list-style: none;
             margin: 0;
             padding: 0;
         }
+
         .filter-dropdown li {
             padding: 5px 10px;
             cursor: pointer;
+            color: #111;
         }
+
         .filter-dropdown li:hover {
             background: #eee;
         }
+
         .empty-message {
             font-style: italic;
-            color: #999;
+            color: #888;
         }
     </style>
 <script>
