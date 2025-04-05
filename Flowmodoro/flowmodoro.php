@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: Flowmodoro
-Description: Timer Flowmodoro avec centièmes et validation des paramètres.
-Version: 1.4
+Description: Timer Flowmodoro
+Version: 1.5
 Author: Ascomany
 */
 
@@ -88,11 +88,13 @@ function flowmodoro_shortcode() {
             working = false;
             reversing = true;
 
-            pauseTarget = Math.floor(milliseconds - (milliseconds / pauseFactor));
+            const pauseDuration = Math.floor(milliseconds / pauseFactor);
+            let pauseRemaining = pauseDuration;
 
             timer = setInterval(() => {
-                if (milliseconds > pauseTarget) {
-                    milliseconds -= 10;
+                if (pauseRemaining > 0) {
+                    pauseRemaining -= 10;
+                    milliseconds = pauseRemaining;
                     update();
                 } else {
                     clearInterval(timer);
@@ -103,7 +105,6 @@ function flowmodoro_shortcode() {
                 }
             }, 10);
         });
-
         update();
     })();
     </script>
