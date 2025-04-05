@@ -206,6 +206,8 @@ function flowmodoro_shortcode() {
             }
         });
 
+        let lastUpdateTimestamp = null;
+
         startBtn.addEventListener("click", () => {
             if (timer) clearInterval(timer);
             startBtn.disabled = true;
@@ -221,10 +223,14 @@ function flowmodoro_shortcode() {
             };
             renderLiveEntry();
 
+            lastUpdateTimestamp = Date.now();
             timer = setInterval(() => {
-                milliseconds += 10;
+                const now = Date.now();
+                const delta = now - lastUpdateTimestamp;
+                lastUpdateTimestamp = now;
+                milliseconds += delta;
                 update();
-            }, 10);
+            }, 50); // pas besoin de 10ms pour une précision utile
         });
 
         stopBtn.addEventListener("click", () => {
@@ -245,13 +251,18 @@ function flowmodoro_shortcode() {
             renderLiveEntry();
 
             let pauseRemaining = pauseDuration;
+            lastUpdateTimestamp = Date.now();
 
             timer = setInterval(() => {
-                if (pauseRemaining > 0) {
-                    pauseRemaining -= 10;
-                    milliseconds = pauseRemaining;
-                    update();
-                } else {
+                const now = Date.now();
+                const delta = now - lastUpdateTimestamp;
+                lastUpdateTimestamp = now;
+
+                pauseRemaining -= delta;
+                milliseconds = pauseRemaining;
+                update();
+
+                if (pauseRemaining <= 0) {
                     clearInterval(timer);
                     status.textContent = "";
                     milliseconds = 0;
@@ -259,9 +270,9 @@ function flowmodoro_shortcode() {
                     update();
                     startBtn.disabled = false;
                 }
-            }, 10);
+            }, 100);
         });
-
+        
         update();
 
     
@@ -269,7 +280,7 @@ function flowmodoro_shortcode() {
             const encoded = encodeURIComponent(JSON.stringify(sessionHistory));
             window.open("/historique-flowmodoro?session=" + encoded, "_blank");
         });
-        
+
     })();
     </script>
     <?php
