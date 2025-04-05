@@ -2,9 +2,11 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro avec centièmes et validation des paramètres.
-Version: 1.3.1
+Version: 1.4
 Author: Ascomany
+Update URI: git@github.com:AntaoA/Ascomany.git
 */
+
 
 function flowmodoro_shortcode() {
     ob_start();
