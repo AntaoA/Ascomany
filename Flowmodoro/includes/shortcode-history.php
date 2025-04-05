@@ -304,12 +304,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 output.appendChild(div);
             // gestion des suppressions de session
             output.querySelectorAll(".delete-session-btn").forEach(btn => {
-                btn.addEventListener("click", (e) => {
-                    e.stopPropagation(); // évite d’ouvrir/fermer les détails
+                btn.onclick = (e) => {
+                    e.stopPropagation();
                     const ts = parseInt(btn.dataset.ts);
                     const sessionToDelete = sessions.find(s => s[0].timestamp === ts);
-                    if (sessionToDelete && confirm("Supprimer cette session ?")) {
-                        // Supprimer tous les éléments de cette session
+
+                    confirmCustom("Supprimer cette session ?", (ok) => {
+                        if (!ok) return;
+
                         const timestampsToDelete = sessionToDelete.map(e => e.timestamp);
                         for (let i = allHistory.length - 1; i >= 0; i--) {
                             if (timestampsToDelete.includes(allHistory[i].timestamp)) {
@@ -319,7 +321,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
                         sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
 
-                        // si connecté → AJAX
                         if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
                             fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
                                 method: "POST",
@@ -328,10 +329,11 @@ document.addEventListener('DOMContentLoaded', function () {
                             });
                         }
 
-                        render(); // met à jour l'affichage
-                    }
-                });
+                        render();
+                    });
+                };
             });
+
 
             });
         } else {
