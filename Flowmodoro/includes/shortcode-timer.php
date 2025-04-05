@@ -263,14 +263,16 @@ function flowmodoro_shortcode() {
         });
 
         update();
+
+    
+        document.getElementById("show-history").addEventListener("click", () => {
+            const encoded = encodeURIComponent(JSON.stringify(sessionHistory));
+            window.open("/historique-flowmodoro?session=" + encoded, "_blank");
+        });
+        
     })();
     </script>
     <?php
     return ob_get_clean();
 }
 add_shortcode('flowmodoro', 'flowmodoro_shortcode');
-
-document.getElementById("show-history").addEventListener("click", () => {
-    const encoded = encodeURIComponent(JSON.stringify(sessionHistory));
-    window.open("/historique-flowmodoro?session=" + encoded, "_blank");
-});
