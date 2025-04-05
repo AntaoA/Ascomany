@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 1.8.1
+Version: 1.9
 Author: Ascomany
 */
 
@@ -21,7 +21,7 @@ function flowmodoro_shortcode() {
         <!-- Menu des paramètres -->
         <div id="flowmodoro-settings-menu" style="display: none; margin-top: 20px; text-align: center;">
             <label for="pause-factor">Facteur de pause :</label>
-            <input type="number" id="pause-factor" value="2" min="0.1" step="0.1" style="width: 60px;">
+            <input type="number" id="pause-factor" value="5" min="0.1" step="0.1" style="width: 75px;">
             <button id="save-settings" style="margin-left: 10px;">Enregistrer</button>
         </div>
 
@@ -103,6 +103,11 @@ function flowmodoro_shortcode() {
             `;
         }
 
+        settingsBtn.addEventListener("click", () => {
+            settingsMenu.style.display = settingsMenu.style.display === "none" ? "block" : "none";
+            pauseInput.value = pauseFactor;
+        });
+        
         saveBtn.addEventListener("click", () => {
             const value = parseFloat(pauseInput.value);
             if (!isNaN(value) && value > 0) {
