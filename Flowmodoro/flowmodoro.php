@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 1.9
+Version: 1.9.1
 Author: Ascomany
 */
 
@@ -33,6 +33,7 @@ function flowmodoro_shortcode() {
     </div>
 
     <script>
+    document.addEventListener("DOMContentLoaded", function () {
     (function(){
         let timer;
         let milliseconds = 0;
@@ -161,6 +162,7 @@ function flowmodoro_shortcode() {
         });
         update();
     })();
+    });
     </script>
     <?php
     return ob_get_clean();
