@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 2.2
+Version: 2.2.1
 Author: Ascomany
 */
 
@@ -26,7 +26,7 @@ function flowmodoro_shortcode() {
         </div>
 
         <div id="flowmodoro-history" style="position: absolute; top: 40px; right: 40px; text-align: left; max-width: 300px;">
-            <a href="/flowmodoro-historique" target="_blank">
+            <a href="/historique-flowmodoro" target="_blank">
                 <button id="show-history" style="margin-top: 20px;">📜 Voir l’historique</button>
             </a>
         </div>
