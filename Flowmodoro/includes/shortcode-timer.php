@@ -131,6 +131,14 @@ function flowmodoro_shortcode() {
 
             allHistory.push(entry);
             sessionHistory.push(entry);
+
+            if (type === "Travail") {
+                totalWork += duration;
+            } else if (type === "Pause") {
+                totalPause += duration;
+            }
+
+
             renderHistory("session"); // Affiche uniquement la session
             updateTotals();
 
