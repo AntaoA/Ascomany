@@ -139,6 +139,15 @@ function flowmodoro_history_shortcode() {
             font-style: italic;
             color: #888;
         }
+        .litepicker-day.has-session {
+            background-color: #d1e8ff !important;
+            border-radius: 50%;
+            position: relative;
+        }
+
+        .litepicker-day.has-session:hover {
+            background-color: #a8d2ff !important;
+        }
     </style>
 <script>
 (function(){
@@ -149,6 +158,16 @@ function flowmodoro_history_shortcode() {
         if (!is_array($data)) $data = [];
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     ?>;
+
+    function getActiveDates(history) {
+        const dates = new Set();
+        history.forEach(e => {
+            const d = new Date(e.timestamp);
+            d.setHours(0, 0, 0, 0);
+            dates.add(d.toISOString().split('T')[0]); // format 'YYYY-MM-DD'
+        });
+        return Array.from(dates);
+    }
 
     const sessionParam = new URLSearchParams(window.location.search).get("session");
     let sessionHistory = [];
@@ -404,6 +423,8 @@ function flowmodoro_history_shortcode() {
         filterDropdown.appendChild(container);
     }
     
+
+    const activeDates = getActiveDates(allHistory);
     const picker = new Litepicker({
         element: document.getElementById('datepicker'),
         singleMode: false,
@@ -417,6 +438,19 @@ function flowmodoro_history_shortcode() {
             other: 'jours sélectionnés'
         },
         setup: (picker) => {
+            picker.on('render', () => {
+                const days = document.querySelectorAll('.litepicker-day');
+
+                days.forEach(day => {
+                    const date = day.dataset.time
+                        ? new Date(parseInt(day.dataset.time)).toISOString().split('T')[0]
+                        : null;
+
+                    if (date && activeDates.includes(date)) {
+                        day.classList.add('has-session');
+                    }
+                });
+            });
             picker.on('selected', (start, end) => {
                 selectedRange = [start.dateInstance.getTime(), end.dateInstance.getTime()];
                 render();
