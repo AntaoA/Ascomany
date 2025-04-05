@@ -424,39 +424,42 @@ function flowmodoro_history_shortcode() {
     }
     
 
-    const activeDates = getActiveDates(allHistory);
-    const picker = new Litepicker({
-        element: document.getElementById('datepicker'),
-        singleMode: false,
-        format: 'YYYY-MM-DD',
-        numberOfMonths: 2,
-        numberOfColumns: 2,
-        lang: 'fr',
-        autoApply: true,
-        tooltipText: {
-            one: 'jour sélectionné',
-            other: 'jours sélectionnés'
-        },
-        setup: (picker) => {
-            picker.on('render', () => {
-                const days = document.querySelectorAll('.litepicker-day');
+    if (dateInput) {
+        const activeDates = getActiveDates(allHistory);
+        const picker = new Litepicker({
+            element: dateInput,
+            singleMode: false,
+            format: 'YYYY-MM-DD',
+            numberOfMonths: 2,
+            numberOfColumns: 2,
+            lang: 'fr',
+            autoApply: true,
+            tooltipText: {
+                one: 'jour sélectionné',
+                other: 'jours sélectionnés'
+            },
+            setup: (picker) => {
+                picker.on('render', () => {
+                    const days = document.querySelectorAll('.litepicker-day');
 
-                days.forEach(day => {
-                    const date = day.dataset.time
-                        ? new Date(parseInt(day.dataset.time)).toISOString().split('T')[0]
-                        : null;
+                    days.forEach(day => {
+                        const date = day.dataset.time
+                            ? new Date(parseInt(day.dataset.time)).toISOString().split('T')[0]
+                            : null;
 
-                    if (date && activeDates.includes(date)) {
-                        day.classList.add('has-session');
-                    }
+                        if (date && activeDates.includes(date)) {
+                            day.classList.add('has-session');
+                        }
+                    });
                 });
-            });
-            picker.on('selected', (start, end) => {
-                selectedRange = [start.dateInstance.getTime(), end.dateInstance.getTime()];
-                render();
-            });
-        }
-    });
+                picker.on('selected', (start, end) => {
+                    selectedRange = [start.dateInstance.getTime(), end.dateInstance.getTime()];
+                    render();
+                });
+                picker.on('shown', () => picker.refresh());
+            }
+        });
+    }
 
 
 })(); // fin du IIFE
