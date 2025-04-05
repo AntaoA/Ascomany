@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 2.0.4
+Version: 2.1
 Author: Ascomany
 */
 
@@ -25,10 +25,19 @@ function flowmodoro_shortcode() {
             <button id="save-settings" style="margin-left: 10px;">Enregistrer</button>
         </div>
 
-        <div id="flowmodoro-history" style="position: absolute; top: 40px; right: 40px; text-align: left;">
-            <h3>Historique</h3>
+        <div id="flowmodoro-history" style="position: absolute; top: 40px; right: 40px; text-align: left; max-width: 300px;">
+            <h3>Historique (session)</h3>
             <ul id="flowmodoro-log" style="list-style: none; padding: 0; font-family: monospace;"></ul>
             <div id="flowmodoro-total" style="margin-top: 10px; font-weight: bold;"></div>
+
+            <button id="show-history" style="margin-top: 20px;">📜 Voir l’historique</button>
+
+            <div id="history-filters" style="display: none; margin-top: 10px;">
+                <button data-range="session">Session</button>
+                <button data-range="day">Aujourd’hui</button>
+                <button data-range="week">Semaine</button>
+                <button data-range="all">Tout</button>
+            </div>
         </div>
     </div>
 
@@ -69,6 +78,8 @@ function flowmodoro_shortcode() {
         let pauseFactor = 5;
         let totalWork = 0;
         let totalPause = 0;
+        let allHistory = [];
+        let sessionHistory = [];
 
         const display = document.getElementById("flowmodoro-timer");
         const status = document.getElementById("flowmodoro-status");
@@ -83,15 +94,11 @@ function flowmodoro_shortcode() {
         const log = document.getElementById("flowmodoro-log");
 
         if (savedHistory.length > 0) {
-            savedHistory.forEach(item => {
-                const li = document.createElement("li");
-                li.textContent = `${item.type} : ${formatTime(item.duration)}`;
-                li.style.color = item.type === "Travail" ? "#e74c3c" : "#3498db";
-                log.appendChild(li);
-
-                if (item.type === "Travail") totalWork += item.duration;
-                else totalPause += item.duration;
-            });
+            allHistory = savedHistory.map(e => ({
+                ...e,
+                timestamp: e.timestamp || Date.now() // fallback pour anciens formats
+            }));
+            renderHistory("session"); // n'affiche que les entrées de session
             updateTotals();
         }
 
@@ -122,37 +129,63 @@ function flowmodoro_shortcode() {
 
 
         function logHistory(type, duration) {
-            const log = document.getElementById("flowmodoro-log");
-            const li = document.createElement("li");
-            li.textContent = `${type} : ${formatTime(duration)}`;
-            li.style.color = (type === "Travail") ? "#e74c3c" : "#3498db";
-            log.prepend(li);
+            const entry = {
+                type,
+                duration,
+                timestamp: Date.now()
+            };
 
-            if (type === "Travail") {
-                totalWork += duration;
-            } else {
-                totalPause += duration;
-            }
-
+            allHistory.push(entry);
+            sessionHistory.push(entry);
+            renderHistory("session"); // Affiche uniquement la session
             updateTotals();
 
-            // 🔐 SAUVEGARDE si connecté
             if (userIsLoggedIn) {
-                const historyItems = [...document.querySelectorAll('#flowmodoro-log li')].map(li => {
-                    const [type, timeStr] = li.textContent.split(" : ");
-                    const [h, m, s] = timeStr.split(":").map(n => parseInt(n));
-                    return {
-                        type,
-                        duration: ((h * 3600) + (m * 60) + s) * 1000
-                    };
-                });
-
                 fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
                     method: "POST",
                     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                    body: "history=" + encodeURIComponent(JSON.stringify(historyItems))
+                    body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
                 });
             }
+        }
+
+        function renderHistory(range) {
+            const log = document.getElementById("flowmodoro-log");
+            log.innerHTML = "";
+
+            let filtered = [];
+
+            const now = Date.now();
+            const startOfDay = new Date();
+            startOfDay.setHours(0, 0, 0, 0);
+
+            const startOfWeek = new Date();
+            startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            switch (range) {
+                case "session":
+                    filtered = sessionHistory;
+                    break;
+                case "day":
+                    filtered = allHistory.filter(e => e.timestamp >= startOfDay.getTime());
+                    break;
+                case "week":
+                    filtered = allHistory.filter(e => e.timestamp >= startOfWeek.getTime());
+                    break;
+                case "all":
+                    filtered = allHistory;
+                    break;
+            }
+
+            filtered.forEach(item => {
+                const li = document.createElement("li");
+                li.textContent = `${item.type} : ${formatTime(item.duration)}`;
+                li.style.color = item.type === "Travail" ? "#e74c3c" : "#3498db";
+                log.appendChild(li);
+            });
+
+            document.querySelector("#flowmodoro-history h3").textContent = `Historique (${range})`;
         }
 
         function updateTotals() {
@@ -224,6 +257,19 @@ function flowmodoro_shortcode() {
                 }
             }, 10);
         });
+
+        document.getElementById("show-history").addEventListener("click", () => {
+            const filters = document.getElementById("history-filters");
+            filters.style.display = filters.style.display === "none" ? "block" : "none";
+        });
+
+        document.querySelectorAll("#history-filters button").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const range = btn.dataset.range;
+                renderHistory(range);
+            });
+        });
+
         update();
     })();
     </script>
