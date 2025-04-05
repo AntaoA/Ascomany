@@ -130,7 +130,7 @@ function flowmodoro_shortcode() {
 
             allHistory.push(entry);
             sessionHistory.push(entry);
-            
+
             renderHistory("session");
             updateTotals();
 
@@ -170,21 +170,25 @@ function flowmodoro_shortcode() {
             li.style.color = currentLiveEntry.type === "Travail" ? "#e74c3c" : "#3498db";
             log.appendChild(li);
 
-            function updateLive() {
+            function updateLive(addToTotal = false) {
                 const now = Date.now();
                 const elapsed = now - currentLiveEntry.start;
+
                 let displayTime = formatTime(elapsed)
                 li.textContent = `${currentLiveEntry.type} (en cours) : ${displayTime}`;
-                if (currentLiveEntry.type === "Travail") {
-                    totalWork += 1000;
-                } else if (currentLiveEntry.type === "Pause") {
-                    totalPause += 1000;
+                if (addToTotal) {
+                    if (currentLiveEntry.type === "Travail") {
+                        totalWork += 1000;
+                    } else if (currentLiveEntry.type === "Pause") {
+                        totalPause += 1000;
+                    }
+                    updateTotals();
                 }
-                updateTotals();
             }
 
-            updateLive();
-            liveEntryInterval = setInterval(updateLive, 1000);
+            updateLive(false); // premier affichage, pas d'ajout de temps
+            liveEntryInterval = setInterval(() => updateLive(true), 1000);
+
         }
 
         settingsBtn.addEventListener("click", () => {
