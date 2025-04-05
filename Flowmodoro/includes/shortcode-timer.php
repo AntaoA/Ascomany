@@ -101,15 +101,15 @@ function flowmodoro_shortcode() {
         }
 
         function update() {
-            const totalCs = Math.floor(milliseconds / 10);
-            const h = Math.floor(totalCs / 360000);
-            const m = String(Math.floor((totalCs % 360000) / 6000)).padStart(2, '0');
-            const s = String(Math.floor((totalCs % 6000) / 100)).padStart(2, '0');
-            const cs = String(totalCs % 100).padStart(2, '0');
-
+            const totalDeci = Math.floor(milliseconds / 100); // 1/10e de seconde
+            const h = Math.floor(totalDeci / 36000);
+            const m = String(Math.floor((totalDeci % 36000) / 600)).padStart(2, '0');
+            const s = String(Math.floor((totalDeci % 600) / 10)).padStart(2, '0');
+            const d = String(totalDeci % 10); // dixième
+ 
             display.innerHTML = h > 0
-                ? `${String(h).padStart(2, '0')}:${m}:${s}<span style="font-size: 60%;">:${cs}</span>`
-                : `${m}:${s}<span style="font-size: 60%;">:${cs}</span>`;
+            ? `${String(h).padStart(2, '0')}:${m}:${s}<span style="font-size: 60%;">.${d}</span>`
+            : `${m}:${s}<span style="font-size: 60%;">.${d}</span>`;
         }
 
         function logHistory(type, duration) {
