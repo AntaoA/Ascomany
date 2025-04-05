@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: Flowmodoro
-Description: Timer Flowmodoro avec centièmes et durée de pause réglable.
-Version: 1.3
+Description: Timer Flowmodoro avec centièmes et validation des paramètres.
+Version: 1.3.1
 Author: Ascomany
 */
 
@@ -19,8 +19,9 @@ function flowmodoro_shortcode() {
 
         <!-- Menu des paramètres -->
         <div id="flowmodoro-settings-menu" style="display: none; margin-top: 20px; text-align: center;">
-            <label for="pause-factor">Facteur de pause (ex: 1 = pause = travail):</label>
+            <label for="pause-factor">Facteur de pause :</label>
             <input type="number" id="pause-factor" value="2" min="0.1" step="0.1" style="width: 60px;">
+            <button id="save-settings" style="margin-left: 10px;">Enregistrer</button>
         </div>
     </div>
 
@@ -31,6 +32,7 @@ function flowmodoro_shortcode() {
         let working = false;
         let reversing = false;
         let pauseTarget = 0;
+        let pauseFactor = 2;
 
         const display = document.getElementById("flowmodoro-timer");
         const status = document.getElementById("flowmodoro-status");
@@ -39,6 +41,7 @@ function flowmodoro_shortcode() {
         const settingsBtn = document.getElementById("flowmodoro-settings");
         const settingsMenu = document.getElementById("flowmodoro-settings-menu");
         const pauseInput = document.getElementById("pause-factor");
+        const saveBtn = document.getElementById("save-settings");
 
         function update() {
             const totalCs = Math.floor(milliseconds / 10);
@@ -50,6 +53,17 @@ function flowmodoro_shortcode() {
 
         settingsBtn.addEventListener("click", () => {
             settingsMenu.style.display = settingsMenu.style.display === "none" ? "block" : "none";
+        });
+
+        saveBtn.addEventListener("click", () => {
+            const value = parseFloat(pauseInput.value);
+            if (!isNaN(value) && value > 0) {
+                pauseFactor = value;
+                alert("Paramètres enregistrés : facteur de pause = " + pauseFactor);
+                settingsMenu.style.display = "none";
+            } else {
+                alert("Veuillez entrer un nombre valide supérieur à 0.");
+            }
         });
 
         startBtn.addEventListener("click", () => {
@@ -73,11 +87,10 @@ function flowmodoro_shortcode() {
             working = false;
             reversing = true;
 
-            const factor = parseFloat(pauseInput.value) || 1;
-            pauseTarget = Math.floor(milliseconds / factor);
+            pauseTarget = Math.floor(milliseconds - (milliseconds / pauseFactor));
 
             timer = setInterval(() => {
-                if (milliseconds > 0 && milliseconds > pauseTarget) {
+                if (milliseconds > pauseTarget) {
                     milliseconds -= 10;
                     update();
                 } else {
