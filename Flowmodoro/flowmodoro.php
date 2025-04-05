@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 1.9.1
+Version: 1.9.2
 Author: Ascomany
 */
 
@@ -33,7 +33,6 @@ function flowmodoro_shortcode() {
     </div>
 
     <script>
-    document.addEventListener("DOMContentLoaded", function () {
     (function(){
         let timer;
         let milliseconds = 0;
@@ -105,11 +104,14 @@ function flowmodoro_shortcode() {
         }
 
         settingsBtn.addEventListener("click", () => {
+            console.log("settingsBtn clicked");
             settingsMenu.style.display = settingsMenu.style.display === "none" ? "block" : "none";
             pauseInput.value = pauseFactor;
         });
         
         saveBtn.addEventListener("click", () => {
+            console.log("saveBtn clicked");
+            settingsMenu.style.display = "none";
             const value = parseFloat(pauseInput.value);
             if (!isNaN(value) && value > 0) {
                 pauseFactor = value;
@@ -121,6 +123,7 @@ function flowmodoro_shortcode() {
         });
 
         startBtn.addEventListener("click", () => {
+            console.log("startBtn clicked");
             if (timer) clearInterval(timer);
             startBtn.disabled = true;
             stopBtn.disabled = false;
@@ -135,6 +138,7 @@ function flowmodoro_shortcode() {
         });
 
         stopBtn.addEventListener("click", () => {
+            console.log("stopBtn clicked");
             clearInterval(timer);
             stopBtn.disabled = true;
             status.textContent = "Pause";
@@ -162,7 +166,6 @@ function flowmodoro_shortcode() {
         });
         update();
     })();
-    });
     </script>
     <?php
     return ob_get_clean();
