@@ -351,10 +351,47 @@ document.addEventListener('DOMContentLoaded', function () {
                 div.innerHTML = `
                     <div class="entry-phase">
                         <span><strong>${e.type}</strong> — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
-                        <button class="view-session-btn" data-ts="${e.timestamp}">👁 Voir session</button>
+                        <div>
+                            <button class="view-session-btn" data-ts="${e.timestamp}">👁</button>
+                            <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+                        </div>
                     </div>
                 `;
                 output.appendChild(div);
+            // gestion des suppressions de phases
+            output.querySelectorAll(".delete-phase-btn").forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const ts = parseInt(btn.dataset.ts);
+
+                    confirmCustom("Supprimer cette phase ?", (ok) => {
+                        if (!ok) return;
+
+                        // Supprime de allHistory
+                        for (let i = allHistory.length - 1; i >= 0; i--) {
+                            if (allHistory[i].timestamp === ts) {
+                                allHistory.splice(i, 1);
+                                break;
+                            }
+                        }
+
+                        // Supprime de la session locale
+                        sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
+                        sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                        // si connecté, sync
+                        if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                            fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                                body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                            });
+                        }
+
+                        render();
+                    });
+                };
+            });
             });
 
             // gestion des boutons "voir session"
