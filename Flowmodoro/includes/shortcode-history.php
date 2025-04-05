@@ -150,7 +150,7 @@ function flowmodoro_history_shortcode() {
         }
     </style>
 <script>
-(function(){
+document.addEventListener('DOMContentLoaded', function () {
     const allHistory = <?php
         $user_id = get_current_user_id();
         $history = get_user_meta($user_id, 'flowmodoro_history', true);
@@ -463,7 +463,7 @@ function flowmodoro_history_shortcode() {
     }
 
 
-})(); // fin du IIFE
+}); // fin du IIFE
 </script>
 <?php
 return ob_get_clean();
