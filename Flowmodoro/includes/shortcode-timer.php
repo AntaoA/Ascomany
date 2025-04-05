@@ -176,11 +176,14 @@ function flowmodoro_shortcode() {
             function updateLive() {
                 const now = Date.now();
                 const elapsed = now - currentLiveEntry.start;
-                let displayTime = currentLiveEntry.type === "Travail"
-                    ? formatTime(elapsed)
-                    : formatTime(Math.max(0, currentLiveEntry.duration - elapsed));
-
+                let displayTime = formatTime(elapsed)
                 li.textContent = `${currentLiveEntry.type} (en cours) : ${displayTime}`;
+                if (currentLiveEntry.type === "Travail") {
+                    totalWork += 1000;
+                } else if (currentLiveEntry.type === "Pause") {
+                    totalPause += 1000;
+                }
+                updateTotals();
             }
 
             updateLive();
