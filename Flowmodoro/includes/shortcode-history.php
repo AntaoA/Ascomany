@@ -21,6 +21,13 @@ function flowmodoro_history_shortcode() {
             </div>
         </div>
         <div id="history-output"></div>
+        <div id="popup-confirm" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#0008; z-index:10000; justify-content:center; align-items:center;">
+            <div style="background:white; padding:20px; border-radius:8px; text-align:center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+                <p id="popup-message" style="margin-bottom: 20px;">Confirmer la suppression ?</p>
+                <button id="popup-yes" style="margin-right: 10px;">✅ Oui</button>
+                <button id="popup-no">❌ Non</button>
+            </div>
+        </div>
     </div>
     <!-- Litepicker CSS & JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
@@ -398,6 +405,33 @@ document.addEventListener('DOMContentLoaded', function () {
         div.appendChild(details);
         output.appendChild(div);
     }
+
+    function confirmCustom(message, callback) {
+        const popup = document.getElementById("popup-confirm");
+        const msg = document.getElementById("popup-message");
+        const yes = document.getElementById("popup-yes");
+        const no = document.getElementById("popup-no");
+
+        msg.textContent = message;
+        popup.style.display = "flex";
+
+        const clean = () => {
+            popup.style.display = "none";
+            yes.onclick = null;
+            no.onclick = null;
+        };
+
+        yes.onclick = () => {
+            clean();
+            callback(true);
+        };
+        no.onclick = () => {
+            clean();
+            callback(false);
+        };
+    }
+
+
     // Affichage initial
     selectedDate = "all";
     render();
