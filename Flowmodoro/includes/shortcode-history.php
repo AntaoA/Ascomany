@@ -34,9 +34,9 @@ function flowmodoro_history_shortcode() {
     <?php else : ?>
         <script>const userIsLoggedIn = false;</script>
     <?php endif; ?>
-    <!-- Litepicker CSS & JS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
-    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+    <!-- Litepicker dernière version -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker@2.0.11/dist/css/litepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker@2.0.11/dist/litepicker.js"></script>
     <style>
         .flowmodoro-history-container {
             max-width: 800px;
@@ -687,13 +687,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 other: 'jours sélectionnés'
             },
             setup: (picker) => {
-                picker.on('render:day', (dayElement, date) => {
-                    const activeDates = getActiveDates(allHistory);
-                    const localDate = date.dateInstance.toLocaleDateString('fr-CA');
+                picker.on('render', () => {
+                    setTimeout(() => {
+                        const days = document.querySelectorAll('.litepicker-day');
+                        console.log("Jours dans le DOM :", days.length);
 
-                    if (activeDates.includes(localDate)) {
-                        dayElement.classList.add('has-session');
-                    }
+                        const activeDates = getActiveDates(allHistory);
+
+                        days.forEach(day => {
+                            const ts = parseInt(day.dataset.time);
+                            if (!ts) return;
+                            const dateObj = new Date(ts < 1e12 ? ts * 1000 : ts);
+                            const dateStr = dateObj.toLocaleDateString('fr-CA');
+
+                            if (activeDates.includes(dateStr)) {
+                                day.classList.add('has-session');
+                                day.title = "✅ Jour avec session";
+                            }
+                        });
+                    }, 50); // ← plus fiable avec un délai légèrement supérieur
                 });
                 picker.on('selected', (start, end) => {
                     selectedRange = [start.dateInstance.getTime(), end.dateInstance.getTime()];
