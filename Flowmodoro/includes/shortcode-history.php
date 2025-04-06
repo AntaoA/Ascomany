@@ -160,6 +160,18 @@ function flowmodoro_history_shortcode() {
             background-color: #a8d2ff !important;
         }
 
+        .litepicker-day.has-session::after {
+            content: "";
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 6px;
+            background-color: #3498db;
+            border-radius: 50%;
+        }
+
         .delete-session-btn {
             background: none;
             border: none;
@@ -687,32 +699,35 @@ document.addEventListener('DOMContentLoaded', function () {
                 other: 'jours sélectionnés'
             },
             setup: (picker) => {
-                picker.on('render', () => {
+                picker.on('shown', () => {
+                    // ⏳ On attend que le calendrier soit vraiment affiché dans le DOM
                     setTimeout(() => {
                         const days = document.querySelectorAll('.litepicker-day');
-                        console.log("Jours dans le DOM :", days.length);
+                        console.log("📅 Jours visibles :", days.length);
 
-                        const activeDates = getActiveDates(allHistory);
+                        const activeDates = getActiveDates(allHistory); // ex: ['2025-04-05', '2025-04-06']
 
                         days.forEach(day => {
                             const ts = parseInt(day.dataset.time);
                             if (!ts) return;
+
                             const dateObj = new Date(ts < 1e12 ? ts * 1000 : ts);
-                            const dateStr = dateObj.toLocaleDateString('fr-CA');
+                            const dateStr = dateObj.toLocaleDateString('fr-CA'); // ex: 2025-04-06
 
                             if (activeDates.includes(dateStr)) {
                                 day.classList.add('has-session');
-                                day.title = "✅ Jour avec session";
+                                day.title = "✅ Jour avec session Flowmodoro";
                             }
                         });
-                    }, 50); // ← plus fiable avec un délai légèrement supérieur
+                    }, 30); // ← attendre un mini délai que le DOM soit bien prêt
                 });
+
                 picker.on('selected', (start, end) => {
                     selectedRange = [start.dateInstance.getTime(), end.dateInstance.getTime()];
                     render();
                 });
-                picker.on('shown', () => picker.refresh());
             }
+
         });
     }
 
