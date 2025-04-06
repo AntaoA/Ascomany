@@ -298,164 +298,126 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function render() {
-        const data = getFilteredHistory();
         output.innerHTML = "";
 
-        if (data.length === 0) {
-            output.innerHTML = `<p class="empty-message">Aucune entrée pour ce filtre.</p>`;
+        if (allHistory.length === 0) {
+            output.innerHTML = `<p class="empty-message">Aucune entrée disponible.</p>`;
             return;
         }
 
-        const grouped = groupByMode(data, groupingMode);
-        const sortedKeys = Object.keys(grouped).sort((a, b) => {
-            const getDateFromKey = (key) => {
-                const sample = grouped[key][0];
-                return new Date(sample.timestamp);
-            };
-            return getDateFromKey(b) - getDateFromKey(a);
+        // Groupement hiérarchique : année > mois > jour
+        const hierarchy = {};
+        allHistory.forEach(entry => {
+            const date = new Date(entry.timestamp);
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+
+            if (!hierarchy[year]) hierarchy[year] = {};
+            if (!hierarchy[year][month]) hierarchy[year][month] = {};
+            if (!hierarchy[year][month][day]) hierarchy[year][month][day] = [];
+
+            hierarchy[year][month][day].push(entry);
         });
 
-        sortedKeys.forEach(label => {
-            const section = document.createElement("div");
-            section.className = "session-block";
-            section.style.cursor = "default";
-            section.innerHTML = `<h3 style="margin-bottom: 10px;">📆 ${label}</h3>`;
+        for (const [year, months] of Object.entries(hierarchy).sort((a, b) => b[0] - a[0])) {
+            const yearDiv = document.createElement("div");
+            yearDiv.className = "session-block";
+            yearDiv.innerHTML = `<strong>${year}</strong>`;
+            yearDiv.style.cursor = "pointer";
 
-            const entries = grouped[label].sort((a, b) => b.timestamp - a.timestamp);
+            const monthsDiv = document.createElement("div");
+            monthsDiv.style.display = "none";
 
-            if (currentView === "session") {
-                const sessions = groupSessions(entries);
-                sessions.forEach(session => {
-                    const block = document.createElement("div");
-                    block.className = "session-block";
+            yearDiv.addEventListener("click", () => {
+                monthsDiv.style.display = monthsDiv.style.display === "none" ? "block" : "none";
+            });
 
-                    let totalTravail = 0, totalPause = 0;
-                    session.forEach(e => {
-                        if (e.type === "Travail") totalTravail += e.duration || 0;
-                        if (e.type === "Pause") totalPause += e.duration || 0;
+            for (const [month, days] of Object.entries(months).sort((a, b) => b - a)) {
+                const monthDiv = document.createElement("div");
+                monthDiv.className = "session-block";
+                monthDiv.innerHTML = `<strong>${month.padStart(2, "0")} / ${year}</strong>`;
+                monthDiv.style.marginLeft = "20px";
+                monthDiv.style.cursor = "pointer";
+
+                const daysDiv = document.createElement("div");
+                daysDiv.style.display = "none";
+
+                monthDiv.addEventListener("click", e => {
+                    e.stopPropagation();
+                    daysDiv.style.display = daysDiv.style.display === "none" ? "block" : "none";
+                });
+
+                for (const [day, entries] of Object.entries(days).sort((a, b) => b - a)) {
+                    const date = new Date(`${year}-${month}-${day}`);
+                    const label = date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+
+                    const dayDiv = document.createElement("div");
+                    dayDiv.className = "session-block";
+                    dayDiv.innerHTML = `<strong>${label}</strong>`;
+                    dayDiv.style.marginLeft = "40px";
+                    dayDiv.style.cursor = "pointer";
+
+                    const sessionContainer = document.createElement("div");
+                    sessionContainer.style.display = "none";
+
+                    dayDiv.addEventListener("click", e => {
+                        e.stopPropagation();
+                        sessionContainer.style.display = sessionContainer.style.display === "none" ? "block" : "none";
                     });
 
-                    const details = document.createElement("div");
-                    details.className = "session-details";
-                    session.forEach(e => {
-                        const line = document.createElement("div");
-                        line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
-                        line.innerHTML = `
-                            <div class="entry-phase" style="justify-content: space-between;">
-                                <span>${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
-                                <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+                    const sessions = groupSessions(entries);
+                    sessions.forEach(session => {
+                        const div = document.createElement("div");
+                        div.className = "session-block";
+                        div.style.marginLeft = "60px";
+
+                        let totalTravail = 0, totalPause = 0;
+                        session.forEach(e => {
+                            if (e.type === "Travail") totalTravail += e.duration || 0;
+                            if (e.type === "Pause") totalPause += e.duration || 0;
+                        });
+
+                        const details = document.createElement("div");
+                        details.className = "session-details";
+                        details.style.display = "none";
+
+                        session.forEach(e => {
+                            const p = document.createElement("div");
+                            p.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
+                            p.innerHTML = `<span>${e.type}</span> — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}`;
+                            details.appendChild(p);
+                        });
+
+                        div.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h4 style="margin: 0;">Session de ${formatDate(session[0].timestamp, false)}</h4>
+                                    <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
+                                </div>
                             </div>
                         `;
-                        details.appendChild(line);
+                        div.appendChild(details);
+
+                        div.addEventListener("click", (e) => {
+                            e.stopPropagation();
+                            details.style.display = details.style.display === "block" ? "none" : "block";
+                        });
+
+                        sessionContainer.appendChild(div);
                     });
 
-                    block.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <h4 style="margin: 0;">${formatDate(session[0].timestamp, false)}</h4>
-                                <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
-                            </div>
-                            <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
-                        </div>
-                    `;
-                    block.appendChild(details);
+                    dayDiv.appendChild(sessionContainer);
+                    daysDiv.appendChild(dayDiv);
+                }
 
-                    block.addEventListener("click", (e) => {
-                        if (e.target.closest(".delete-session-btn")) return;
-                        details.style.display = details.style.display === "block" ? "none" : "block";
-                    });
-
-                    section.appendChild(block);
-                });
-            } else {
-                entries.forEach(e => {
-                    const line = document.createElement("div");
-                    line.className = "session-block entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
-                    line.innerHTML = `
-                        <div class="entry-phase">
-                            <span><strong>${e.type}</strong> — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
-                            <div>
-                                <button class="view-session-btn" data-ts="${e.timestamp}">👁</button>
-                                <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
-                            </div>
-                        </div>
-                    `;
-                    section.appendChild(line);
-                });
+                monthDiv.appendChild(daysDiv);
+                monthsDiv.appendChild(monthDiv);
             }
 
-            output.appendChild(section);
-        });
-
-        // Réutilise le code existant pour gérer suppression des phases et sessions
-        output.querySelectorAll(".delete-phase-btn").forEach(btn => {
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                const ts = parseInt(btn.dataset.ts);
-                confirmCustom("Supprimer cette phase ?", (ok) => {
-                    if (!ok) return;
-                    for (let i = allHistory.length - 1; i >= 0; i--) {
-                        if (allHistory[i].timestamp === ts) {
-                            allHistory.splice(i, 1);
-                            break;
-                        }
-                    }
-                    sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
-                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
-                    if (userIsLoggedIn) {
-                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
-                        });
-                    }
-                    render();
-                });
-            };
-        });
-
-        output.querySelectorAll(".delete-session-btn").forEach(btn => {
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                const ts = parseInt(btn.dataset.ts);
-                const sessionToDelete = groupSessions(allHistory).find(s => s[0].timestamp === ts);
-                if (!sessionToDelete) return;
-                confirmCustom("Supprimer cette session ?", (ok) => {
-                    if (!ok) return;
-                    const timestampsToDelete = sessionToDelete.map(e => e.timestamp);
-                    for (let i = allHistory.length - 1; i >= 0; i--) {
-                        if (timestampsToDelete.includes(allHistory[i].timestamp)) {
-                            allHistory.splice(i, 1);
-                        }
-                    }
-                    sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
-                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
-                    if (userIsLoggedIn) {
-                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
-                        });
-                    }
-                    render();
-                });
-            };
-        });
-
-        output.querySelectorAll(".view-session-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-                const ts = parseInt(btn.dataset.ts);
-                const match = groupSessions(allHistory).find(s =>
-                    s.some(e => e.timestamp === ts)
-                );
-                if (match) {
-                    selectedDate = null;
-                    currentView = "session";
-                    toggleBtn.textContent = "🔁 Affichage : par phase";
-                    renderSingleSession(match);
-                }
-            });
-        });
+            output.appendChild(yearDiv);
+            output.appendChild(monthsDiv);
+        }
     }
 
     function renderSingleSession(session) {
