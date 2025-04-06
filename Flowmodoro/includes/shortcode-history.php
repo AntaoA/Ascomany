@@ -29,6 +29,11 @@ function flowmodoro_history_shortcode() {
             </div>
         </div>
     </div>
+    <?php if (is_user_logged_in()) : ?>
+        <script>const userIsLoggedIn = true;</script>
+    <?php else : ?>
+        <script>const userIsLoggedIn = false;</script>
+    <?php endif; ?>
     <!-- Litepicker CSS & JS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
     <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
@@ -327,9 +332,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
                         sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
-                        console.log("Essai de suppression une session mais :",userIsLoggedIn);
                         if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
-                            console.log("🔄 Envoi des suppressions à WordPress");
                             fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
