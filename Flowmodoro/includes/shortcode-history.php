@@ -34,9 +34,13 @@ function flowmodoro_history_shortcode() {
     <?php else : ?>
         <script>const userIsLoggedIn = false;</script>
     <?php endif; ?>
-    <!-- Litepicker dernière version -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker@2.0.11/dist/css/litepicker.css" />
-    <script src="https://cdn.jsdelivr.net/npm/litepicker@2.0.11/dist/litepicker.js"></script>
+    <!-- Flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+
+    <!-- Flatpickr JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/rangePlugin.js"></script>
+
     <style>
         .flowmodoro-history-container {
             max-width: 800px;
@@ -151,16 +155,16 @@ function flowmodoro_history_shortcode() {
             font-style: italic;
             color: #888;
         }
-        .litepicker-day.has-session {
-            outline: 2px solid #3498db !important;
-            border-radius: 4px;
-        }
 
-        .litepicker-day.has-session:hover {
+        .flatpickr-day.has-session {
+            background-color: #d1e8ff !important;
+            border-radius: 50%;
+            position: relative;
+        }
+        .flatpickr-day.has-session:hover {
             background-color: #a8d2ff !important;
         }
-
-        .litepicker-day.has-session::after {
+        .flatpickr-day.has-session::after {
             content: "";
             position: absolute;
             bottom: 4px;
@@ -171,6 +175,7 @@ function flowmodoro_history_shortcode() {
             background-color: #3498db;
             border-radius: 50%;
         }
+
 
         .delete-session-btn {
             background: none;
@@ -683,53 +688,51 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
 
-    const dateInput = document.getElementById('datepicker');
+    const dateInput = document.getElementById("datepicker");
 
     if (dateInput) {
-        const picker = new Litepicker({
-            element: dateInput,
-            singleMode: false,
-            format: 'YYYY-MM-DD',
-            numberOfMonths: 1,
-            numberOfColumns: 1,
-            lang: 'fr',
-            autoApply: true,
-            tooltipText: {
-                one: 'jour sélectionné',
-                other: 'jours sélectionnés'
+        const activeDates = getActiveDates(allHistory);
+
+        flatpickr(dateInput, {
+            mode: "range",
+            dateFormat: "Y-m-d",
+            locale: "fr",
+            allowInput: false,
+            plugins: [new rangePlugin({ input: dateInput })],
+            onChange: function(selectedDates) {
+                if (selectedDates.length === 2) {
+                    selectedRange = [
+                        selectedDates[0].getTime(),
+                        selectedDates[1].getTime()
+                    ];
+                    render();
+                }
             },
-            setup: (picker) => {
-
-                picker.on('render:calendar', () => {
-                    const activeDates = getActiveDates(allHistory);
-
-                    const days = document.querySelectorAll('.litepicker-day');
-
-                    console.log("📅 Jours visibles :", days.length);
-                    console.log("✅ Dates actives :", activeDates);
-
-                    days.forEach(day => {
-                        const ts = parseInt(day.dataset.time);
-                        if (!ts) return;
-
-                        const dateObj = new Date(ts < 1e12 ? ts * 1000 : ts);
-                        const localDate = dateObj.toLocaleDateString('fr-CA');
-
-                        if (activeDates.includes(localDate)) {
-                            day.classList.add('has-session');
+            onReady: function(_, __, fp) {
+                setTimeout(() => {
+                    document.querySelectorAll(".flatpickr-day").forEach(day => {
+                        const date = day.dateObj?.toISOString().split("T")[0];
+                        if (date && activeDates.includes(date)) {
+                            day.classList.add("has-session");
                             day.title = "📌 Session présente ce jour-là";
                         }
                     });
-                });
-
-                // 📅 Quand l'utilisateur sélectionne une période
-                picker.on('selected', (start, end) => {
-                    selectedRange = [start.dateInstance.getTime(), end.dateInstance.getTime()];
-                    render();
-                });
+                }, 100);
+            },
+            onMonthChange: function() {
+                setTimeout(() => {
+                    document.querySelectorAll(".flatpickr-day").forEach(day => {
+                        const date = day.dateObj?.toISOString().split("T")[0];
+                        if (date && activeDates.includes(date)) {
+                            day.classList.add("has-session");
+                            day.title = "📌 Session présente ce jour-là";
+                        }
+                    });
+                }, 100);
             }
         });
     }
+
 
 }); // fin du IIFE
 </script>
