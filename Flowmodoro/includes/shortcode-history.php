@@ -307,125 +307,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (currentView === "session") {
-            const sessions = groupSessions(data);
-            sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
-            sessions.forEach((session, index) => {
-                const div = document.createElement("div");
-                div.className = "session-block";
+            const groupedData = groupByMode(data, groupingMode);
+            const groupedKeys = Object.keys(groupedData).sort().reverse();
 
-                let totalTravail = 0, totalPause = 0;
-                session.forEach(e => {
-                    if (e.type === "Travail") totalTravail += e.duration || 0;
-                    if (e.type === "Pause") totalPause += e.duration || 0;
+            groupedKeys.forEach(groupLabel => {
+                const container = document.createElement("div");
+                container.innerHTML = `<h3 style="margin-top: 30px;">${groupLabel}</h3>`;
+                output.appendChild(container);
+
+                const groupedSessions = groupSessions(groupedData[groupLabel]);
+                groupedSessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
+
+                groupedSessions.forEach(session => {
+                    const block = renderSessionBlock(session); // tu dois avoir cette fonction, ou on la fait ensuite
+                    container.appendChild(block);
                 });
-
-                const details = document.createElement("div");
-                details.className = "session-details";
-                session.forEach(e => {
-                    const line = document.createElement("div");
-                    line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
-                    line.innerHTML = `
-                        <div class="entry-phase" style="justify-content: space-between;">
-                            <span>${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
-                            <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
-                        </div>
-                    `;
-                    details.appendChild(line);
-                });
-
-
-                div.innerHTML = `
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h4 style="margin: 0;">${formatDate(session[0].timestamp, false)}</h4>
-                            <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
-                        </div>
-                        <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
-                    </div>
-                `;
-                div.appendChild(details);
-
-                div.addEventListener("click", (e) => {
-                    if (e.target.closest(".delete-session-btn")) return;
-                    details.style.display = details.style.display === "block" ? "none" : "block";
-                });
-
-                output.appendChild(div);
-                details.querySelectorAll(".delete-phase-btn").forEach(btn => {
-                    btn.onclick = (e) => {
-                        e.stopPropagation();
-                        const ts = parseInt(btn.dataset.ts);
-
-                        confirmCustom("Supprimer cette phase ?", (ok) => {
-                            if (!ok) return;
-
-                            // 🔁 Supprimer la phase dans allHistory et sessionHistory
-                            for (let i = allHistory.length - 1; i >= 0; i--) {
-                                if (allHistory[i].timestamp === ts) {
-                                    allHistory.splice(i, 1);
-                                    break;
-                                }
-                            }
-
-                            sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
-                            sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
-
-                            // 🔄 Met à jour WordPress si connecté
-                            if (userIsLoggedIn) {
-                                fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                                    body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
-                                });
-                            }
-
-                            const sessionTimestamp = session[0].timestamp;
-                            render();
-                            // attendre un peu que le DOM soit prêt
-                            setTimeout(() => {
-                                const matchingBlock = [...document.querySelectorAll(".session-block")]
-                                    .find(div => div.querySelector(".delete-session-btn")?.dataset.ts == sessionTimestamp);
-                                if (matchingBlock) {
-                                    const details = matchingBlock.querySelector(".session-details");
-                                    if (details) details.style.display = "block";
-                                }
-                            }, 10);
-                        });
-                    };
-                });
-
-            // gestion des suppressions de session
-            output.querySelectorAll(".delete-session-btn").forEach(btn => {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const ts = parseInt(btn.dataset.ts);
-                    const sessionToDelete = sessions.find(s => s[0].timestamp === ts);
-
-                    confirmCustom("Supprimer cette session ?", (ok) => {
-                        if (!ok) return;
-
-                        const timestampsToDelete = sessionToDelete.map(e => e.timestamp);
-                        for (let i = allHistory.length - 1; i >= 0; i--) {
-                            if (timestampsToDelete.includes(allHistory[i].timestamp)) {
-                                allHistory.splice(i, 1);
-                            }
-                        }
-                        sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
-                        sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
-                        if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
-                            fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                                body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
-                            });
-                        }
-
-                        render();
-                    });
-                };
-            });
-
-
             });
         } else {
             const sorted = [...data].sort((a, b) => b.timestamp - a.timestamp);
@@ -442,7 +338,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 `;
                 output.appendChild(div);
-            // gestion des suppressions de phases
+            });
+
+            // gestion des suppressions de phase
             output.querySelectorAll(".delete-phase-btn").forEach(btn => {
                 btn.onclick = (e) => {
                     e.stopPropagation();
@@ -451,7 +349,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     confirmCustom("Supprimer cette phase ?", (ok) => {
                         if (!ok) return;
 
-                        // Supprime de allHistory
                         for (let i = allHistory.length - 1; i >= 0; i--) {
                             if (allHistory[i].timestamp === ts) {
                                 allHistory.splice(i, 1);
@@ -459,12 +356,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             }
                         }
 
-                        // Supprime de la session locale
                         sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
                         sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
 
-                        // si connecté, sync
-                        if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                        if (userIsLoggedIn) {
                             fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -475,7 +370,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         render();
                     });
                 };
-            });
             });
 
             // gestion des boutons "voir session"
@@ -495,6 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }
     }
+
 
     function renderSingleSession(session) {
         output.innerHTML = "";
@@ -640,6 +535,32 @@ document.addEventListener('DOMContentLoaded', function () {
     const groupingLabel = document.getElementById("grouping-label");
     const groupingOptions = document.getElementById("grouping-options");
 
+    function groupByMode(history, mode) {
+        const grouped = {};
+
+        history.forEach(entry => {
+            const date = new Date(entry.timestamp);
+            let key = '';
+
+            if (mode === 'day') {
+                key = date.toLocaleDateString('fr-FR');
+            } else if (mode === 'week') {
+                const year = date.getFullYear();
+                const week = Math.ceil(((date - new Date(year, 0, 1)) / 86400000 + new Date(year, 0, 1).getDay() + 1) / 7);
+                key = `${year} - Semaine ${week}`;
+            } else if (mode === 'month') {
+                key = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+            } else if (mode === 'year') {
+                key = date.getFullYear();
+            }
+
+            if (!grouped[key]) grouped[key] = [];
+            grouped[key].push(entry);
+        });
+
+        return grouped;
+    }
+
     groupingToggle.addEventListener("click", () => {
         groupingOptions.classList.toggle("hidden");
     });
@@ -649,7 +570,7 @@ document.addEventListener('DOMContentLoaded', function () {
             groupingMode = li.dataset.mode;
             groupingLabel.textContent = li.textContent;
             groupingOptions.classList.add("hidden");
-            render(); // à implémenter ensuite pour tenir compte de groupingMode
+            render();
         });
     });
 
