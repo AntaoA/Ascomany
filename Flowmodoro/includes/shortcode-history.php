@@ -364,9 +364,17 @@ document.addEventListener('DOMContentLoaded', function () {
                                 });
                             }
 
-                            // 🎯 Met à jour juste cette session
-                            const updatedSession = session.filter(el => el.timestamp !== ts);
-                            renderSingleSession(updatedSession);
+                            const sessionTimestamp = session[0].timestamp;
+                            render();
+                            // attendre un peu que le DOM soit prêt
+                            setTimeout(() => {
+                                const matchingBlock = [...document.querySelectorAll(".session-block")]
+                                    .find(div => div.querySelector(".delete-session-btn")?.dataset.ts == sessionTimestamp);
+                                if (matchingBlock) {
+                                    const details = matchingBlock.querySelector(".session-details");
+                                    if (details) details.style.display = "block";
+                                }
+                            }, 10);
                         });
                     };
                 });
