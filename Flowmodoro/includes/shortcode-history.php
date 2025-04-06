@@ -41,6 +41,10 @@ function flowmodoro_history_shortcode() {
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/rangePlugin.js"></script>
 
+    <!-- Locale française -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
+
+
     <style>
         .flowmodoro-history-container {
             max-width: 800px;
@@ -696,7 +700,7 @@ document.addEventListener('DOMContentLoaded', function () {
         flatpickr(dateInput, {
             mode: "range",
             dateFormat: "Y-m-d",
-            locale: "fr",
+            locale: flatpickr.l10ns.fr,
             allowInput: false,
             plugins: [new rangePlugin({ input: dateInput })],
             onChange: function(selectedDates) {
