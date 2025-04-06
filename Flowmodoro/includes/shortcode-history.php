@@ -700,29 +700,26 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             setup: (picker) => {
 
-                // 🎯 Affiche les jours actifs quand le calendrier s'affiche
-                picker.on('shown', () => {
+                picker.on('render:calendar', () => {
                     const activeDates = getActiveDates(allHistory);
-                    
-                    setTimeout(() => {
-                        const days = document.querySelectorAll('.litepicker-day');
 
-                        console.log("📅 Jours visibles dans le DOM :", days.length);
-                        console.log("✅ Jours avec session :", activeDates);
+                    const days = document.querySelectorAll('.litepicker-day');
 
-                        days.forEach(day => {
-                            const ts = parseInt(day.dataset.time);
-                            if (!ts) return;
+                    console.log("📅 Jours visibles :", days.length);
+                    console.log("✅ Dates actives :", activeDates);
 
-                            const dateObj = new Date(ts < 1e12 ? ts * 1000 : ts);
-                            const localDate = dateObj.toLocaleDateString('fr-CA');
+                    days.forEach(day => {
+                        const ts = parseInt(day.dataset.time);
+                        if (!ts) return;
 
-                            if (activeDates.includes(localDate)) {
-                                day.classList.add('has-session');
-                                day.title = "📌 Session présente ce jour-là";
-                            }
-                        });
-                    }, 50); // ← délai minimum pour attendre l'injection DOM
+                        const dateObj = new Date(ts < 1e12 ? ts * 1000 : ts);
+                        const localDate = dateObj.toLocaleDateString('fr-CA');
+
+                        if (activeDates.includes(localDate)) {
+                            day.classList.add('has-session');
+                            day.title = "📌 Session présente ce jour-là";
+                        }
+                    });
                 });
 
                 // 📅 Quand l'utilisateur sélectionne une période
