@@ -306,90 +306,157 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        if (currentView === "session") {
-            const groupedData = groupByMode(data, groupingMode);
-            const groupedKeys = Object.keys(groupedData).sort().reverse();
+        const grouped = groupByMode(data, groupingMode);
+        const sortedKeys = Object.keys(grouped).sort((a, b) => {
+            const getDateFromKey = (key) => {
+                const sample = grouped[key][0];
+                return new Date(sample.timestamp);
+            };
+            return getDateFromKey(b) - getDateFromKey(a);
+        });
 
-            groupedKeys.forEach(groupLabel => {
-                const container = document.createElement("div");
-                container.innerHTML = `<h3 style="margin-top: 30px;">${groupLabel}</h3>`;
-                output.appendChild(container);
+        sortedKeys.forEach(label => {
+            const section = document.createElement("div");
+            section.className = "session-block";
+            section.style.cursor = "default";
+            section.innerHTML = `<h3 style="margin-bottom: 10px;">📆 ${label}</h3>`;
 
-                const groupedSessions = groupSessions(groupedData[groupLabel]);
-                groupedSessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
+            const entries = grouped[label].sort((a, b) => b.timestamp - a.timestamp);
 
-                groupedSessions.forEach(session => {
-                    const block = renderSessionBlock(session); // tu dois avoir cette fonction, ou on la fait ensuite
-                    container.appendChild(block);
-                });
-            });
-        } else {
-            const sorted = [...data].sort((a, b) => b.timestamp - a.timestamp);
-            sorted.forEach(e => {
-                const div = document.createElement("div");
-                div.className = "session-block entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
-                div.innerHTML = `
-                    <div class="entry-phase">
-                        <span><strong>${e.type}</strong> — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
-                        <div>
-                            <button class="view-session-btn" data-ts="${e.timestamp}">👁</button>
-                            <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
-                        </div>
-                    </div>
-                `;
-                output.appendChild(div);
-            });
+            if (currentView === "session") {
+                const sessions = groupSessions(entries);
+                sessions.forEach(session => {
+                    const block = document.createElement("div");
+                    block.className = "session-block";
 
-            // gestion des suppressions de phase
-            output.querySelectorAll(".delete-phase-btn").forEach(btn => {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const ts = parseInt(btn.dataset.ts);
-
-                    confirmCustom("Supprimer cette phase ?", (ok) => {
-                        if (!ok) return;
-
-                        for (let i = allHistory.length - 1; i >= 0; i--) {
-                            if (allHistory[i].timestamp === ts) {
-                                allHistory.splice(i, 1);
-                                break;
-                            }
-                        }
-
-                        sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
-                        sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
-
-                        if (userIsLoggedIn) {
-                            fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                                body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
-                            });
-                        }
-
-                        render();
+                    let totalTravail = 0, totalPause = 0;
+                    session.forEach(e => {
+                        if (e.type === "Travail") totalTravail += e.duration || 0;
+                        if (e.type === "Pause") totalPause += e.duration || 0;
                     });
-                };
-            });
 
-            // gestion des boutons "voir session"
-            output.querySelectorAll(".view-session-btn").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    const ts = parseInt(btn.dataset.ts);
-                    const match = groupSessions(allHistory).find(s =>
-                        s.some(e => e.timestamp === ts)
-                    );
-                    if (match) {
-                        selectedDate = null;
-                        currentView = "session";
-                        toggleBtn.textContent = "🔁 Affichage : par phase";
-                        renderSingleSession(match);
-                    }
+                    const details = document.createElement("div");
+                    details.className = "session-details";
+                    session.forEach(e => {
+                        const line = document.createElement("div");
+                        line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
+                        line.innerHTML = `
+                            <div class="entry-phase" style="justify-content: space-between;">
+                                <span>${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
+                                <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+                            </div>
+                        `;
+                        details.appendChild(line);
+                    });
+
+                    block.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4 style="margin: 0;">${formatDate(session[0].timestamp, false)}</h4>
+                                <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
+                            </div>
+                            <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
+                        </div>
+                    `;
+                    block.appendChild(details);
+
+                    block.addEventListener("click", (e) => {
+                        if (e.target.closest(".delete-session-btn")) return;
+                        details.style.display = details.style.display === "block" ? "none" : "block";
+                    });
+
+                    section.appendChild(block);
                 });
-            });
-        }
-    }
+            } else {
+                entries.forEach(e => {
+                    const line = document.createElement("div");
+                    line.className = "session-block entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
+                    line.innerHTML = `
+                        <div class="entry-phase">
+                            <span><strong>${e.type}</strong> — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
+                            <div>
+                                <button class="view-session-btn" data-ts="${e.timestamp}">👁</button>
+                                <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+                            </div>
+                        </div>
+                    `;
+                    section.appendChild(line);
+                });
+            }
 
+            output.appendChild(section);
+        });
+
+        // Réutilise le code existant pour gérer suppression des phases et sessions
+        output.querySelectorAll(".delete-phase-btn").forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const ts = parseInt(btn.dataset.ts);
+                confirmCustom("Supprimer cette phase ?", (ok) => {
+                    if (!ok) return;
+                    for (let i = allHistory.length - 1; i >= 0; i--) {
+                        if (allHistory[i].timestamp === ts) {
+                            allHistory.splice(i, 1);
+                            break;
+                        }
+                    }
+                    sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
+                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+                    if (userIsLoggedIn) {
+                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                        });
+                    }
+                    render();
+                });
+            };
+        });
+
+        output.querySelectorAll(".delete-session-btn").forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const ts = parseInt(btn.dataset.ts);
+                const sessionToDelete = groupSessions(allHistory).find(s => s[0].timestamp === ts);
+                if (!sessionToDelete) return;
+                confirmCustom("Supprimer cette session ?", (ok) => {
+                    if (!ok) return;
+                    const timestampsToDelete = sessionToDelete.map(e => e.timestamp);
+                    for (let i = allHistory.length - 1; i >= 0; i--) {
+                        if (timestampsToDelete.includes(allHistory[i].timestamp)) {
+                            allHistory.splice(i, 1);
+                        }
+                    }
+                    sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
+                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+                    if (userIsLoggedIn) {
+                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                        });
+                    }
+                    render();
+                });
+            };
+        });
+
+        output.querySelectorAll(".view-session-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const ts = parseInt(btn.dataset.ts);
+                const match = groupSessions(allHistory).find(s =>
+                    s.some(e => e.timestamp === ts)
+                );
+                if (match) {
+                    selectedDate = null;
+                    currentView = "session";
+                    toggleBtn.textContent = "🔁 Affichage : par phase";
+                    renderSingleSession(match);
+                }
+            });
+        });
+    }
 
     function renderSingleSession(session) {
         output.innerHTML = "";
