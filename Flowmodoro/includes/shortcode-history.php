@@ -152,9 +152,8 @@ function flowmodoro_history_shortcode() {
             color: #888;
         }
         .litepicker-day.has-session {
-            background-color: #d1e8ff !important;
-            border-radius: 50%;
-            position: relative;
+            outline: 2px solid #3498db !important;
+            border-radius: 4px;
         }
 
         .litepicker-day.has-session:hover {
@@ -692,6 +691,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     setTimeout(() => {
                         const days = document.querySelectorAll('.litepicker-day');
                         const activeDates = getActiveDates(allHistory);
+
+                        console.log("Jours rendus :", days.length);
+                        console.log("Dates actives :", activeDates);
 
                         days.forEach(day => {
                             const ts = parseInt(day.dataset.time);
