@@ -674,13 +674,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const dateInput = document.getElementById('datepicker');
     if (dateInput) {
-        const activeDates = getActiveDates(allHistory);
         const picker = new Litepicker({
             element: dateInput,
             singleMode: false,
             format: 'YYYY-MM-DD',
-            numberOfMonths: 2,
-            numberOfColumns: 2,
+            numberOfMonths: 1,
+            numberOfColumns: 1,
             lang: 'fr',
             autoApply: true,
             tooltipText: {
@@ -690,6 +689,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setup: (picker) => {
                 picker.on('render', () => {
                     const days = document.querySelectorAll('.litepicker-day');
+                    const activeDates = getActiveDates(allHistory);
 
                     days.forEach(day => {
                         const date = day.dataset.time
