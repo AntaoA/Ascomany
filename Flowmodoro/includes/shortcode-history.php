@@ -203,7 +203,8 @@ document.addEventListener('DOMContentLoaded', function () {
         history.forEach(e => {
             const d = new Date(e.timestamp);
             d.setHours(0, 0, 0, 0);
-            dates.add(d.toISOString().split('T')[0]); // format 'YYYY-MM-DD'
+            const localISO = d.toLocaleDateString('fr-CA'); // format YYYY-MM-DD
+            dates.add(localISO);
         });
         return Array.from(dates);
     }
@@ -688,26 +689,20 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             setup: (picker) => {
                 picker.on('render', () => {
-                    const days = document.querySelectorAll('.litepicker-day');
+                    setTimeout(() => {
+                        const days = document.querySelectorAll('.litepicker-day');
+                        const activeDates = getActiveDates(allHistory);
 
-                    // test/debug
-                    console.log("→ Actives : ", getActiveDates(allHistory));
-                    console.log("→ Days visibles : ", [...days].map(d => ({
-                        time: d.dataset.time,
-                        asDate: new Date(parseInt(d.dataset.time)).toISOString()
-                    })));
+                        days.forEach(day => {
+                            const ts = parseInt(day.dataset.time);
+                            const dateObj = new Date(ts < 1e12 ? ts * 1000 : ts);
+                            const dateStr = dateObj.toISOString().split('T')[0];
 
-                    const activeDates = getActiveDates(allHistory);
-
-                    days.forEach(day => {
-                        const date = day.dataset.time
-                            ? new Date(parseInt(day.dataset.time)).toISOString().split('T')[0]
-                            : null;
-
-                        if (date && activeDates.includes(date)) {
-                            day.classList.add('has-session');
-                        }
-                    });
+                            if (activeDates.includes(dateStr)) {
+                                day.classList.add('has-session');
+                            }
+                        });
+                    }, 10); // ← délai court pour attendre le DOM des jours
                 });
                 picker.on('selected', (start, end) => {
                     selectedRange = [start.dateInstance.getTime(), end.dateInstance.getTime()];
