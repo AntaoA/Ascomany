@@ -15,9 +15,14 @@ function flowmodoro_history_shortcode() {
         <h2>📜 Historique Flowmodoro</h2>
         <div class="history-controls">
             <button id="toggle-view" class="toggle-button">🔁 Affichage : par session</button>
-            <div class="time-filter">
-            <input id="datepicker" placeholder="📅 Sélectionner une période" style="padding: 8px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer;" readonly />
-            <div class="filter-dropdown" id="filter-dropdown" style="display: none;"></div>
+            <div class="grouping-select">
+                <button id="grouping-toggle" class="toggle-button">📆 Regrouper par : <span id="grouping-label">Jour</span> ⏷</button>
+                <ul id="grouping-options" class="dropdown hidden">
+                    <li data-mode="day">Jour</li>
+                    <li data-mode="week">Semaine</li>
+                    <li data-mode="month">Mois</li>
+                    <li data-mode="year">Année</li>
+                </ul>
             </div>
         </div>
         <div id="history-output"></div>
@@ -34,15 +39,6 @@ function flowmodoro_history_shortcode() {
     <?php else : ?>
         <script>const userIsLoggedIn = false;</script>
     <?php endif; ?>
-    <!-- Flatpickr CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
-
-    <!-- Flatpickr JS -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/rangePlugin.js"></script>
-
-    <!-- Locale française -->
-    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fr.js"></script>
 
 
     <style>
@@ -160,26 +156,6 @@ function flowmodoro_history_shortcode() {
             color: #888;
         }
 
-        .flatpickr-day.has-session {
-            background-color: #d1e8ff !important;
-            border-radius: 50%;
-            position: relative;
-        }
-        .flatpickr-day.has-session:hover {
-            background-color: #a8d2ff !important;
-        }
-        .flatpickr-day.has-session::after {
-            content: "";
-            position: absolute;
-            bottom: 4px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 6px;
-            height: 6px;
-            background-color: #3498db;
-            border-radius: 50%;
-        }
-
 
         .delete-session-btn {
             background: none;
@@ -207,6 +183,41 @@ function flowmodoro_history_shortcode() {
             background: #f5f5f5;
         }
 
+        .grouping-select {
+            position: relative;
+            display: inline-block;
+        }
+
+        .grouping-select .dropdown {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 5px 0;
+            border-radius: 4px;
+            list-style: none;
+            top: 100%;
+            left: 0;
+            margin-top: 5px;
+            min-width: 160px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 20;
+        }
+
+        .grouping-select .dropdown li {
+            padding: 8px 16px;
+            cursor: pointer;
+            color: #111;
+            font-size: 14px;
+        }
+
+        .grouping-select .dropdown li:hover {
+            background-color: #eee;
+        }
+
+        .grouping-select .dropdown.hidden {
+            display: none;
+        }
+
     </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -218,15 +229,6 @@ document.addEventListener('DOMContentLoaded', function () {
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     ?>;
     
-    function getActiveDates(history) {
-        const dates = new Set();
-        history.forEach(e => {
-            const d = new Date(e.timestamp);
-            d.setHours(0, 0, 0, 0);
-            dates.add(d.toLocaleDateString('fr-CA')); // format YYYY-MM-DD en local
-        });
-        return Array.from(dates);
-    }
 
     const sessionParam = new URLSearchParams(window.location.search).get("session");
     let sessionHistory = [];
@@ -243,7 +245,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const filterDropdown = document.getElementById("filter-dropdown");
 
     let currentView = "session"; // ou "phase"
-    let selectedRange = null;
+    let groupingMode = "day"; // ou "week", "month", "year"
     let selectedDate = null; // timestamp de jour sélectionné
 
     function formatTime(ms) {
@@ -292,14 +294,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function getFilteredHistory() {
-        const source = currentView === "session" ? allHistory : allHistory;
-
-        if (!selectedRange || selectedRange.length !== 2) {
-            return source;
-        }
-
-        const [startTs, endTs] = selectedRange;
-        return source.filter(e => e.timestamp >= startTs && e.timestamp <= endTs);
+        return allHistory;
     }
 
     function render() {
@@ -638,104 +633,25 @@ document.addEventListener('DOMContentLoaded', function () {
         render();
     });
 
-    // Gérer le menu de filtre par jour
-    function renderFilterDropdown() {
-        const uniqueDays = extractAvailableDates(allHistory);
-        const groupedByYearMonth = {};
-
-        uniqueDays.forEach(ts => {
-            const d = new Date(ts);
-            const year = d.getFullYear();
-            const month = d.toLocaleString(undefined, { month: 'long' });
-            if (!groupedByYearMonth[year]) groupedByYearMonth[year] = {};
-            if (!groupedByYearMonth[year][month]) groupedByYearMonth[year][month] = [];
-            groupedByYearMonth[year][month].push(ts);
-        });
-
-        const container = document.createElement("ul");
-
-        Object.entries(groupedByYearMonth).forEach(([year, months]) => {
-            const yearLi = document.createElement("li");
-            yearLi.innerHTML = `<strong>${year}</strong>`;
-            container.appendChild(yearLi);
-
-            Object.entries(months).forEach(([month, dates]) => {
-                const monthLi = document.createElement("li");
-                monthLi.innerHTML = `<em>${month}</em>`;
-                container.appendChild(monthLi);
-
-                dates.forEach(ts => {
-                    const dayLi = document.createElement("li");
-                    dayLi.textContent = new Date(ts).toLocaleDateString();
-                    dayLi.dataset.ts = ts;
-                    dayLi.addEventListener("click", () => {
-                        selectedDate = ts;
-                        filterDropdown.style.display = "none";
-                        render();
-                    });
-                    container.appendChild(dayLi);
-                });
-            });
-        });
-
-        const allBtn = document.createElement("li");
-        allBtn.innerHTML = `<strong>📂 Voir tout</strong>`;
-        allBtn.addEventListener("click", () => {
-            selectedDate = "all";
-            filterDropdown.style.display = "none";
-            render();
-        });
-        container.insertBefore(allBtn, container.firstChild);
-
-        filterDropdown.innerHTML = "";
-        filterDropdown.appendChild(container);
-    }
     
 
-    const dateInput = document.getElementById("datepicker");
 
-    if (dateInput) {
-        const activeDates = getActiveDates(allHistory);
+    const groupingToggle = document.getElementById("grouping-toggle");
+    const groupingLabel = document.getElementById("grouping-label");
+    const groupingOptions = document.getElementById("grouping-options");
 
-        flatpickr(dateInput, {
-            mode: "range",
-            dateFormat: "Y-m-d",
-            locale: flatpickr.l10ns.fr,
-            allowInput: false,
-            plugins: [new rangePlugin({ input: dateInput })],
-            onChange: function(selectedDates) {
-                if (selectedDates.length === 2) {
-                    selectedRange = [
-                        selectedDates[0].getTime(),
-                        selectedDates[1].getTime()
-                    ];
-                    render();
-                }
-            },
-            onReady: function(_, __, fp) {
-                setTimeout(() => {
-                    document.querySelectorAll(".flatpickr-day").forEach(day => {
-                        const date = day.dateObj?.toISOString().split("T")[0];
-                        if (date && activeDates.includes(date)) {
-                            day.classList.add("has-session");
-                            day.title = "📌 Session présente ce jour-là";
-                        }
-                    });
-                }, 100);
-            },
-            onMonthChange: function() {
-                setTimeout(() => {
-                    document.querySelectorAll(".flatpickr-day").forEach(day => {
-                        const date = day.dateObj?.toISOString().split("T")[0];
-                        if (date && activeDates.includes(date)) {
-                            day.classList.add("has-session");
-                            day.title = "📌 Session présente ce jour-là";
-                        }
-                    });
-                }, 100);
-            }
+    groupingToggle.addEventListener("click", () => {
+        groupingOptions.classList.toggle("hidden");
+    });
+
+    groupingOptions.querySelectorAll("li").forEach(li => {
+        li.addEventListener("click", () => {
+            groupingMode = li.dataset.mode;
+            groupingLabel.textContent = li.textContent;
+            groupingOptions.classList.add("hidden");
+            render(); // à implémenter ensuite pour tenir compte de groupingMode
         });
-    }
+    });
 
 
 }); // fin du IIFE
