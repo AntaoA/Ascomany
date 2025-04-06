@@ -329,6 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
 
                         if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                            console.log("🔄 Envoi des suppressions à WordPress");
                             fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
                                 method: "POST",
                                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
