@@ -208,14 +208,13 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!is_array($data)) $data = [];
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     ?>;
-
+    
     function getActiveDates(history) {
         const dates = new Set();
         history.forEach(e => {
             const d = new Date(e.timestamp);
             d.setHours(0, 0, 0, 0);
-            const localISO = d.toLocaleDateString('fr-CA'); // format YYYY-MM-DD
-            dates.add(localISO);
+            dates.add(d.toLocaleDateString('fr-CA')); // format YYYY-MM-DD en local
         });
         return Array.from(dates);
     }
@@ -685,6 +684,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
 
     const dateInput = document.getElementById('datepicker');
+
     if (dateInput) {
         const picker = new Litepicker({
             element: dateInput,
@@ -699,38 +699,40 @@ document.addEventListener('DOMContentLoaded', function () {
                 other: 'jours sélectionnés'
             },
             setup: (picker) => {
+
+                // 🎯 Affiche les jours actifs quand le calendrier s'affiche
                 picker.on('shown', () => {
-                    // ⏳ On attend que le calendrier soit vraiment affiché dans le DOM
+                    const activeDates = getActiveDates(allHistory);
+                    
                     setTimeout(() => {
                         const days = document.querySelectorAll('.litepicker-day');
-                        console.log("📅 Jours visibles :", days.length);
 
-                        const activeDates = getActiveDates(allHistory); // ex: ['2025-04-05', '2025-04-06']
+                        console.log("📅 Jours visibles dans le DOM :", days.length);
+                        console.log("✅ Jours avec session :", activeDates);
 
                         days.forEach(day => {
                             const ts = parseInt(day.dataset.time);
                             if (!ts) return;
 
                             const dateObj = new Date(ts < 1e12 ? ts * 1000 : ts);
-                            const dateStr = dateObj.toLocaleDateString('fr-CA'); // ex: 2025-04-06
+                            const localDate = dateObj.toLocaleDateString('fr-CA');
 
-                            if (activeDates.includes(dateStr)) {
+                            if (activeDates.includes(localDate)) {
                                 day.classList.add('has-session');
-                                day.title = "✅ Jour avec session Flowmodoro";
+                                day.title = "📌 Session présente ce jour-là";
                             }
                         });
-                    }, 30); // ← attendre un mini délai que le DOM soit bien prêt
+                    }, 50); // ← délai minimum pour attendre l'injection DOM
                 });
 
+                // 📅 Quand l'utilisateur sélectionne une période
                 picker.on('selected', (start, end) => {
                     selectedRange = [start.dateInstance.getTime(), end.dateInstance.getTime()];
                     render();
                 });
             }
-
         });
     }
-
 
 }); // fin du IIFE
 </script>
