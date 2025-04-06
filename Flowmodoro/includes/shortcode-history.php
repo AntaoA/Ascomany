@@ -298,127 +298,125 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function render() {
+        const data = getFilteredHistory();
         output.innerHTML = "";
 
-        if (allHistory.length === 0) {
-            output.innerHTML = `<p class="empty-message">Aucune entrée disponible.</p>`;
+        if (data.length === 0) {
+            output.innerHTML = `<p class="empty-message">Aucune entrée pour ce filtre.</p>`;
             return;
         }
 
-        // Groupement hiérarchique : année > mois > jour
-        const hierarchy = {};
-        allHistory.forEach(entry => {
-            const date = new Date(entry.timestamp);
-            const year = date.getFullYear();
-            const month = date.getMonth() + 1;
-            const day = date.getDate();
+        const grouped = groupByMode(data, groupingMode);
+        const sortedKeys = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
 
-            if (!hierarchy[year]) hierarchy[year] = {};
-            if (!hierarchy[year][month]) hierarchy[year][month] = {};
-            if (!hierarchy[year][month][day]) hierarchy[year][month][day] = [];
+        function renderSessions(sessions, container) {
+            const sessionGroups = groupSessions(sessions).sort((a, b) => b[0].timestamp - a[0].timestamp);
+            sessionGroups.forEach(session => {
+                const div = document.createElement("div");
+                div.className = "session-block";
+                let totalTravail = 0, totalPause = 0;
 
-            hierarchy[year][month][day].push(entry);
-        });
-
-        for (const [year, months] of Object.entries(hierarchy).sort((a, b) => b[0] - a[0])) {
-            const yearDiv = document.createElement("div");
-            yearDiv.className = "session-block";
-            yearDiv.innerHTML = `<strong>${year}</strong>`;
-            yearDiv.style.cursor = "pointer";
-
-            const monthsDiv = document.createElement("div");
-            monthsDiv.style.display = "none";
-
-            yearDiv.addEventListener("click", () => {
-                monthsDiv.style.display = monthsDiv.style.display === "none" ? "block" : "none";
-            });
-
-            for (const [month, days] of Object.entries(months).sort((a, b) => b - a)) {
-                const monthDiv = document.createElement("div");
-                monthDiv.className = "session-block";
-                monthDiv.innerHTML = `<strong>${month.padStart(2, "0")} / ${year}</strong>`;
-                monthDiv.style.marginLeft = "20px";
-                monthDiv.style.cursor = "pointer";
-
-                const daysDiv = document.createElement("div");
-                daysDiv.style.display = "none";
-
-                monthDiv.addEventListener("click", e => {
-                    e.stopPropagation();
-                    daysDiv.style.display = daysDiv.style.display === "none" ? "block" : "none";
+                session.forEach(e => {
+                    if (e.type === "Travail") totalTravail += e.duration || 0;
+                    if (e.type === "Pause") totalPause += e.duration || 0;
                 });
 
-                for (const [day, entries] of Object.entries(days).sort((a, b) => b - a)) {
-                    const date = new Date(`${year}-${month}-${day}`);
-                    const label = date.toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+                const details = document.createElement("div");
+                details.className = "session-details";
+                session.forEach(e => {
+                    const line = document.createElement("div");
+                    line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
+                    line.innerHTML = `
+                        <div class="entry-phase" style="justify-content: space-between;">
+                            <span>${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
+                            <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+                        </div>
+                    `;
+                    details.appendChild(line);
+                });
 
+                div.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="margin: 0;">${formatDate(session[0].timestamp, false)}</h4>
+                            <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
+                        </div>
+                        <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
+                    </div>
+                `;
+                div.appendChild(details);
+
+                div.addEventListener("click", (e) => {
+                    if (e.target.closest(".delete-session-btn")) return;
+                    details.style.display = details.style.display === "block" ? "none" : "block";
+                });
+
+                container.appendChild(div);
+            });
+        }
+
+        sortedKeys.forEach(key => {
+            const wrapper = document.createElement("div");
+            wrapper.className = "session-block";
+            wrapper.style.background = "#f7f7f7";
+
+            const header = document.createElement("div");
+            header.style.cursor = "pointer";
+            header.style.fontWeight = "bold";
+            header.style.marginBottom = "8px";
+            header.textContent = key;
+
+            const content = document.createElement("div");
+            content.style.display = "none";
+            content.style.marginTop = "10px";
+
+            header.addEventListener("click", () => {
+                content.style.display = content.style.display === "none" ? "block" : "none";
+            });
+
+            // Selon le mode, afficher contenu directement ou sous-niveaux
+            if (groupingMode === "day") {
+                renderSessions(grouped[key], content);
+            } else if (groupingMode === "week" || groupingMode === "month") {
+                // Grouper en jours à l'intérieur
+                const subGrouped = groupByMode(grouped[key], "day");
+                const subKeys = Object.keys(subGrouped).sort((a, b) => new Date(b) - new Date(a));
+                subKeys.forEach(dayKey => {
                     const dayDiv = document.createElement("div");
-                    dayDiv.className = "session-block";
-                    dayDiv.innerHTML = `<strong>${label}</strong>`;
-                    dayDiv.style.marginLeft = "40px";
-                    dayDiv.style.cursor = "pointer";
+                    dayDiv.style.margin = "5px 0";
+                    dayDiv.innerHTML = `<strong>${dayKey}</strong>`;
+                    renderSessions(subGrouped[dayKey], dayDiv);
+                    content.appendChild(dayDiv);
+                });
+            } else if (groupingMode === "year") {
+                // Grouper en mois → jours
+                const months = groupByMode(grouped[key], "month");
+                const monthKeys = Object.keys(months).sort((a, b) => new Date(b) - new Date(a));
+                monthKeys.forEach(monthKey => {
+                    const monthDiv = document.createElement("div");
+                    monthDiv.style.margin = "10px 0";
+                    monthDiv.innerHTML = `<strong>${monthKey}</strong>`;
 
-                    const sessionContainer = document.createElement("div");
-                    sessionContainer.style.display = "none";
-
-                    dayDiv.addEventListener("click", e => {
-                        e.stopPropagation();
-                        sessionContainer.style.display = sessionContainer.style.display === "none" ? "block" : "none";
+                    const days = groupByMode(months[monthKey], "day");
+                    const dayKeys = Object.keys(days).sort((a, b) => new Date(b) - new Date(a));
+                    dayKeys.forEach(dayKey => {
+                        const dayDiv = document.createElement("div");
+                        dayDiv.style.margin = "5px 0 5px 15px";
+                        dayDiv.innerHTML = `<em>${dayKey}</em>`;
+                        renderSessions(days[dayKey], dayDiv);
+                        monthDiv.appendChild(dayDiv);
                     });
 
-                    const sessions = groupSessions(entries);
-                    sessions.forEach(session => {
-                        const div = document.createElement("div");
-                        div.className = "session-block";
-                        div.style.marginLeft = "60px";
-
-                        let totalTravail = 0, totalPause = 0;
-                        session.forEach(e => {
-                            if (e.type === "Travail") totalTravail += e.duration || 0;
-                            if (e.type === "Pause") totalPause += e.duration || 0;
-                        });
-
-                        const details = document.createElement("div");
-                        details.className = "session-details";
-                        details.style.display = "none";
-
-                        session.forEach(e => {
-                            const p = document.createElement("div");
-                            p.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
-                            p.innerHTML = `<span>${e.type}</span> — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}`;
-                            details.appendChild(p);
-                        });
-
-                        div.innerHTML = `
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <h4 style="margin: 0;">Session de ${formatDate(session[0].timestamp, false)}</h4>
-                                    <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
-                                </div>
-                            </div>
-                        `;
-                        div.appendChild(details);
-
-                        div.addEventListener("click", (e) => {
-                            e.stopPropagation();
-                            details.style.display = details.style.display === "block" ? "none" : "block";
-                        });
-
-                        sessionContainer.appendChild(div);
-                    });
-
-                    dayDiv.appendChild(sessionContainer);
-                    daysDiv.appendChild(dayDiv);
-                }
-
-                monthDiv.appendChild(daysDiv);
-                monthsDiv.appendChild(monthDiv);
+                    content.appendChild(monthDiv);
+                });
             }
 
-            output.appendChild(yearDiv);
-            output.appendChild(monthsDiv);
-        }
+            wrapper.appendChild(header);
+            wrapper.appendChild(content);
+            output.appendChild(wrapper);
+        });
     }
+
 
     function renderSingleSession(session) {
         output.innerHTML = "";
