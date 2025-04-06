@@ -687,24 +687,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 other: 'jours sélectionnés'
             },
             setup: (picker) => {
-                picker.on('render', () => {
-                    setTimeout(() => {
-                        const days = document.querySelectorAll('.litepicker-day');
-                        const activeDates = getActiveDates(allHistory);
+                picker.on('render:day', (dayElement, date) => {
+                    const activeDates = getActiveDates(allHistory);
+                    const localDate = date.dateInstance.toLocaleDateString('fr-CA');
 
-                        console.log("Jours rendus :", days.length);
-                        console.log("Dates actives :", activeDates);
-
-                        days.forEach(day => {
-                            const ts = parseInt(day.dataset.time);
-                            const dateObj = new Date(ts < 1e12 ? ts * 1000 : ts);
-                            const localDate = dateObj.toLocaleDateString('fr-CA'); // 🟢 même format que ci-dessus
-
-                            if (activeDates.includes(localDate)) {
-                                day.classList.add('has-session');
-                            }
-                        });
-                    }, 10);
+                    if (activeDates.includes(localDate)) {
+                        dayElement.classList.add('has-session');
+                    }
                 });
                 picker.on('selected', (start, end) => {
                     selectedRange = [start.dateInstance.getTime(), end.dateInstance.getTime()];
