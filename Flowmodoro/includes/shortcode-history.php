@@ -327,7 +327,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                         sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
                         sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
-
+                        console.log("Essai de suppression une session mais :",userIsLoggedIn);
                         if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
                             console.log("🔄 Envoi des suppressions à WordPress");
                             fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
