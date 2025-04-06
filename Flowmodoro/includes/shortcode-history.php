@@ -692,22 +692,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     setTimeout(() => {
                         const days = document.querySelectorAll('.litepicker-day');
                         const activeDates = getActiveDates(allHistory);
-                        // test/debug
-                        console.log("→ Actives : ", getActiveDates(allHistory));
-                        console.log("→ Days visibles : ", [...days].map(d => ({
-                            time: d.dataset.time,
-                            asDate: new Date(parseInt(d.dataset.time)).toISOString()
-                        })));
+
                         days.forEach(day => {
                             const ts = parseInt(day.dataset.time);
                             const dateObj = new Date(ts < 1e12 ? ts * 1000 : ts);
-                            const dateStr = dateObj.toISOString().split('T')[0];
+                            const localDate = dateObj.toLocaleDateString('fr-CA'); // 🟢 même format que ci-dessus
 
-                            if (activeDates.includes(dateStr)) {
+                            if (activeDates.includes(localDate)) {
                                 day.classList.add('has-session');
                             }
                         });
-                    }, 10); // ← délai court pour attendre le DOM des jours
+                    }, 10);
                 });
                 picker.on('selected', (start, end) => {
                     selectedRange = [start.dateInstance.getTime(), end.dateInstance.getTime()];
