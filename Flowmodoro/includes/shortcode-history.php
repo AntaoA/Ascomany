@@ -291,11 +291,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 const details = document.createElement("div");
                 details.className = "session-details";
                 session.forEach(e => {
-                    const p = document.createElement("div");
-                    p.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
-                    p.innerHTML = `<span>${e.type}</span> — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}`;
-                    details.appendChild(p);
+                    const line = document.createElement("div");
+                    line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
+                    line.innerHTML = `
+                        <div class="entry-phase" style="justify-content: space-between;">
+                            <span>${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
+                            <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+                        </div>
+                    `;
+                    details.appendChild(line);
                 });
+
 
                 div.innerHTML = `
                     <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -314,6 +320,37 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
 
                 output.appendChild(div);
+                details.querySelectorAll(".delete-phase-btn").forEach(btn => {
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        const ts = parseInt(btn.dataset.ts);
+
+                        confirmCustom("Supprimer cette phase ?", (ok) => {
+                            if (!ok) return;
+
+                            for (let i = allHistory.length - 1; i >= 0; i--) {
+                                if (allHistory[i].timestamp === ts) {
+                                    allHistory.splice(i, 1);
+                                    break;
+                                }
+                            }
+
+                            sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
+                            sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                            if (userIsLoggedIn) {
+                                fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                                    body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                                });
+                            }
+
+                            render(); // relance affichage de la session mise à jour
+                        });
+                    };
+                });
+
             // gestion des suppressions de session
             output.querySelectorAll(".delete-session-btn").forEach(btn => {
                 btn.onclick = (e) => {
