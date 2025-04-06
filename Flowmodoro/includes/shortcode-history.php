@@ -689,6 +689,14 @@ document.addEventListener('DOMContentLoaded', function () {
             setup: (picker) => {
                 picker.on('render', () => {
                     const days = document.querySelectorAll('.litepicker-day');
+
+                    // test/debug
+                    console.log("→ Actives : ", getActiveDates(allHistory));
+                    console.log("→ Days visibles : ", [...days].map(d => ({
+                        time: d.dataset.time,
+                        asDate: new Date(parseInt(d.dataset.time)).toISOString()
+                    })));
+
                     const activeDates = getActiveDates(allHistory);
 
                     days.forEach(day => {
