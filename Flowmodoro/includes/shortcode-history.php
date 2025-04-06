@@ -344,6 +344,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         confirmCustom("Supprimer cette phase ?", (ok) => {
                             if (!ok) return;
 
+                            // 🔁 Supprimer la phase dans allHistory et sessionHistory
                             for (let i = allHistory.length - 1; i >= 0; i--) {
                                 if (allHistory[i].timestamp === ts) {
                                     allHistory.splice(i, 1);
@@ -354,6 +355,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
                             sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
 
+                            // 🔄 Met à jour WordPress si connecté
                             if (userIsLoggedIn) {
                                 fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
                                     method: "POST",
@@ -362,7 +364,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                 });
                             }
 
-                            render(); // relance affichage de la session mise à jour
+                            // 🎯 Met à jour juste cette session
+                            const updatedSession = session.filter(el => el.timestamp !== ts);
+                            renderSingleSession(updatedSession);
                         });
                     };
                 });
