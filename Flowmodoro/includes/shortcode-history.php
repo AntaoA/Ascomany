@@ -432,19 +432,86 @@ document.addEventListener('DOMContentLoaded', function () {
         details.style.display = "block";
 
         session.forEach(e => {
-            const p = document.createElement("div");
-            p.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
-            p.innerHTML = `<span>${e.type}</span> — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}`;
-            details.appendChild(p);
+            const line = document.createElement("div");
+            line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
+            line.innerHTML = `
+                <div class="entry-phase" style="justify-content: space-between;">
+                    <span>${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
+                    <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+                </div>
+            `;
+            details.appendChild(line);
         });
 
         div.innerHTML = `
-            <h4>${formatDate(session[0].timestamp, false)}<br>
-            <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
-            </h4>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="margin: 0;">${formatDate(session[0].timestamp, false)}</h4>
+                    <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
+                </div>
+                <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
+            </div>
         `;
         div.appendChild(details);
         output.appendChild(div);
+        div.querySelectorAll(".delete-phase-btn").forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const ts = parseInt(btn.dataset.ts);
+
+                confirmCustom("Supprimer cette phase ?", (ok) => {
+                    if (!ok) return;
+
+                    for (let i = allHistory.length - 1; i >= 0; i--) {
+                        if (allHistory[i].timestamp === ts) {
+                            allHistory.splice(i, 1);
+                            break;
+                        }
+                    }
+
+                    sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
+                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                    if (userIsLoggedIn) {
+                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                        });
+                    }
+
+                    renderSingleSession(session.filter(e => e.timestamp !== ts));
+                });
+            };
+        });
+
+        div.querySelector(".delete-session-btn").onclick = (e) => {
+            e.stopPropagation();
+            confirmCustom("Supprimer cette session ?", (ok) => {
+                if (!ok) return;
+
+                const timestampsToDelete = session.map(e => e.timestamp);
+                for (let i = allHistory.length - 1; i >= 0; i--) {
+                    if (timestampsToDelete.includes(allHistory[i].timestamp)) {
+                        allHistory.splice(i, 1);
+                    }
+                }
+
+                sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
+                sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                if (userIsLoggedIn) {
+                    fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                    });
+                }
+
+                render();
+            });
+        };
+
     }
 
     function confirmCustom(message, callback) {
