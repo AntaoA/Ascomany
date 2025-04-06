@@ -171,6 +171,22 @@ function flowmodoro_history_shortcode() {
         .delete-session-btn:hover {
             color: #e74c3c;
         }
+
+        .delete-phase-btn {
+            background: none;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+            color: #888;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .delete-phase-btn:hover {
+            color: #e74c3c;
+            background: #f5f5f5;
+        }
+
     </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
