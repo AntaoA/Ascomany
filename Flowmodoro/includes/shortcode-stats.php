@@ -28,7 +28,8 @@ function flowmodoro_stats_shortcode() {
                 <button class="period-btn" data-period="month">Ce mois</button>
                 <button class="period-btn" data-period="year">Cette année</button>
                 <span style="margin-left: 10px;">ou sélection manuelle :</span>
-                <input type="text" id="date-range-picker" placeholder="Sélectionner une période…" style="padding: 6px 10px; width: 220px;" readonly>
+                <button class="period-btn" id="manual-picker-btn" data-period="manual">Sélection manuelle</button>
+                <input type="hidden" id="date-range-picker">
             </div>
         </div>
 
@@ -95,7 +96,7 @@ function flowmodoro_stats_shortcode() {
             singleMode: false,
             numberOfMonths: 2,
             numberOfColumns: 2,
-            firstDay: 1, // lundi
+            firstDay: 1,
             autoApply: true,
             lang: 'fr-FR',
             tooltipText: {
@@ -103,16 +104,18 @@ function flowmodoro_stats_shortcode() {
                 other: 'jours'
             },
             format: 'YYYY-MM-DD',
-            onSelect: (startDate, endDate) => {
-                const start = startDate.format('YYYY-MM-DD');
-                const end = endDate.format('YYYY-MM-DD');
-                document.getElementById("date-range-picker").value = `${start} - ${end}`;
-                setTimeout(() => {
-                    applyFilter();
-                }, 10);
-                document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+            setup: (picker) => {
+                picker.on('selected', (startDate, endDate) => {
+                    const start = startDate.format('YYYY-MM-DD');
+                    const end = endDate.format('YYYY-MM-DD');
+                    document.getElementById("date-range-picker").value = `${start} - ${end}`;
+                    applyFilter(start, end);
+                    document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+                    document.getElementById("manual-picker-btn").classList.add("selected");
+                });
             }
         });
+
 
         function getMinMaxDates(entries) {
             const dates = entries.map(e => parseDate(e.timestamp)).sort();
@@ -470,6 +473,9 @@ function flowmodoro_stats_shortcode() {
             });
         }
 
+        document.getElementById("manual-picker-btn").addEventListener("click", () => {
+            picker.show();
+        });
 
         document.querySelectorAll(".period-btn").forEach(btn => {
             btn.addEventListener("click", () => {
@@ -513,10 +519,12 @@ function flowmodoro_stats_shortcode() {
         });
 
 
-        function applyFilter() {
-            const range = document.getElementById("date-range-picker").value.trim();
-            if (!range.includes(" - ")) return;
-            const [start, end] = range.split(" - ");
+        function applyFilter(start = null, end = null) {
+            if (!start || !end) {
+                const range = document.getElementById("date-range-picker").value;
+                [start, end] = range.split(" - ");
+            }
+
             if (!start || !end || start > end) {
                 alert("Veuillez sélectionner une période valide.");
                 return;
@@ -528,6 +536,7 @@ function flowmodoro_stats_shortcode() {
             renderLineChart(fillMissingDates(start, end, stats.byDate));
             renderHourChart(stats.filtered);
         }
+
 
 
         const fullByDate = {};
