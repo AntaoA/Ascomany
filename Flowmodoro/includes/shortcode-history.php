@@ -219,6 +219,19 @@ function flowmodoro_history_shortcode() {
             display: none;
         }
 
+        .delete-group-btn {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .delete-group-btn:hover {
+            color: #e74c3c;
+        }
+
+
     </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -314,8 +327,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
             block.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h4 style="margin: 0;">${key}</h4>
-                    <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
+                    <h5 style="margin: 0;">${key}</h5>
+                    <div style="display:flex; align-items: center; gap: 10px;">
+                        <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
+                        <button class="delete-group-btn" data-group="${key}" data-level="${mode}" title="Supprimer ce groupe">🗑</button>
+                    </div>
                 </div>
             `;
 
@@ -335,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     } else if (next === "phase") {
                         renderPhases(group, detail);
                     } else {
-                        renderGroupedLevel(next, group, detail); // recursive call 💥
+                        renderGroupedLevel(next, group, detail);
                     }
                 }
 
@@ -364,6 +380,46 @@ document.addEventListener('DOMContentLoaded', function () {
         } else {
             renderGroupedLevel(groupingMode, data, output);
         }
+
+        // Ajout des événements de suppression
+        output.querySelectorAll(".delete-group-btn").forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const group = btn.dataset.group;
+                const level = btn.dataset.level;
+
+                confirmCustom(`Supprimer toutes les entrées du groupe "${group}" ?`, (ok) => {
+                    if (!ok) return;
+
+                    const toDelete = Object.entries(groupByMode(allHistory, level))
+                        .find(([label]) => label === group)?.[1] || [];
+
+                    // Supprimer du tableau global
+                    const timestampsToDelete = toDelete.map(e => e.timestamp);
+                    for (let i = allHistory.length - 1; i >= 0; i--) {
+                        if (timestampsToDelete.includes(allHistory[i].timestamp)) {
+                            allHistory.splice(i, 1);
+                        }
+                    }
+
+                    // Supprimer du local
+                    sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
+                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                    // MAJ WordPress
+                    if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                        });
+                    }
+
+                    render();
+                });
+            };
+        });
+
     }
 
 
