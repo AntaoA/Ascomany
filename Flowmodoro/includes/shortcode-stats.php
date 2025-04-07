@@ -29,9 +29,7 @@ function flowmodoro_stats_shortcode() {
                 <button class="period-btn" data-period="year">Cette année</button>
                 <button class="period-btn" data-period="all">Tout</button>
                 <span style="margin-left: 10px;">ou sélection manuelle :</span>
-                <input type="date" id="stats-start">
-                <input type="date" id="stats-end">
-                <button id="stats-apply">Appliquer</button>
+                <input type="text" id="date-range-picker" placeholder="Sélectionner une période…" style="padding: 6px 10px; width: 220px;" readonly>
             </div>
         </div>
 
@@ -84,9 +82,39 @@ function flowmodoro_stats_shortcode() {
 
     </style>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/litepicker/dist/css/litepicker.css" />
+    <script src="https://cdn.jsdelivr.net/npm/litepicker/dist/litepicker.js"></script>
+
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
     document.addEventListener("DOMContentLoaded", function() {
+
+
+        const picker = new Litepicker({
+            element: document.getElementById('date-range-picker'),
+            singleMode: false,
+            numberOfMonths: 2,
+            numberOfColumns: 2,
+            firstDay: 1, // lundi
+            autoApply: true,
+            lang: 'fr-FR',
+            tooltipText: {
+                one: 'jour',
+                other: 'jours'
+            },
+            format: 'YYYY-MM-DD',
+            onSelect: (startDate, endDate) => {
+                const start = startDate.format('YYYY-MM-DD');
+                const end = endDate.format('YYYY-MM-DD');
+                document.getElementById("stats-start").value = start;
+                document.getElementById("stats-end").value = end;
+                applyFilter();
+                document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+            }
+        });
+
+
         const rawEntries = <?php echo json_encode($entries, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
 
         const parseDate = ts => {
@@ -461,19 +489,9 @@ function flowmodoro_stats_shortcode() {
             applyFilter();
         }
 
-        ["stats-start", "stats-end"].forEach(id => {
-            document.getElementById(id).addEventListener("change", () => {
-                const start = document.getElementById("stats-start").value;
-                const end = document.getElementById("stats-end").value;
-                if (start && end && start <= end) {
-                    applyFilter();
-                    document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
-                }
-            });
-        });
-
-        document.getElementById("stats-apply").addEventListener("click", applyFilter);
     });
+
+    
     </script>
     <?php
 
