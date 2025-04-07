@@ -30,8 +30,6 @@ function flowmodoro_stats_shortcode() {
                 <button class="period-btn" data-period="all">Tout</button>
                 <span style="margin-left: 10px;">ou sélection manuelle :</span>
                 <input type="text" id="date-range-picker" placeholder="Sélectionner une période…" style="padding: 6px 10px; width: 220px;" readonly>
-                <input type="hidden" id="stats-start">
-                <input type="hidden" id="stats-end">
             </div>
         </div>
 
@@ -109,8 +107,6 @@ function flowmodoro_stats_shortcode() {
             onSelect: (startDate, endDate) => {
                 const start = startDate.format('YYYY-MM-DD');
                 const end = endDate.format('YYYY-MM-DD');
-                document.getElementById("stats-start").value = start;
-                document.getElementById("stats-end").value = end;
                 applyFilter();
                 document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
             }
@@ -457,8 +453,7 @@ function flowmodoro_stats_shortcode() {
                 }
 
                 if (start && end) {
-                    document.getElementById("stats-start").value = start.toISOString().split("T")[0];
-                    document.getElementById("stats-end").value = end.toISOString().split("T")[0];
+                    document.getElementById("date-range-picker").value = start.toISOString().split("T")[0] + " - " + end.toISOString().split("T")[0];
                     applyFilter();
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
@@ -468,8 +463,8 @@ function flowmodoro_stats_shortcode() {
 
 
         function applyFilter() {
-            const start = document.getElementById("stats-start").value;
-            const end = document.getElementById("stats-end").value;
+            const range = document.getElementById("date-range-picker").value;
+            const [start, end] = range.split(" - ");
             if (!start || !end || start > end) {
                 alert("Veuillez sélectionner une période valide.");
                 return;
@@ -480,16 +475,25 @@ function flowmodoro_stats_shortcode() {
             renderChart(stats.byDate);
             renderLineChart(stats.byDate);
             renderHourChart(stats.filtered);
+}
 
-        }
+
+        const fullByDate = {};
+        rawEntries.forEach(e => {
+            const d = parseDate(e.timestamp);
+            if (!fullByDate[d]) fullByDate[d] = { travail: 0, pause: 0 };
+            if (e.type === "Travail") fullByDate[d].travail += e.duration || 0;
+            if (e.type === "Pause") fullByDate[d].pause += e.duration || 0;
+        });
+        renderHeatmap(fullByDate);
 
         // Valeurs par défaut
         const dates = rawEntries.map(e => parseDate(e.timestamp)).sort();
         if (dates.length > 0) {
-            document.getElementById("stats-start").value = dates[0];
-            document.getElementById("stats-end").value = dates.at(-1);
+            document.getElementById("date-range-picker").value = dates[0] + " - " + dates.at(-1);
             applyFilter();
         }
+
 
     });
 
