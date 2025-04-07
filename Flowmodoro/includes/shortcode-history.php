@@ -244,7 +244,6 @@ document.addEventListener('DOMContentLoaded', function () {
         sessionHistory = raw ? JSON.parse(raw) : [];
     }
     const output = document.getElementById("history-output");
-    const toggleBtn = document.getElementById("toggle-view");
     const filterDropdown = document.getElementById("filter-dropdown");
 
     let groupingMode = "day"; // ou "week", "month", "year", "phase", "session"
@@ -524,14 +523,7 @@ document.addEventListener('DOMContentLoaded', function () {
     selectedDate = "all";
     render();
 
-    // Toggle session / phase
-    toggleBtn.addEventListener("click", () => {
-        currentView = currentView === "session" ? "phase" : "session";
-        toggleBtn.textContent = currentView === "session"
-            ? "🔁 Affichage : par session"
-            : "🔁 Affichage : par phase";
-        render();
-    });
+
 
     
     function getNextLevel(mode) {
