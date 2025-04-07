@@ -23,7 +23,7 @@ function flowmodoro_stats_shortcode() {
 
         <div style="margin-bottom: 30px;">
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                <button class="period-btn" data-period="today">Aujourd’hui</button>
+                <button class="period-btn selected" data-period="full">Toute la période</button>
                 <button class="period-btn" data-period="week">Cette semaine</button>
                 <button class="period-btn" data-period="month">Ce mois</button>
                 <button class="period-btn" data-period="year">Cette année</button>
@@ -455,8 +455,13 @@ function flowmodoro_stats_shortcode() {
                 const now = new Date();
                 let start, end;
 
-                if (period === "today") {
-                    start = end = now;
+                const dates = rawEntries.map(e => parseDate(e.timestamp)).sort();
+
+                if (period === "full") {
+                    if (dates.length > 0) {
+                        start = new Date(dates[0]);
+                        end = new Date(); // maintenant
+                    }
                 } else if (period === "week") {
                     const day = (now.getDay() + 6) % 7; // lundi = 0
                     start = new Date(now);
@@ -470,12 +475,12 @@ function flowmodoro_stats_shortcode() {
                     start = new Date(now.getFullYear(), 0, 1);
                     end = new Date(now.getFullYear(), 11, 31);
                 } else if (period === "all") {
-                    const dates = rawEntries.map(e => parseDate(e.timestamp)).sort();
                     if (dates.length > 0) {
                         start = new Date(dates[0]);
                         end = new Date(dates.at(-1));
                     }
                 }
+
 
                 if (start && end) {
                     document.getElementById("date-range-picker").value = start.toISOString().split("T")[0] + " - " + end.toISOString().split("T")[0];
