@@ -35,15 +35,13 @@ function flowmodoro_stats_shortcode() {
         <canvas id="stats-line-chart" height="200" style="margin-top: 40px; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
 
 
-        <div id="stats-heatmap" style="margin-top: 40px;">
-            <h3>🗓️ Carte thermique d’activité</h3>
-            <div id="heatmap-container" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; max-width: 500px;"></div>
+        <div id="heatmap-container" style="display: grid; grid-template-columns: repeat(53, 1fr); gap: 2px; max-width: 100%; overflow-x: auto;"></div>
             <div style="margin-top: 10px; font-size: 12px; color: #666;">
                 <span style="background: #eee; padding: 2px 6px; border-radius: 3px;">0</span>
                 →
                 <span style="background: #e74c3c; padding: 2px 6px; border-radius: 3px; color: white;">+ de travail</span>
             </div>
-        </div>
+
 
     </div>
 
@@ -182,24 +180,66 @@ function flowmodoro_stats_shortcode() {
             const container = document.getElementById("heatmap-container");
             container.innerHTML = "";
 
-            const sortedDates = Object.keys(dataByDate).sort();
-            const maxWork = Math.max(...sortedDates.map(d => dataByDate[d].travail || 0));
+            // Obtenir les bornes temporelles
+            const allDates = Object.keys(dataByDate).sort();
+            if (allDates.length === 0) return;
 
-            sortedDates.forEach(date => {
-                const work = dataByDate[date].travail || 0;
-                const intensity = maxWork > 0 ? work / maxWork : 0;
-                const color = `rgba(231, 76, 60, ${intensity})`;
+            const start = new Date(allDates[0]);
+            const end = new Date(allDates.at(-1));
+            const grid = {};
 
-                const box = document.createElement("div");
-                box.title = `${date} — ${format(work)} de travail`;
-                box.style.height = "30px";
-                box.style.borderRadius = "4px";
-                box.style.background = color;
-                box.style.cursor = "pointer";
-                box.style.transition = "opacity 0.3s";
-                container.appendChild(box);
+            // Générer chaque jour entre start et end
+            const cursor = new Date(start);
+            while (cursor <= end) {
+                const iso = cursor.toISOString().split("T")[0];
+                grid[iso] = dataByDate[iso]?.travail || 0;
+                cursor.setDate(cursor.getDate() + 1);
+            }
+
+            // Calcule du max pour les intensités
+            const max = Math.max(...Object.values(grid), 1); // éviter /0
+
+            // Reformatage en colonnes (semaines)
+            const weeks = [];
+            const tmp = new Date(start);
+            tmp.setDate(tmp.getDate() - tmp.getDay()); // commencer un dimanche
+            const last = new Date(end);
+            last.setDate(last.getDate() + (6 - last.getDay())); // finir un samedi
+
+            const dateArray = [];
+            while (tmp <= last) {
+                dateArray.push(new Date(tmp));
+                tmp.setDate(tmp.getDate() + 1);
+            }
+
+            for (let i = 0; i < dateArray.length; i += 7) {
+                const week = dateArray.slice(i, i + 7);
+                weeks.push(week);
+            }
+
+            // Affichage : colonne = semaine, ligne = jour
+            weeks.forEach(week => {
+                week.forEach((day, i) => {
+                    const d = day.toISOString().split("T")[0];
+                    const work = grid[d] || 0;
+                    const intensity = Math.min(1, work / max);
+                    const color = intensity === 0 ? "#eee" : `rgba(231, 76, 60, ${intensity})`;
+
+                    const square = document.createElement("div");
+                    square.title = `${d} — ${format(work)} de travail`;
+                    square.style.width = "14px";
+                    square.style.height = "14px";
+                    square.style.borderRadius = "2px";
+                    square.style.backgroundColor = color;
+                    square.style.gridColumn = `${weeks.indexOf(week) + 1}`;
+                    square.style.gridRow = `${i + 1}`;
+                    square.style.cursor = "pointer";
+
+                    container.appendChild(square);
+                });
             });
         }
+
 
 
 
