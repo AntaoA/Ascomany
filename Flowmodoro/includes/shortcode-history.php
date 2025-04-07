@@ -430,29 +430,16 @@ document.addEventListener('DOMContentLoaded', function () {
             div.appendChild(details);
             div.addEventListener("click", (e) => {
                 if (e.target.closest(".delete-session-btn")) return;
+                if (e.target.closest(".delete-phase-btn")) return;
+                e.stopPropagation(); // 🔒 empêche de fermer le bloc parent (jour/semaine/mois...)
                 details.style.display = details.style.display === "block" ? "none" : "block";
             });
+
             container.appendChild(div);
         });
     }
 
     function renderPhases(phases, container = output) {
-        const sorted = [...phases].sort((a, b) => b.timestamp - a.timestamp);
-        sorted.forEach(e => {
-            const div = document.createElement("div");
-            div.className = "session-block entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
-            div.innerHTML = `
-                <div class="entry-phase">
-                    <span><strong>${e.type}</strong> — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
-                    <div>
-                        <button class="view-session-btn" data-ts="${e.timestamp}">👁</button>
-                        <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
-                    </div>
-                </div>
-            `;
-            container.appendChild(div);
-        });
-    }
 
 
 
