@@ -17,14 +17,12 @@ function flowmodoro_history_shortcode() {
             <div class="grouping-select">
                 <button id="grouping-toggle" class="toggle-button">📆 Regrouper par : <span id="grouping-label">Jour</span> ⏷</button>
                 <ul id="grouping-options" class="dropdown hidden">
-                <li data-mode="day-session">Jour (sessions)</li>
-                <li data-mode="day-phase">Jour (phases)</li>
-                <li data-mode="week-session">Semaine (sessions)</li>
-                <li data-mode="week-phase">Semaine (phases)</li>
-                <li data-mode="month-session">Mois (sessions)</li>
-                <li data-mode="month-phase">Mois (phases)</li>
-                <li data-mode="year-session">Année (sessions)</li>
-                <li data-mode="year-phase">Année (phases)</li>
+                    <li data-mode="year">Année</li>
+                    <li data-mode="month">Mois</li>
+                    <li data-mode="week">Semaine</li>
+                    <li data-mode="day">Jour</li>
+                    <li data-mode="session">Session</li>
+                    <li data-mode="phase">Phase</li>
                 </ul>
             </div>
         </div>
@@ -299,7 +297,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function render() {
-        const data = getFilteredHistory();
+        const data = [...allHistory].sort((a, b) => b.timestamp - a.timestamp);
         output.innerHTML = "";
 
         if (data.length === 0) {
@@ -307,91 +305,93 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        const isPhase = groupingMode.includes("phase");
-        const granularity = groupingMode.split("-")[0];
-        const grouped = groupByMode(data, granularity); // {key: [entries]}
-
-        const sortedKeys = Object.keys(grouped).sort((a, b) => {
+        const level = groupingMode;
+        const grouped = groupByMode(data, level);
+        const keys = Object.keys(grouped).sort((a, b) => {
             const aDate = new Date(grouped[a][0].timestamp);
             const bDate = new Date(grouped[b][0].timestamp);
             return bDate - aDate;
         });
 
-        sortedKeys.forEach(key => {
-            const wrapper = document.createElement("div");
-            wrapper.className = "session-block";
-            const heading = document.createElement("h3");
-            heading.textContent = key;
-            wrapper.appendChild(heading);
-
+        keys.forEach(key => {
             const entries = grouped[key];
+            const container = document.createElement("div");
+            container.className = "session-block";
 
-            if (isPhase) {
-                entries.sort((a, b) => b.timestamp - a.timestamp);
-                entries.forEach(e => {
-                    const div = document.createElement("div");
-                    div.className = "session-block entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
-                    div.innerHTML = `
-                        <div class="entry-phase">
-                            <span><strong>${e.type}</strong> — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
-                            <div>
-                                <button class="view-session-btn" data-ts="${e.timestamp}">👁</button>
-                                <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
-                            </div>
-                        </div>
-                    `;
-                    wrapper.appendChild(div);
-                });
-            } else {
-                const sessions = groupSessions(entries);
-                sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
-                sessions.forEach(session => {
-                    const div = document.createElement("div");
-                    div.className = "session-block";
-                    let totalTravail = 0, totalPause = 0;
+            const totalTravail = entries.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
+            const totalPause = entries.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
 
-                    session.forEach(e => {
-                        if (e.type === "Travail") totalTravail += e.duration || 0;
-                        if (e.type === "Pause") totalPause += e.duration || 0;
-                    });
+            container.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="margin: 0;">${key}</h4>
+                    <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
+                </div>
+            `;
 
-                    const details = document.createElement("div");
-                    details.className = "session-details";
-                    session.forEach(e => {
-                        const line = document.createElement("div");
-                        line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
-                        line.innerHTML = `
-                            <div class="entry-phase" style="justify-content: space-between;">
-                                <span>${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
-                                <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
-                            </div>
-                        `;
-                        details.appendChild(line);
-                    });
+            const subContainer = document.createElement("div");
+            subContainer.className = "session-details";
+            subContainer.style.display = "none";
+            container.appendChild(subContainer);
 
-                    div.innerHTML = `
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <h4 style="margin: 0;">${formatDate(session[0].timestamp, false)}</h4>
-                                <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
-                            </div>
-                            <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
-                        </div>
-                    `;
-                    div.appendChild(details);
-                    div.addEventListener("click", (e) => {
-                        if (e.target.closest(".delete-session-btn")) return;
-                        details.style.display = details.style.display === "block" ? "none" : "block";
-                    });
-                    wrapper.appendChild(div);
-                });
-            }
+            container.addEventListener("click", (e) => {
+                if (e.target.closest("button")) return;
+                if (subContainer.innerHTML === "") {
+                    const next = getNextLevel(level);
+                    if (next === "session") {
+                        const sessions = groupSessions(entries);
+                        renderSessions(sessions, subContainer);
+                    } else if (next === "phase") {
+                        renderPhases(entries, subContainer);
+                    } else {
+                        const subGrouped = groupByMode(entries, next);
+                        const subKeys = Object.keys(subGrouped).sort((a, b) => {
+                            const aDate = new Date(subGrouped[a][0].timestamp);
+                            const bDate = new Date(subGrouped[b][0].timestamp);
+                            return bDate - aDate;
+                        });
+                        subKeys.forEach(subKey => {
+                            const subEntries = subGrouped[subKey];
+                            const block = document.createElement("div");
+                            block.className = "session-block";
+                            const tTravail = subEntries.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
+                            const tPause = subEntries.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
 
-            output.appendChild(wrapper);
+                            block.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <h5 style="margin: 0;">${subKey}</h5>
+                                    <small>Travail : ${formatTime(tTravail)} | Pause : ${formatTime(tPause)}</small>
+                                </div>
+                            `;
+
+                            const detail = document.createElement("div");
+                            detail.className = "session-details";
+                            detail.style.display = "none";
+                            block.appendChild(detail);
+
+                            block.addEventListener("click", (e) => {
+                                e.stopPropagation();
+                                if (detail.innerHTML === "") {
+                                    const lvl = getNextLevel(next);
+                                    if (lvl === "session") {
+                                        renderSessions(groupSessions(subEntries), detail);
+                                    } else if (lvl === "phase") {
+                                        renderPhases(subEntries, detail);
+                                    }
+                                }
+                                detail.style.display = detail.style.display === "block" ? "none" : "block";
+                            });
+
+                            subContainer.appendChild(block);
+                        });
+                    }
+                }
+                subContainer.style.display = subContainer.style.display === "block" ? "none" : "block";
+            });
+
+            output.appendChild(container);
         });
-
-        // 🔁 Ajoute ici ta logique existante pour les boutons delete-phase, delete-session, view-session
     }
+
 
 
 
