@@ -34,6 +34,17 @@ function flowmodoro_stats_shortcode() {
         <canvas id="stats-chart" height="200" style="background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
         <canvas id="stats-line-chart" height="200" style="margin-top: 40px; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
 
+
+        <div id="stats-heatmap" style="margin-top: 40px;">
+            <h3>🗓️ Carte thermique d’activité</h3>
+            <div id="heatmap-container" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; max-width: 500px;"></div>
+            <div style="margin-top: 10px; font-size: 12px; color: #666;">
+                <span style="background: #eee; padding: 2px 6px; border-radius: 3px;">0</span>
+                →
+                <span style="background: #e74c3c; padding: 2px 6px; border-radius: 3px; color: white;">+ de travail</span>
+            </div>
+        </div>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -167,6 +178,30 @@ function flowmodoro_stats_shortcode() {
             });
         }
 
+        function renderHeatmap(dataByDate) {
+            const container = document.getElementById("heatmap-container");
+            container.innerHTML = "";
+
+            const sortedDates = Object.keys(dataByDate).sort();
+            const maxWork = Math.max(...sortedDates.map(d => dataByDate[d].travail || 0));
+
+            sortedDates.forEach(date => {
+                const work = dataByDate[date].travail || 0;
+                const intensity = maxWork > 0 ? work / maxWork : 0;
+                const color = `rgba(231, 76, 60, ${intensity})`;
+
+                const box = document.createElement("div");
+                box.title = `${date} — ${format(work)} de travail`;
+                box.style.height = "30px";
+                box.style.borderRadius = "4px";
+                box.style.background = color;
+                box.style.cursor = "pointer";
+                box.style.transition = "opacity 0.3s";
+                container.appendChild(box);
+            });
+        }
+
+
 
         let chartInstance = null;
 
@@ -219,6 +254,8 @@ function flowmodoro_stats_shortcode() {
             renderStats(stats);
             renderChart(stats.byDate);
             renderLineChart(stats.byDate);
+            renderHeatmap(stats.byDate);
+
         }
 
         // Valeurs par défaut
