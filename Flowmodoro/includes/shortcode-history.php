@@ -305,6 +305,18 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        if (groupingMode === "phase") {
+            renderPhases(data, output);
+            return;
+        }
+
+        if (groupingMode === "session") {
+            const sessions = groupSessions(data);
+            renderSessions(sessions, output);
+            return;
+        }
+
+        // sinon, continue avec regroupement hiérarchique :
         const level = groupingMode;
         const grouped = groupByMode(data, level);
         const keys = Object.keys(grouped).sort((a, b) => {
