@@ -30,6 +30,10 @@ function flowmodoro_stats_shortcode() {
                 <div id="manual-picker-wrapper" style="position: relative; display: inline-block;">
                     <button class="period-btn" id="manual-picker-btn" data-period="manual">Sélection manuelle</button>
                 </div>
+                <div id="nav-buttons" style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button id="prev-period" class="period-btn">← Période précédente</button>
+                    <button id="next-period" class="period-btn">Période suivante →</button>
+                </div>
                 <input type="hidden" id="date-range-picker">
             </div>
         </div>
@@ -92,6 +96,8 @@ function flowmodoro_stats_shortcode() {
     <script>
     document.addEventListener("DOMContentLoaded", function() {
 
+        let currentPeriodType = "full"; // semaine/mois/année/full/manual
+        let currentRange = { start: null, end: null };
 
         const picker = new Litepicker({
             element: document.getElementById('date-range-picker'),
@@ -518,21 +524,21 @@ function flowmodoro_stats_shortcode() {
                     applyFilter();
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
+                    currentPeriodType = period;
                 }
             });
         });
 
 
-        function applyFilter(start = null, end = null) {
-            if (!start || !end) {
-                const range = document.getElementById("date-range-picker").value;
-                [start, end] = range.split(" - ");
-            }
-
+        function applyFilter() {
+            const range = document.getElementById("date-range-picker").value;
+            const [start, end] = range.split(" - ");
             if (!start || !end || start > end) {
                 alert("Veuillez sélectionner une période valide.");
                 return;
             }
+
+            currentRange = { start, end }; // <-- stocke la période
 
             const stats = getStatsBetween(start, end);
             renderStats(stats);
@@ -541,6 +547,40 @@ function flowmodoro_stats_shortcode() {
             renderHourChart(stats.filtered);
         }
 
+        function shiftDateRange(amount, unit) {
+            const start = new Date(currentRange.start);
+            const end = new Date(currentRange.end);
+
+            if (unit === "week") {
+                start.setDate(start.getDate() + 7 * amount);
+                end.setDate(end.getDate() + 7 * amount);
+            } else if (unit === "month") {
+                start.setMonth(start.getMonth() + amount);
+                end.setMonth(end.getMonth() + amount);
+            } else if (unit === "year") {
+                start.setFullYear(start.getFullYear() + amount);
+                end.setFullYear(end.getFullYear() + amount);
+            } else return;
+
+            const startStr = start.toISOString().split("T")[0];
+            const endStr = end.toISOString().split("T")[0];
+            document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+            applyFilter();
+        }
+
+
+
+        document.getElementById("prev-period").addEventListener("click", () => {
+            if (["week", "month", "year"].includes(currentPeriodType)) {
+                shiftDateRange(-1, currentPeriodType);
+            }
+        });
+
+        document.getElementById("next-period").addEventListener("click", () => {
+            if (["week", "month", "year"].includes(currentPeriodType)) {
+                shiftDateRange(1, currentPeriodType);
+            }
+        });
 
 
         const fullByDate = {};
