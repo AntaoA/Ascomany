@@ -585,6 +585,60 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Afficher dans l'ordre inverse (plus récent en haut)
         blocks.reverse().forEach(div => container.appendChild(div));
+
+        // Attacher les handlers de suppression phase (même si affichées dans une session)
+        details.querySelectorAll(".delete-phase-btn").forEach(btn => {
+            btn.onclick = (event) => {
+                event.stopPropagation();
+                const ts = parseInt(event.currentTarget.dataset.ts);
+
+                const currentLine = event.currentTarget.closest(".entry-line");
+                const parentDetail = currentLine?.parentElement;
+
+                confirmCustom("Supprimer cette phase ?", (ok) => {
+                    if (!ok) return;
+
+                    for (let i = allHistory.length - 1; i >= 0; i--) {
+                        if (allHistory[i].timestamp === ts) {
+                            allHistory.splice(i, 1);
+                            break;
+                        }
+                    }
+
+                    sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
+                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                    if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                        });
+                    }
+
+                    currentLine?.remove();
+
+                    let detailBlock = parentDetail;
+                    while (
+                        detailBlock &&
+                        detailBlock.classList.contains("session-details") &&
+                        detailBlock.childElementCount === 0
+                    ) {
+                        const parentBlock = detailBlock.closest(".session-block");
+                        detailBlock.remove();
+
+                        if (parentBlock && parentBlock.parentElement?.classList.contains("session-details")) {
+                            const outerDetail = parentBlock.parentElement;
+                            parentBlock.remove();
+                            detailBlock = outerDetail;
+                        } else {
+                            break;
+                        }
+                    }
+                });
+            };
+        });
+
     }
 
 
