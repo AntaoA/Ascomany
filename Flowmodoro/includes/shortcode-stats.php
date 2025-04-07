@@ -27,12 +27,14 @@ function flowmodoro_stats_shortcode() {
                 <button class="period-btn" data-period="week">Cette semaine</button>
                 <button class="period-btn" data-period="month">Ce mois</button>
                 <button class="period-btn" data-period="year">Cette année</button>
-                <span style="margin-left: 10px;">ou sélection manuelle :</span>
                 <button class="period-btn" id="manual-picker-btn" data-period="manual">Sélection manuelle</button>
                 <input type="hidden" id="date-range-picker">
             </div>
         </div>
 
+        <div id="manual-picker-wrapper" style="position: relative; display: inline-block;">
+            <button class="period-btn" id="manual-picker-btn" data-period="manual">Sélection manuelle</button>
+        </div>
 
         <div id="stats-summary" style="margin-bottom: 40px;"></div>
 
@@ -93,6 +95,7 @@ function flowmodoro_stats_shortcode() {
 
         const picker = new Litepicker({
             element: document.getElementById('date-range-picker'),
+            parentEl: document.getElementById('manual-picker-wrapper'),
             singleMode: false,
             numberOfMonths: 2,
             numberOfColumns: 2,
@@ -115,6 +118,7 @@ function flowmodoro_stats_shortcode() {
                 });
             }
         });
+
 
 
         function getMinMaxDates(entries) {
