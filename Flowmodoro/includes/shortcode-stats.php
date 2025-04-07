@@ -210,7 +210,7 @@ function flowmodoro_stats_shortcode() {
             tmp.setDate(tmp.getDate() - ((tmp.getDay() + 6) % 7)); // aligné sur lundi
 
             const last = new Date(tmp);
-            last.setDate(tmp.getDate() + (7 * 53)); // 53 semaines fixes
+            last.setDate(tmp.getDate() + (7 * 53)-1); // 53 semaines fixes
             const dateArray = [];
             while (tmp <= last) {
                 dateArray.push(new Date(tmp));
