@@ -217,6 +217,14 @@ function flowmodoro_stats_shortcode() {
                 tmp.setDate(tmp.getDate() + 1);
             }
 
+            // S’assurer qu’on a bien un multiple de 7 (grille propre)
+            while (dateArray.length % 7 !== 0) {
+                const filler = new Date(dateArray.at(-1));
+                filler.setDate(filler.getDate() + 1);
+                dateArray.push(filler);
+            }
+
+
             for (let i = 0; i < dateArray.length; i += 7) {
                 const week = dateArray.slice(i, i + 7);
                 weeks.push(week);
@@ -239,6 +247,12 @@ function flowmodoro_stats_shortcode() {
                     square.style.gridColumn = `${weeks.indexOf(week) + 1}`;
                     square.style.gridRow = `${i + 1}`;
                     square.style.cursor = "pointer";
+
+                    const todayISO = new Date().toISOString().split("T")[0];
+                    if (d > todayISO) {
+                        square.style.opacity = "0.3";
+                        square.title += " (futur)";
+}
 
                     if (day.getDate() === 1) {
                         square.style.borderTop = "2px solid #aaa"; // ligne discrète
