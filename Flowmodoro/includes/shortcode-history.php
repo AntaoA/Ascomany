@@ -296,6 +296,58 @@ document.addEventListener('DOMContentLoaded', function () {
         return allHistory;
     }
 
+    function renderGroupedLevel(mode, entries, container) {
+        const grouped = groupByMode(entries, mode);
+        const keys = Object.keys(grouped).sort((a, b) => {
+            const aDate = new Date(grouped[a][0].timestamp);
+            const bDate = new Date(grouped[b][0].timestamp);
+            return bDate - aDate;
+        });
+
+        keys.forEach(key => {
+            const block = document.createElement("div");
+            block.className = "session-block";
+
+            const group = grouped[key];
+            const totalTravail = group.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
+            const totalPause = group.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
+
+            block.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="margin: 0;">${key}</h4>
+                    <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
+                </div>
+            `;
+
+            const detail = document.createElement("div");
+            detail.className = "session-details";
+            detail.style.display = "none";
+            block.appendChild(detail);
+
+            block.addEventListener("click", (e) => {
+                if (e.target.closest("button")) return;
+                e.stopPropagation();
+
+                const next = getNextLevel(mode);
+                if (detail.innerHTML === "" && next) {
+                    if (next === "session") {
+                        renderSessions(groupSessions(group), detail);
+                    } else if (next === "phase") {
+                        renderPhases(group, detail);
+                    } else {
+                        renderGroupedLevel(next, group, detail); // recursive call 💥
+                    }
+                }
+
+                detail.style.display = detail.style.display === "block" ? "none" : "block";
+            });
+
+            container.appendChild(block);
+        });
+    }
+
+
+
     function render() {
         const data = [...allHistory].sort((a, b) => b.timestamp - a.timestamp);
         output.innerHTML = "";
@@ -307,102 +359,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (groupingMode === "phase") {
             renderPhases(data, output);
-            return;
+        } else if (groupingMode === "session") {
+            renderSessions(groupSessions(data), output);
+        } else {
+            renderGroupedLevel(groupingMode, data, output);
         }
-
-        if (groupingMode === "session") {
-            const sessions = groupSessions(data);
-            renderSessions(sessions, output);
-            return;
-        }
-
-        // sinon, continue avec regroupement hiérarchique :
-        const level = groupingMode;
-        const grouped = groupByMode(data, level);
-        const keys = Object.keys(grouped).sort((a, b) => {
-            const aDate = new Date(grouped[a][0].timestamp);
-            const bDate = new Date(grouped[b][0].timestamp);
-            return bDate - aDate;
-        });
-
-        keys.forEach(key => {
-            const entries = grouped[key];
-            const container = document.createElement("div");
-            container.className = "session-block";
-
-            const totalTravail = entries.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
-            const totalPause = entries.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
-
-            container.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <h4 style="margin: 0;">${key}</h4>
-                    <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
-                </div>
-            `;
-
-            const subContainer = document.createElement("div");
-            subContainer.className = "session-details";
-            subContainer.style.display = "none";
-            container.appendChild(subContainer);
-
-            container.addEventListener("click", (e) => {
-                if (e.target.closest("button")) return;
-                if (subContainer.innerHTML === "") {
-                    const next = getNextLevel(level);
-                    if (next === "session") {
-                        const sessions = groupSessions(entries);
-                        renderSessions(sessions, subContainer);
-                    } else if (next === "phase") {
-                        renderPhases(entries, subContainer);
-                    } else {
-                        const subGrouped = groupByMode(entries, next);
-                        const subKeys = Object.keys(subGrouped).sort((a, b) => {
-                            const aDate = new Date(subGrouped[a][0].timestamp);
-                            const bDate = new Date(subGrouped[b][0].timestamp);
-                            return bDate - aDate;
-                        });
-                        subKeys.forEach(subKey => {
-                            const subEntries = subGrouped[subKey];
-                            const block = document.createElement("div");
-                            block.className = "session-block";
-                            const tTravail = subEntries.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
-                            const tPause = subEntries.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
-
-                            block.innerHTML = `
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <h5 style="margin: 0;">${subKey}</h5>
-                                    <small>Travail : ${formatTime(tTravail)} | Pause : ${formatTime(tPause)}</small>
-                                </div>
-                            `;
-
-                            const detail = document.createElement("div");
-                            detail.className = "session-details";
-                            detail.style.display = "none";
-                            block.appendChild(detail);
-
-                            block.addEventListener("click", (e) => {
-                                e.stopPropagation();
-                                if (detail.innerHTML === "") {
-                                    const lvl = getNextLevel(next);
-                                    if (lvl === "session") {
-                                        renderSessions(groupSessions(subEntries), detail);
-                                    } else if (lvl === "phase") {
-                                        renderPhases(subEntries, detail);
-                                    }
-                                }
-                                detail.style.display = detail.style.display === "block" ? "none" : "block";
-                            });
-
-                            subContainer.appendChild(block);
-                        });
-                    }
-                }
-                subContainer.style.display = subContainer.style.display === "block" ? "none" : "block";
-            });
-
-            output.appendChild(container);
-        });
     }
+
 
     function renderSessions(sessions, container = output) {
         sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
