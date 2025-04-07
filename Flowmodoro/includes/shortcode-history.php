@@ -487,17 +487,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     function renderSessions(sessions, container = output) {
+        // Trie les sessions du plus récent au plus ancien pour l'affichage
         sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
 
-        sessions.forEach((session, index) => {
+        // Pour la numérotation, on veut le plus ancien = session 1
+        const sessionsInChronoOrder = [...sessions].sort((a, b) => a[0].timestamp - b[0].timestamp);
+        const sessionNumbers = new Map();
+        sessionsInChronoOrder.forEach((s, i) => {
+            sessionNumbers.set(s, i + 1); // numérotation 1, 2, 3...
+        });
+
+        sessions.forEach(session => {
             const div = document.createElement("div");
             div.className = "session-block";
-
-            const sessionNumber = sessions.length - index;
-            const sessionStart = new Date(session[0].timestamp);
-            const startTime = sessionStart.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-
             let totalTravail = 0, totalPause = 0;
+
             session.forEach(e => {
                 if (e.type === "Travail") totalTravail += e.duration || 0;
                 if (e.type === "Pause") totalPause += e.duration || 0;
@@ -505,7 +509,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const details = document.createElement("div");
             details.className = "session-details";
-
             session.forEach(e => {
                 const line = document.createElement("div");
                 line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
@@ -518,26 +521,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 details.appendChild(line);
             });
 
+            const sessionNum = sessionNumbers.get(session);
+            const startTime = new Date(session[0].timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h4 style="margin: 0;">Session ${sessionNumber} — ${formatDate(session[0].timestamp, false)} à ${startTime}</h4>
+                        <h4 style="margin: 0;">Session ${sessionNum} — ${formatDate(session[0].timestamp, false)} à ${startTime}</h4>
                         <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
                     </div>
                     <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
                 </div>
             `;
             div.appendChild(details);
-            container.appendChild(div);
-
             div.addEventListener("click", (e) => {
                 if (e.target.closest(".delete-session-btn")) return;
                 if (e.target.closest(".delete-phase-btn")) return;
-                e.stopPropagation();
+                e.stopPropagation(); // 🔒 empêche la fermeture du bloc parent
                 details.style.display = details.style.display === "block" ? "none" : "block";
             });
 
-            // suppression session
+            container.appendChild(div);
+
             div.querySelector(".delete-session-btn").onclick = (e) => {
                 e.stopPropagation();
                 confirmCustom("Supprimer cette session ?", (ok) => {
@@ -561,60 +566,23 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                     }
 
+                    // 🔁 Re-render uniquement ce container avec MAJ de la numérotation
                     const parentDetail = div.parentElement;
+                    const remainingEntries = [];
+
+                    parentDetail.querySelectorAll(".entry-line").forEach(line => {
+                        const ts = parseInt(line.querySelector(".delete-phase-btn")?.dataset.ts);
+                        const found = allHistory.find(e => e.timestamp === ts);
+                        if (found) remainingEntries.push(found);
+                    });
+
                     div.remove();
-
-                    let detailBlock = parentDetail;
-                    while (
-                        detailBlock &&
-                        detailBlock.classList.contains("session-details") &&
-                        detailBlock.childElementCount === 0
-                    ) {
-                        const parentBlock = detailBlock.closest(".session-block");
-                        detailBlock.remove();
-
-                        if (parentBlock && parentBlock.parentElement?.classList.contains("session-details")) {
-                            const outerDetail = parentBlock.parentElement;
-                            parentBlock.remove();
-                            detailBlock = outerDetail;
-                        } else {
-                            break;
-                        }
-                    }
-                });
-            };
-
-            // suppression phase
-            details.querySelectorAll(".delete-phase-btn").forEach(btn => {
-                btn.onclick = (event) => {
-                    event.stopPropagation();
-                    const ts = parseInt(btn.dataset.ts);
-                    const currentLine = btn.closest(".entry-line");
-                    const parentDetail = currentLine?.parentElement;
-
-                    confirmCustom("Supprimer cette phase ?", (ok) => {
-                        if (!ok) return;
-
-                        for (let i = allHistory.length - 1; i >= 0; i--) {
-                            if (allHistory[i].timestamp === ts) {
-                                allHistory.splice(i, 1);
-                                break;
-                            }
-                        }
-
-                        sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
-                        sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
-
-                        if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
-                            fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                                body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
-                            });
-                        }
-
-                        currentLine?.remove();
-
+                    parentDetail.innerHTML = "";
+                    if (remainingEntries.length > 0) {
+                        const reSessions = groupSessions(remainingEntries);
+                        renderSessions(reSessions, parentDetail);
+                    } else {
+                        // suppression récursive si vide
                         let detailBlock = parentDetail;
                         while (
                             detailBlock &&
@@ -632,9 +600,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                 break;
                             }
                         }
-                    });
-                };
-            });
+                    }
+                });
+            };
         });
     }
 
