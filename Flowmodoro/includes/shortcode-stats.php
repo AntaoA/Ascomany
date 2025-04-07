@@ -27,7 +27,6 @@ function flowmodoro_stats_shortcode() {
                 <button class="period-btn" data-period="week">Cette semaine</button>
                 <button class="period-btn" data-period="month">Ce mois</button>
                 <button class="period-btn" data-period="year">Cette année</button>
-                <button class="period-btn" data-period="all">Tout</button>
                 <span style="margin-left: 10px;">ou sélection manuelle :</span>
                 <input type="text" id="date-range-picker" placeholder="Sélectionner une période…" style="padding: 6px 10px; width: 220px;" readonly>
             </div>
@@ -120,6 +119,21 @@ function flowmodoro_stats_shortcode() {
             const d = new Date(ts);
             return d.toISOString().split("T")[0];
         };
+
+        function fillMissingDates(start, end, dataByDate) {
+            const filled = {};
+            const cursor = new Date(start);
+            const endDate = new Date(end);
+
+            while (cursor <= endDate) {
+                const d = cursor.toISOString().split("T")[0];
+                filled[d] = dataByDate[d] || { travail: 0, pause: 0 };
+                cursor.setDate(cursor.getDate() + 1);
+            }
+
+            return filled;
+        }
+
 
         function getStatsBetween(startDate, endDate) {
             const filtered = rawEntries.filter(e => {
@@ -501,9 +515,11 @@ function flowmodoro_stats_shortcode() {
             }
 
             const stats = getStatsBetween(start, end);
+
+            const filledByDate = fillMissingDates(start, end, stats.byDate);
+            renderChart(filledByDate);
+            renderLineChart(filledByDate);
             renderStats(stats);
-            renderChart(stats.byDate);
-            renderLineChart(stats.byDate);
             renderHourChart(stats.filtered);
 }
 
@@ -522,6 +538,7 @@ function flowmodoro_stats_shortcode() {
             const start = dates[0];
             const end = new Date().toISOString().split("T")[0];
             document.getElementById("date-range-picker").value = `${start} - ${end}`;
+            document.querySelector('.period-btn[data-period="full"]')?.classList.add("selected");
             applyFilter();
         }
 
