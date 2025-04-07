@@ -604,7 +604,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
             `;
-            container.appendChild(div);
             div.querySelector(".delete-phase-btn").onclick = (e) => {
                 e.stopPropagation();
                 const ts = parseInt(e.currentTarget.dataset.ts);
@@ -612,7 +611,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 confirmCustom("Supprimer cette phase ?", (ok) => {
                     if (!ok) return;
 
-                    // Supprime la phase dans allHistory
                     for (let i = allHistory.length - 1; i >= 0; i--) {
                         if (allHistory[i].timestamp === ts) {
                             allHistory.splice(i, 1);
@@ -631,25 +629,32 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                     }
 
-                    // 🔁 Mise à jour du parent
-                    const container = e.currentTarget.closest(".session-details");
-                    const entries = Array.from(container.querySelectorAll(".delete-phase-btn"))
-                        .map(btn => parseInt(btn.dataset.ts))
-                        .filter(t => t !== ts); // exclut celle supprimée
+                    // suppression récursive visuelle
+                    const currentLine = e.currentTarget.closest(".session-block, .entry-line");
+                    const parentDetail = currentLine?.parentElement;
+                    currentLine?.remove();
 
-                    if (entries.length === 0) {
-                        const parentBlock = container.closest(".session-block");
-                        container.remove();
-                        parentBlock?.remove();
-                    } else {
-                        // recalculer les entrées à afficher
-                        const phasesRestantes = allHistory.filter(p => entries.includes(p.timestamp));
-                        container.innerHTML = '';
-                        renderPhases(phasesRestantes, container);
-                        container.style.display = "block"; // garder ouvert
+                    let detailBlock = parentDetail;
+                    while (
+                        detailBlock &&
+                        detailBlock.classList.contains("session-details") &&
+                        detailBlock.childElementCount === 0
+                    ) {
+                        const parentBlock = detailBlock.closest(".session-block");
+                        detailBlock.remove();
+
+                        if (parentBlock && parentBlock.parentElement?.classList.contains("session-details")) {
+                            const outerDetail = parentBlock.parentElement;
+                            parentBlock.remove();
+                            detailBlock = outerDetail;
+                        } else {
+                            break;
+                        }
                     }
                 });
             };
+
+            container.appendChild(div);
 
         });
     }
