@@ -204,26 +204,7 @@ function flowmodoro_stats_shortcode() {
         let lineChartInstance = null;
 
         function renderLineChart(dataByDate) {
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true }
-                },
-                scales: {
-                    x: {
-                        type: 'category',
-                        ticks: {
-                            autoSkip: false, // ✅ force une colonne par jour
-                            maxRotation: 90,
-                            minRotation: 45
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Minutes' }
-                    }
-                }
-            }
+
             const ctx = document.getElementById('stats-line-chart').getContext('2d');
             const labels = Object.keys(dataByDate).sort();
             const travail = labels.map(d => Math.round((dataByDate[d].travail || 0) / 60000));
@@ -254,7 +235,18 @@ function flowmodoro_stats_shortcode() {
                 },
                 options: {
                     responsive: true,
+                    plugins: {
+                        legend: { display: true }
+                    },
                     scales: {
+                        x: {
+                            type: 'category',
+                            ticks: {
+                                autoSkip: false, // ✅ force une colonne par jour
+                                maxRotation: 90,
+                                minRotation: 45
+                            }
+                        },
                         y: {
                             beginAtZero: true,
                             title: { display: true, text: 'Minutes' }
@@ -409,26 +401,6 @@ function flowmodoro_stats_shortcode() {
         let chartInstance = null;
 
         function renderChart(dataByDate) {
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true }
-                },
-                scales: {
-                    x: {
-                        type: 'category',
-                        ticks: {
-                            autoSkip: false, // ✅ force une colonne par jour
-                            maxRotation: 90,
-                            minRotation: 45
-                        }
-                    },
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Minutes' }
-                    }
-                }
-            }
             const ctx = document.getElementById('stats-chart').getContext('2d');
             const labels = Object.keys(dataByDate).sort();
             const travail = labels.map(d => Math.round((dataByDate[d].travail || 0) / 60000));
@@ -455,7 +427,18 @@ function flowmodoro_stats_shortcode() {
                 },
                 options: {
                     responsive: true,
+                    plugins: {
+                        legend: { display: true }
+                    },
                     scales: {
+                        x: {
+                            type: 'category',
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 90,
+                                minRotation: 45
+                            }
+                        },
                         y: {
                             beginAtZero: true,
                             title: { display: true, text: 'Minutes' }
@@ -464,6 +447,7 @@ function flowmodoro_stats_shortcode() {
                 }
             });
         }
+
 
         document.querySelectorAll(".period-btn").forEach(btn => {
             btn.addEventListener("click", () => {
