@@ -34,6 +34,7 @@ function flowmodoro_stats_shortcode() {
                     <button id="prev-period" class="period-btn">← Période précédente</button>
                     <button id="next-period" class="period-btn">Période suivante →</button>
                 </div>
+                <div id="period-label" style="margin-top: 10px; font-weight: bold; font-size: 16px;"></div>
                 <input type="hidden" id="date-range-picker">
             </div>
         </div>
@@ -530,6 +531,47 @@ function flowmodoro_stats_shortcode() {
         });
 
 
+
+        function updatePeriodLabel() {
+            const label = document.getElementById("period-label");
+            if (!currentRange.start || !currentRange.end) {
+                label.textContent = "";
+                return;
+            }
+
+            const start = new Date(currentRange.start);
+            const end = new Date(currentRange.end);
+
+            let text = "";
+
+            if (currentPeriodType === "month") {
+                text = start.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+            } else if (currentPeriodType === "year") {
+                text = start.getFullYear().toString();
+            } else if (currentPeriodType === "week") {
+                const startStr = start.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
+                const endStr = end.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+                const weekNumber = getWeekNumber(start);
+                text = `Semaine ${weekNumber} — du ${startStr} au ${endStr}`;
+            } else {
+                const startStr = start.toLocaleDateString('fr-FR');
+                const endStr = end.toLocaleDateString('fr-FR');
+                text = `Du ${startStr} au ${endStr}`;
+            }
+
+            label.textContent = text;
+        }
+
+        // ISO week number (lundi comme premier jour)
+        function getWeekNumber(date) {
+            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+            const dayNum = d.getUTCDay() || 7;
+            d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+            const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+        }
+
+
         function applyFilter() {
             const range = document.getElementById("date-range-picker").value;
             const [start, end] = range.split(" - ");
@@ -545,6 +587,7 @@ function flowmodoro_stats_shortcode() {
             renderChart(fillMissingDates(start, end, stats.byDate));
             renderLineChart(fillMissingDates(start, end, stats.byDate));
             renderHourChart(stats.filtered);
+            updatePeriodLabel();
         }
 
         function shiftDateRange(amount, unit) {
