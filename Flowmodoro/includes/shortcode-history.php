@@ -487,10 +487,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     function renderSessions(sessions, container = output) {
-        // Trier du plus ancien au plus récent
+        // Trier du plus ancien au plus récent pour la numérotation
         sessions.sort((a, b) => a[0].timestamp - b[0].timestamp);
 
-        sessions.forEach((session, index) => {
+        // Générer tous les blocs dans un tableau temporaire
+        const blocks = sessions.map((session, index) => {
             const div = document.createElement("div");
             div.className = "session-block";
             let totalTravail = 0, totalPause = 0;
@@ -502,6 +503,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const details = document.createElement("div");
             details.className = "session-details";
+
             session.forEach(e => {
                 const line = document.createElement("div");
                 line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
@@ -524,14 +526,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
             div.appendChild(details);
+
             div.addEventListener("click", (e) => {
                 if (e.target.closest(".delete-session-btn")) return;
                 if (e.target.closest(".delete-phase-btn")) return;
                 e.stopPropagation();
                 details.style.display = details.style.display === "block" ? "none" : "block";
             });
-
-            container.appendChild(div);
 
             div.querySelector(".delete-session-btn").onclick = (e) => {
                 e.stopPropagation();
@@ -556,11 +557,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                     }
 
-                    // suppression récursive visuelle
-                    const parentDetail = div.parentElement;
                     div.remove();
-
-                    let detailBlock = parentDetail;
+                    let detailBlock = container;
                     while (
                         detailBlock &&
                         detailBlock.classList.contains("session-details") &&
@@ -578,12 +576,17 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     }
 
-                    // 💡 Re-render pour renuméroter correctement
-                    render();
+                    render(); // Pour renuméroter
                 });
             };
+
+            return div;
         });
+
+        // Afficher dans l'ordre inverse (plus récent en haut)
+        blocks.reverse().forEach(div => container.appendChild(div));
     }
+
 
 
 
