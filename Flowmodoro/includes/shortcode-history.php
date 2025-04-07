@@ -328,9 +328,9 @@ document.addEventListener('DOMContentLoaded', function () {
             block.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h5 style="margin: 0;">${key}</h5>
-                    <div style="display:flex; align-items: center; gap: 10px;">
+                    <div>
                         <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
-                        <button class="delete-group-btn" data-group="${key}" data-level="${mode}" title="Supprimer ce groupe">🗑</button>
+                        <button class="delete-group-btn" data-group="${key}" data-level="${mode}" title="Supprimer tout ce groupe">🗑</button>
                     </div>
                 </div>
             `;
@@ -353,6 +353,42 @@ document.addEventListener('DOMContentLoaded', function () {
                     } else {
                         renderGroupedLevel(next, group, detail);
                     }
+
+                    // 🔁 Ajouter les événements de suppression dans les sous-niveaux
+                    detail.querySelectorAll(".delete-group-btn").forEach(btn => {
+                        btn.onclick = (e) => {
+                            e.stopPropagation();
+                            const groupKey = btn.dataset.group;
+                            const level = btn.dataset.level;
+
+                            confirmCustom(`Supprimer toutes les entrées du groupe "${groupKey}" ?`, (ok) => {
+                                if (!ok) return;
+
+                                const toDelete = Object.entries(groupByMode(allHistory, level))
+                                    .find(([label]) => label === groupKey)?.[1] || [];
+
+                                const timestampsToDelete = toDelete.map(e => e.timestamp);
+                                for (let i = allHistory.length - 1; i >= 0; i--) {
+                                    if (timestampsToDelete.includes(allHistory[i].timestamp)) {
+                                        allHistory.splice(i, 1);
+                                    }
+                                }
+
+                                sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
+                                sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                                if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                                    fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                                        body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                                    });
+                                }
+
+                                render();
+                            });
+                        };
+                    });
                 }
 
                 detail.style.display = detail.style.display === "block" ? "none" : "block";
