@@ -21,13 +21,20 @@ function flowmodoro_stats_shortcode() {
     <div id="flowmodoro-stats" style="padding: 30px; max-width: 900px; margin: auto; font-family: sans-serif;">
         <h2 style="margin-bottom: 20px;">📊 Statistiques Flowmodoro</h2>
 
-        <div style="margin-bottom: 20px;">
-            <label for="stats-start">📅 Du </label>
-            <input type="date" id="stats-start">
-            <label for="stats-end"> au </label>
-            <input type="date" id="stats-end">
-            <button id="stats-apply" style="margin-left: 10px;">Appliquer</button>
+        <div style="margin-bottom: 30px;">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                <button class="period-btn" data-period="today">Aujourd’hui</button>
+                <button class="period-btn" data-period="week">Cette semaine</button>
+                <button class="period-btn" data-period="month">Ce mois</button>
+                <button class="period-btn" data-period="year">Cette année</button>
+                <button class="period-btn" data-period="all">Tout</button>
+                <span style="margin-left: 10px;">ou sélection manuelle :</span>
+                <input type="date" id="stats-start">
+                <input type="date" id="stats-end">
+                <button id="stats-apply">Appliquer</button>
+            </div>
         </div>
+
 
         <div id="stats-summary" style="margin-bottom: 40px;"></div>
 
@@ -48,6 +55,25 @@ function flowmodoro_stats_shortcode() {
                 <canvas id="hour-chart" height="200" style="background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
             </div>
     </div>
+
+    <style>
+        .period-btn {
+            padding: 6px 12px;
+            background: #eee;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .period-btn:hover {
+            background: #ddd;
+        }
+        .period-btn.selected {
+            background: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -361,6 +387,45 @@ function flowmodoro_stats_shortcode() {
                 }
             });
         }
+
+        document.querySelectorAll(".period-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const period = btn.dataset.period;
+                const now = new Date();
+                let start, end;
+
+                if (period === "today") {
+                    start = end = now;
+                } else if (period === "week") {
+                    const day = (now.getDay() + 6) % 7; // lundi = 0
+                    start = new Date(now);
+                    start.setDate(start.getDate() - day);
+                    end = new Date(start);
+                    end.setDate(end.getDate() + 6);
+                } else if (period === "month") {
+                    start = new Date(now.getFullYear(), now.getMonth(), 1);
+                    end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                } else if (period === "year") {
+                    start = new Date(now.getFullYear(), 0, 1);
+                    end = new Date(now.getFullYear(), 11, 31);
+                } else if (period === "all") {
+                    const dates = rawEntries.map(e => parseDate(e.timestamp)).sort();
+                    if (dates.length > 0) {
+                        start = new Date(dates[0]);
+                        end = new Date(dates.at(-1));
+                    }
+                }
+
+                if (start && end) {
+                    document.getElementById("stats-start").value = start.toISOString().split("T")[0];
+                    document.getElementById("stats-end").value = end.toISOString().split("T")[0];
+                    applyFilter();
+                    document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+                    btn.classList.add("selected");
+                }
+            });
+        });
+
 
         function applyFilter() {
             const start = document.getElementById("stats-start").value;
