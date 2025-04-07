@@ -521,8 +521,8 @@ function flowmodoro_stats_shortcode() {
 
             const stats = getStatsBetween(start, end);
             renderStats(stats);
-            renderChart(fillMissingDates(stats.byDate, start, end));
-            renderLineChart(fillMissingDates(stats.byDate, start, end));
+            renderChart(fillMissingDates(start, end, stats.byDate));
+            renderLineChart(fillMissingDates(start, end, stats.byDate));
             renderHourChart(stats.filtered);
         }
 
