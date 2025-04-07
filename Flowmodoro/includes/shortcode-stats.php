@@ -58,21 +58,30 @@ function flowmodoro_stats_shortcode() {
 
     <style>
         .period-btn {
-            padding: 6px 12px;
-            background: #eee;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 8px 14px;
+            background: #f7f7f7;
+            border: 1px solid #aaa;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 14px;
+            font-size: 15px;
+            color: #111;
+            font-weight: 500;
+            transition: 0.2s ease;
         }
+
         .period-btn:hover {
-            background: #ddd;
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
         }
+
         .period-btn.selected {
             background: #3498db;
             color: white;
             font-weight: bold;
+            border-color: #2980b9;
         }
+
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -277,7 +286,8 @@ function flowmodoro_stats_shortcode() {
                     square.style.borderRadius = "2px";
                     square.style.backgroundColor = color;
                     square.style.gridColumn = `${weeks.indexOf(week) + 1}`;
-                    square.style.gridRow = `${i + 1}`;
+                    const weekday = (day.getDay() + 6) % 7; // lundi = 0, dimanche = 6
+                    square.style.gridRow = weekday + 1;
                     square.style.cursor = "pointer";
 
                     const todayISO = new Date().toISOString().split("T")[0];
@@ -439,7 +449,6 @@ function flowmodoro_stats_shortcode() {
             renderStats(stats);
             renderChart(stats.byDate);
             renderLineChart(stats.byDate);
-            renderHeatmap(stats.byDate);
             renderHourChart(stats.filtered);
 
         }
@@ -451,6 +460,17 @@ function flowmodoro_stats_shortcode() {
             document.getElementById("stats-end").value = dates.at(-1);
             applyFilter();
         }
+
+        ["stats-start", "stats-end"].forEach(id => {
+            document.getElementById(id).addEventListener("change", () => {
+                const start = document.getElementById("stats-start").value;
+                const end = document.getElementById("stats-end").value;
+                if (start && end && start <= end) {
+                    applyFilter();
+                    document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+                }
+            });
+        });
 
         document.getElementById("stats-apply").addEventListener("click", applyFilter);
     });
