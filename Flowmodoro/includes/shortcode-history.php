@@ -385,10 +385,29 @@ document.addEventListener('DOMContentLoaded', function () {
                                     });
                                 }
 
-                                render();
+                                // Supprime le bloc visuellement
+                                const currentBlock = btn.closest(".session-block");
+                                const parentDetail = currentBlock?.parentElement;
+                                currentBlock?.remove();
+
+                                // Si le parent (session-details) devient vide, le supprimer aussi (récursivement)
+                                let detailBlock = parentDetail;
+                                while (detailBlock && detailBlock.classList.contains("session-details") && detailBlock.childElementCount === 0) {
+                                    const parentBlock = detailBlock.parentElement;
+                                    detailBlock.remove();
+                                    if (parentBlock && parentBlock.classList.contains("session-block")) {
+                                        detailBlock = parentBlock.querySelector(".session-details");
+                                        parentBlock.remove();
+                                    } else {
+                                        break;
+                                    }
+                                }
+
+                                render(); // relance complète pour cohérence si tu veux, ou enlève si tout est géré en DOM
                             });
                         };
                     });
+
                 }
 
                 detail.style.display = detail.style.display === "block" ? "none" : "block";
