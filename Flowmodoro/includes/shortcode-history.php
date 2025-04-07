@@ -276,13 +276,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function groupSessions(history) {
         const sessions = [];
-        let current = [];
 
-        for (let i = 0; i < history.length; i++) {
-            const entry = history[i];
+        // On trie les phases du plus ancien au plus récent
+        const sorted = [...history].sort((a, b) => a.timestamp - b.timestamp);
+
+        let current = [];
+        for (let i = 0; i < sorted.length; i++) {
+            const entry = sorted[i];
             current.push(entry);
 
-            const next = history[i + 1];
+            const next = sorted[i + 1];
             const end = entry.timestamp + (entry.duration || 0);
             const nextStart = next ? next.timestamp : 0;
 
@@ -294,6 +297,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return sessions;
     }
+
 
     function extractAvailableDates(history) {
         const days = new Set();
