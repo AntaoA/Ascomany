@@ -526,7 +526,56 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             container.appendChild(div);
+
+            div.querySelector(".delete-session-btn").onclick = (e) => {
+                e.stopPropagation();
+                confirmCustom("Supprimer cette session ?", (ok) => {
+                    if (!ok) return;
+
+                    const timestampsToDelete = session.map(e => e.timestamp);
+                    for (let i = allHistory.length - 1; i >= 0; i--) {
+                        if (timestampsToDelete.includes(allHistory[i].timestamp)) {
+                            allHistory.splice(i, 1);
+                        }
+                    }
+
+                    sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
+                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                    if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                        });
+                    }
+
+                    // Suppression récursive visuelle
+                    const parentDetail = div.parentElement;
+                    div.remove();
+
+                    let detailBlock = parentDetail;
+                    while (
+                        detailBlock &&
+                        detailBlock.classList.contains("session-details") &&
+                        detailBlock.childElementCount === 0
+                    ) {
+                        const parentBlock = detailBlock.closest(".session-block");
+                        detailBlock.remove();
+
+                        if (parentBlock && parentBlock.parentElement?.classList.contains("session-details")) {
+                            const outerDetail = parentBlock.parentElement;
+                            parentBlock.remove();
+                            detailBlock = outerDetail;
+                        } else {
+                            break;
+                        }
+                    }
+                });
+            };
         });
+
+
     }
 
     function renderPhases(phases, container = output) {
@@ -544,6 +593,56 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
             container.appendChild(div);
+            div.querySelector(".delete-phase-btn").onclick = (e) => {
+                e.stopPropagation();
+                const ts = parseInt(e.currentTarget.dataset.ts);
+
+                confirmCustom("Supprimer cette phase ?", (ok) => {
+                    if (!ok) return;
+
+                    for (let i = allHistory.length - 1; i >= 0; i--) {
+                        if (allHistory[i].timestamp === ts) {
+                            allHistory.splice(i, 1);
+                            break;
+                        }
+                    }
+
+                    sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
+                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                    if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                        });
+                    }
+
+                    // suppression récursive visuelle
+                    const currentLine = e.currentTarget.closest(".session-block, .entry-line");
+                    const parentDetail = currentLine?.parentElement;
+                    currentLine?.remove();
+
+                    let detailBlock = parentDetail;
+                    while (
+                        detailBlock &&
+                        detailBlock.classList.contains("session-details") &&
+                        detailBlock.childElementCount === 0
+                    ) {
+                        const parentBlock = detailBlock.closest(".session-block");
+                        detailBlock.remove();
+
+                        if (parentBlock && parentBlock.parentElement?.classList.contains("session-details")) {
+                            const outerDetail = parentBlock.parentElement;
+                            parentBlock.remove();
+                            detailBlock = outerDetail;
+                        } else {
+                            break;
+                        }
+                    }
+                });
+            };
+
         });
     }
 
