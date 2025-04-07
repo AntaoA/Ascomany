@@ -30,6 +30,8 @@ function flowmodoro_stats_shortcode() {
                 <button class="period-btn" data-period="all">Tout</button>
                 <span style="margin-left: 10px;">ou sélection manuelle :</span>
                 <input type="text" id="date-range-picker" placeholder="Sélectionner une période…" style="padding: 6px 10px; width: 220px;" readonly>
+                <input type="hidden" id="stats-start">
+                <input type="hidden" id="stats-end">
             </div>
         </div>
 
@@ -466,8 +468,8 @@ function flowmodoro_stats_shortcode() {
 
 
         function applyFilter() {
-            const range = document.getElementById("date-range-picker").value;
-            const [start, end] = range.split(" - ");
+            const start = document.getElementById("stats-start").value;
+            const end = document.getElementById("stats-end").value;
             if (!start || !end || start > end) {
                 alert("Veuillez sélectionner une période valide.");
                 return;
@@ -478,6 +480,7 @@ function flowmodoro_stats_shortcode() {
             renderChart(stats.byDate);
             renderLineChart(stats.byDate);
             renderHourChart(stats.filtered);
+
         }
 
         // Valeurs par défaut
