@@ -119,16 +119,18 @@ function flowmodoro_stats_shortcode() {
                     const start = startDate.format('YYYY-MM-DD');
                     const end = endDate.format('YYYY-MM-DD');
 
-                    currentRange = { start, end };             // ✅ mise à jour
-                    currentPeriodType = "manual";              // ✅ mise à jour
-
                     document.getElementById("date-range-picker").value = `${start} - ${end}`;
-                    applyFilter(start, end);                   // ✅ maintenant ça affichera les bonnes infos
+                    applyFilter(start, end);
+
+                    // Forcer mise à jour visuelle du label
+                    updatePeriodLabel("manuel", start, end);
+
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     document.getElementById("manual-picker-btn").classList.add("selected");
                 });
-            }
+}
 
+        });
 
 
 
@@ -534,35 +536,28 @@ function flowmodoro_stats_shortcode() {
 
 
 
-        function updatePeriodLabel() {
+        function updatePeriodLabel(period = currentPeriodType, start = currentRange.start, end = currentRange.end) {
             const label = document.getElementById("period-label");
-            if (!currentRange.start || !currentRange.end) {
-                label.textContent = "";
-                return;
-            }
+            if (!label) return;
 
-            const start = new Date(currentRange.start);
-            const end = new Date(currentRange.end);
-
-            let text = "";
-
-            if (currentPeriodType === "month") {
-                text = start.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-            } else if (currentPeriodType === "year") {
-                text = start.getFullYear().toString();
-            } else if (currentPeriodType === "week") {
-                const startStr = start.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
-                const endStr = end.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-                const weekNumber = getWeekNumber(start);
-                text = `Semaine ${weekNumber} — du ${startStr} au ${endStr}`;
+            if (period === "week") {
+                const startDate = new Date(start);
+                const endDate = new Date(end);
+                const weekNumber = getWeekNumber(startDate);
+                label.textContent = `Semaine ${weekNumber} (${start} → ${end})`;
+            } else if (period === "month") {
+                const [year, month] = start.split("-");
+                const date = new Date(`${year}-${month}-01`);
+                label.textContent = date.toLocaleString("fr-FR", { month: "long", year: "numeric" });
+            } else if (period === "year") {
+                label.textContent = start.split("-")[0];
+            } else if (period === "manuel") {
+                label.textContent = `Période personnalisée (${start} → ${end})`;
             } else {
-                const startStr = start.toLocaleDateString('fr-FR');
-                const endStr = end.toLocaleDateString('fr-FR');
-                text = `Du ${startStr} au ${endStr}`;
+                label.textContent = `Depuis le début (${start} → ${end})`;
             }
-
-            label.textContent = text;
         }
+
 
         // ISO week number (lundi comme premier jour)
         function getWeekNumber(date) {
