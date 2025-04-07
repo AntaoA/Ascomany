@@ -23,7 +23,7 @@ function flowmodoro_stats_shortcode() {
 
         <div style="margin-bottom: 30px;">
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                <button class="period-btn selected" data-period="full">Depuis le début</button>
+                <button class="period-btn selected" data-period="full" id="btn-full">Depuis le début</button>
                 <button class="period-btn" data-period="week">Cette semaine</button>
                 <button class="period-btn" data-period="month">Ce mois</button>
                 <button class="period-btn" data-period="year">Cette année</button>
@@ -131,6 +131,10 @@ function flowmodoro_stats_shortcode() {
 }
 
         });
+
+
+        let currentStart = null;
+        let currentEnd = null;
 
 
 
@@ -500,12 +504,14 @@ function flowmodoro_stats_shortcode() {
                 const now = new Date();
                 let start, end;
 
-                const dates = rawEntries.map(e => parseDate(e.timestamp)).sort();
-
                 if (period === "full") {
                     [start, end] = getMinMaxDates(rawEntries);
+                    document.getElementById("date-range-picker").value = `${start} - ${end}`;
+                    applyFilter(start, end);
+                    document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+                    btn.classList.add("selected");
                 } else if (period === "week") {
-                    const day = (now.getDay() + 6) % 7; // lundi = 0
+                    const day = (now.getDay() + 6) % 7;
                     start = new Date(now);
                     start.setDate(start.getDate() - day);
                     end = new Date(start);
@@ -521,12 +527,13 @@ function flowmodoro_stats_shortcode() {
                 if (start && end) {
                     const startStr = start.toISOString().split("T")[0];
                     const endStr = end.toISOString().split("T")[0];
-                    
-                    currentRange = { start: startStr, end: endStr }; // ✅ met à jour avant
-                    currentPeriodType = period;                      // ✅ met à jour avant
+
+                    currentRange = { start: startStr, end: endStr };
+                    currentPeriodType = period;
 
                     document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-                    applyFilter();
+                    applyFilter(startStr, endStr);
+                    updatePeriodLabel();
 
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
@@ -536,37 +543,62 @@ function flowmodoro_stats_shortcode() {
 
 
 
+        function shiftPeriod(days) {
+            const start = new Date(currentRange.start);
+            const end = new Date(currentRange.end);
+            const diff = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+            start.setDate(start.getDate() + days);
+            end.setDate(end.getDate() + days);
+
+            const startStr = start.toISOString().split("T")[0];
+            const endStr = end.toISOString().split("T")[0];
+
+            currentRange = { start: startStr, end: endStr };
+            currentPeriodType = "manuel"; // bien forcer ici
+
+            document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+            applyFilter(startStr, endStr);
+            updatePeriodLabel("manuel", startStr, endStr);
+
+            document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+            document.getElementById("manual-picker-btn").classList.add("selected");
+        }
+
+
+
         function updatePeriodLabel(period = currentPeriodType, start = currentRange.start, end = currentRange.end) {
             const label = document.getElementById("period-label");
             if (!label) return;
 
-            if (period === "week") {
-                const startDate = new Date(start);
-                const endDate = new Date(end);
-                const weekNumber = getWeekNumber(startDate);
+            if (period === "full") {
+                label.textContent = "Depuis le début";
+            } else if (period === "week") {
+                const weekStart = new Date(start);
+                const weekNumber = getWeekNumber(weekStart);
                 label.textContent = `Semaine ${weekNumber} (${start} → ${end})`;
             } else if (period === "month") {
                 const [year, month] = start.split("-");
-                const date = new Date(`${year}-${month}-01`);
+                const date = new Date(year, parseInt(month, 10) - 1, 1);
                 label.textContent = date.toLocaleString("fr-FR", { month: "long", year: "numeric" });
             } else if (period === "year") {
-                label.textContent = start.split("-")[0];
+                const year = start.split("-")[0];
+                label.textContent = `Année ${year}`;
             } else if (period === "manuel") {
-                label.textContent = `Période personnalisée (${start} → ${end})`;
-            } else {
-                label.textContent = `Depuis le début (${start} → ${end})`;
+                label.textContent = `${start} → ${end}`;
             }
         }
 
 
-        // ISO week number (lundi comme premier jour)
-        function getWeekNumber(date) {
-            const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+
+        function getWeekNumber(d) {
+            d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
             const dayNum = d.getUTCDay() || 7;
             d.setUTCDate(d.getUTCDate() + 4 - dayNum);
             const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
             return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
         }
+
 
 
         function applyFilter() {
@@ -576,6 +608,10 @@ function flowmodoro_stats_shortcode() {
                 alert("Veuillez sélectionner une période valide.");
                 return;
             }
+
+            currentStart = new Date(start);
+            currentEnd = new Date(end);
+
 
             currentRange = { start, end }; // <-- stocke la période
 
@@ -638,6 +674,35 @@ function flowmodoro_stats_shortcode() {
         applyFilter();
 
 
+    });
+
+
+    document.getElementById("prev-period").addEventListener("click", () => {
+        if (!currentStart || !currentEnd) return;
+        const days = Math.ceil((currentEnd - currentStart) / (1000 * 60 * 60 * 24)) + 1;
+        const newStart = new Date(currentStart);
+        newStart.setDate(newStart.getDate() - days);
+        const newEnd = new Date(currentEnd);
+        newEnd.setDate(newEnd.getDate() - days);
+
+        const startStr = newStart.toISOString().split("T")[0];
+        const endStr = newEnd.toISOString().split("T")[0];
+        document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+        applyFilter(startStr, endStr);
+    });
+
+    document.getElementById("next-period").addEventListener("click", () => {
+        if (!currentStart || !currentEnd) return;
+        const days = Math.ceil((currentEnd - currentStart) / (1000 * 60 * 60 * 24)) + 1;
+        const newStart = new Date(currentStart);
+        newStart.setDate(newStart.getDate() + days);
+        const newEnd = new Date(currentEnd);
+        newEnd.setDate(newEnd.getDate() + days);
+
+        const startStr = newStart.toISOString().split("T")[0];
+        const endStr = newEnd.toISOString().split("T")[0];
+        document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+        applyFilter(startStr, endStr);
     });
 
     
