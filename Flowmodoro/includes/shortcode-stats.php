@@ -21,9 +21,9 @@ function flowmodoro_stats_shortcode() {
     $totalWork = 0;
     $totalPause = 0;
     foreach ($entries as $e) {
-        if (!isset($e['type'], $e['duration'])) continue;
-        if ($e['type'] === 'Travail') $totalWork += $e['duration'];
-        if ($e['type'] === 'Pause') $totalPause += $e['duration'];
+        if (!is_array($e) || !isset($e['type'], $e['duration'])) continue;
+        if ($e['type'] === 'Travail') $totalWork += (int) $e['duration'];
+        if ($e['type'] === 'Pause') $totalPause += (int) $e['duration'];
     }
 
     function format_ms($ms) {
