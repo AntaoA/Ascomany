@@ -118,13 +118,17 @@ function flowmodoro_stats_shortcode() {
                 picker.on('selected', (startDate, endDate) => {
                     const start = startDate.format('YYYY-MM-DD');
                     const end = endDate.format('YYYY-MM-DD');
+
+                    currentRange = { start, end };             // ✅ mise à jour
+                    currentPeriodType = "manual";              // ✅ mise à jour
+
                     document.getElementById("date-range-picker").value = `${start} - ${end}`;
-                    applyFilter(start, end);
+                    applyFilter(start, end);                   // ✅ maintenant ça affichera les bonnes infos
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     document.getElementById("manual-picker-btn").classList.add("selected");
                 });
             }
-        });
+
 
 
 
@@ -510,22 +514,20 @@ function flowmodoro_stats_shortcode() {
                 } else if (period === "year") {
                     start = new Date(now.getFullYear(), 0, 1);
                     end = new Date(now.getFullYear(), 11, 31);
-                } else if (period === "all") {
-                    if (dates.length > 0) {
-                        start = new Date(dates[0]);
-                        end = new Date(dates.at(-1));
-                    }
                 }
 
-
                 if (start && end) {
-                    const startStr = typeof start === "string" ? start : start.toISOString().split("T")[0];
-                    const endStr = typeof end === "string" ? end : end.toISOString().split("T")[0];
+                    const startStr = start.toISOString().split("T")[0];
+                    const endStr = end.toISOString().split("T")[0];
+                    
+                    currentRange = { start: startStr, end: endStr }; // ✅ met à jour avant
+                    currentPeriodType = period;                      // ✅ met à jour avant
+
                     document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
                     applyFilter();
+
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
-                    currentPeriodType = period;
                 }
             });
         });
