@@ -487,11 +487,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     function renderSessions(sessions, container = output) {
-        // Trier du plus ancien au plus récent pour la numérotation
-        sessions.sort((a, b) => a[0].timestamp - b[0].timestamp);
-
-        // Générer tous les blocs dans un tableau temporaire
-        const blocks = sessions.map((session, index) => {
+        sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
+        sessions.forEach((session, index) => {
             const div = document.createElement("div");
             div.className = "session-block";
             let totalTravail = 0, totalPause = 0;
@@ -503,7 +500,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const details = document.createElement("div");
             details.className = "session-details";
-
             session.forEach(e => {
                 const line = document.createElement("div");
                 line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
@@ -526,7 +522,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
             div.appendChild(details);
+            container.appendChild(div);
 
+            // Ouvrir/fermer la session
             div.addEventListener("click", (e) => {
                 if (e.target.closest(".delete-session-btn")) return;
                 if (e.target.closest(".delete-phase-btn")) return;
@@ -534,6 +532,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 details.style.display = details.style.display === "block" ? "none" : "block";
             });
 
+            // Suppression de la session
             div.querySelector(".delete-session-btn").onclick = (e) => {
                 e.stopPropagation();
                 confirmCustom("Supprimer cette session ?", (ok) => {
@@ -557,66 +556,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                     }
 
-                    // 🔁 Mise à jour du parent
-                    const container = div.parentElement; // .session-details
-                    const restants = Array.from(container.querySelectorAll(".delete-session-btn"))
-                        .map(btn => parseInt(btn.dataset.ts))
-                        .filter(t => !timestampsToDelete.includes(t));
-
-                    if (restants.length === 0) {
-                        const parentBlock = container.closest(".session-block");
-                        container.remove();
-                        parentBlock?.remove();
-                    } else {
-                        const nouvellesSessions = groupSessions(allHistory).filter(s => {
-                            return restants.includes(s[0].timestamp);
-                        });
-
-                        container.innerHTML = '';
-                        renderSessions(nouvellesSessions, container);
-                        container.style.display = "block"; // garder ouvert
-                    }
-                });
-            };
-
-
-            return div;
-        });
-
-        // Afficher dans l'ordre inverse (plus récent en haut)
-        blocks.reverse().forEach(div => container.appendChild(div));
-
-        // Attacher les handlers de suppression phase (même si affichées dans une session)
-        details.querySelectorAll(".delete-phase-btn").forEach(btn => {
-            btn.onclick = (event) => {
-                event.stopPropagation();
-                const ts = parseInt(event.currentTarget.dataset.ts);
-
-                const currentLine = event.currentTarget.closest(".entry-line");
-                const parentDetail = currentLine?.parentElement;
-
-                confirmCustom("Supprimer cette phase ?", (ok) => {
-                    if (!ok) return;
-
-                    for (let i = allHistory.length - 1; i >= 0; i--) {
-                        if (allHistory[i].timestamp === ts) {
-                            allHistory.splice(i, 1);
-                            break;
-                        }
-                    }
-
-                    sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
-                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
-
-                    if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
-                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
-                        });
-                    }
-
-                    currentLine?.remove();
+                    const parentDetail = div.parentElement;
+                    div.remove();
 
                     let detailBlock = parentDetail;
                     while (
@@ -637,9 +578,61 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
             };
-        });
 
+            // ✅ Suppression des phases dans une session
+            details.querySelectorAll(".delete-phase-btn").forEach(btn => {
+                btn.onclick = (event) => {
+                    event.stopPropagation();
+                    const ts = parseInt(btn.dataset.ts);
+                    const currentLine = btn.closest(".entry-line");
+                    const parentDetail = currentLine?.parentElement;
+
+                    confirmCustom("Supprimer cette phase ?", (ok) => {
+                        if (!ok) return;
+
+                        for (let i = allHistory.length - 1; i >= 0; i--) {
+                            if (allHistory[i].timestamp === ts) {
+                                allHistory.splice(i, 1);
+                                break;
+                            }
+                        }
+
+                        sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
+                        sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                        if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                            fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                                body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                            });
+                        }
+
+                        currentLine?.remove();
+
+                        let detailBlock = parentDetail;
+                        while (
+                            detailBlock &&
+                            detailBlock.classList.contains("session-details") &&
+                            detailBlock.childElementCount === 0
+                        ) {
+                            const parentBlock = detailBlock.closest(".session-block");
+                            detailBlock.remove();
+
+                            if (parentBlock && parentBlock.parentElement?.classList.contains("session-details")) {
+                                const outerDetail = parentBlock.parentElement;
+                                parentBlock.remove();
+                                detailBlock = outerDetail;
+                            } else {
+                                break;
+                            }
+                        }
+                    });
+                };
+            });
+        });
     }
+
 
 
 
