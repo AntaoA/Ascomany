@@ -484,7 +484,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderSessions(sessions, container = output) {
         sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
-        sessions.forEach(session => {
+        sessions.forEach((session, index) => {
             const div = document.createElement("div");
             div.className = "session-block";
             let totalTravail = 0, totalPause = 0;
@@ -508,23 +508,29 @@ document.addEventListener('DOMContentLoaded', function () {
                 details.appendChild(line);
             });
 
+            // Numérotation
+            const sessionNumber = index + 1;
+
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h4 style="margin: 0;">${formatDate(session[0].timestamp, false)}</h4>
+                        <h4 style="margin: 0;">Session ${sessionNumber} — ${formatDate(session[0].timestamp, false)}</h4>
                         <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
                     </div>
                     <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
                 </div>
             `;
             div.appendChild(details);
+
+            // 🧩 Toggle affichage détails
             div.addEventListener("click", (e) => {
                 if (e.target.closest(".delete-session-btn")) return;
                 if (e.target.closest(".delete-phase-btn")) return;
-                e.stopPropagation(); // 🔒 empêche la fermeture du bloc parent
+                e.stopPropagation();
                 details.style.display = details.style.display === "block" ? "none" : "block";
             });
 
+            // 👇 Important : ajouter au DOM AVANT de binder l’événement de suppression
             container.appendChild(div);
 
             div.querySelector(".delete-session-btn").onclick = (e) => {
@@ -550,7 +556,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                     }
 
-                    // Suppression récursive visuelle
+                    // 🔁 Suppression récursive visuelle
                     const parentDetail = div.parentElement;
                     div.remove();
 
@@ -574,9 +580,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             };
         });
-
-
     }
+
 
     function renderPhases(phases, container = output) {
         phases.sort((a, b) => b.timestamp - a.timestamp);
