@@ -35,13 +35,13 @@ function flowmodoro_stats_shortcode() {
         <canvas id="stats-line-chart" height="200" style="margin-top: 40px; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
 
 
-        <div id="heatmap-container" style="display: grid; grid-template-columns: repeat(53, 1fr); gap: 2px; max-width: 100%; overflow-x: auto;"></div>
+        <div id="heatmap-container"
+            style="display: grid; grid-template-columns: repeat(53, 1fr); gap: 2px; max-width: 100%;"></div>
             <div style="margin-top: 10px; font-size: 12px; color: #666;">
                 <span style="background: #eee; padding: 2px 6px; border-radius: 3px;">0</span>
                 →
                 <span style="background: #e74c3c; padding: 2px 6px; border-radius: 3px; color: white;">+ de travail</span>
             </div>
-
 
     </div>
 
@@ -201,11 +201,16 @@ function flowmodoro_stats_shortcode() {
 
             // Reformatage en colonnes (semaines)
             const weeks = [];
-            const tmp = new Date(start);
-            tmp.setDate(tmp.getDate() - tmp.getDay()); // commencer un dimanche
-            const last = new Date(end);
-            last.setDate(last.getDate() + (6 - last.getDay())); // finir un samedi
+            // fixe : 53 semaines = 371 jours
+            const today = new Date();
+            const tmp = new Date(today);
+            tmp.setMonth(0);
+            tmp.setDate(1);
+            tmp.setHours(0, 0, 0, 0);
+            tmp.setDate(tmp.getDate() - ((tmp.getDay() + 6) % 7)); // aligné sur lundi
 
+            const last = new Date(tmp);
+            last.setDate(tmp.getDate() + (7 * 53)); // 53 semaines fixes
             const dateArray = [];
             while (tmp <= last) {
                 dateArray.push(new Date(tmp));
@@ -234,6 +239,11 @@ function flowmodoro_stats_shortcode() {
                     square.style.gridColumn = `${weeks.indexOf(week) + 1}`;
                     square.style.gridRow = `${i + 1}`;
                     square.style.cursor = "pointer";
+
+                    if (day.getDate() === 1) {
+                        square.style.borderTop = "2px solid #aaa"; // ligne discrète
+                        square.title += " (Début du mois)";
+                    }
 
                     container.appendChild(square);
                 });
