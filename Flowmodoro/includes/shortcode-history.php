@@ -534,7 +534,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     
-
+    function getNextLevel(mode) {
+        switch (mode) {
+            case "year": return "month";
+            case "month": return "day";
+            case "week": return "day";
+            case "day": return "session";
+            case "session": return "phase";
+            default: return null;
+        }
+    }
 
     const groupingToggle = document.getElementById("grouping-toggle");
     const groupingLabel = document.getElementById("grouping-label");
