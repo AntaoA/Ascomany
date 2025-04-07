@@ -512,7 +512,8 @@ function flowmodoro_stats_shortcode() {
 
 
         function applyFilter() {
-            const range = document.getElementById("date-range-picker").value;
+            const range = document.getElementById("date-range-picker").value.trim();
+            if (!range.includes(" - ")) return;
             const [start, end] = range.split(" - ");
             if (!start || !end || start > end) {
                 alert("Veuillez sélectionner une période valide.");
