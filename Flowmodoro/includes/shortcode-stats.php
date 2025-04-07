@@ -32,6 +32,8 @@ function flowmodoro_stats_shortcode() {
         <div id="stats-summary" style="margin-bottom: 40px;"></div>
 
         <canvas id="stats-chart" height="200" style="background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
+        <canvas id="stats-line-chart" height="200" style="margin-top: 40px; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -122,6 +124,50 @@ function flowmodoro_stats_shortcode() {
             `;
         }
 
+        let lineChartInstance = null;
+
+        function renderLineChart(dataByDate) {
+            const ctx = document.getElementById('stats-line-chart').getContext('2d');
+            const labels = Object.keys(dataByDate).sort();
+            const travail = labels.map(d => Math.round((dataByDate[d].travail || 0) / 60000));
+            const pause = labels.map(d => Math.round((dataByDate[d].pause || 0) / 60000));
+
+            if (lineChartInstance) lineChartInstance.destroy();
+
+            lineChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Travail (min)',
+                            data: travail,
+                            borderColor: '#e74c3c',
+                            backgroundColor: 'transparent',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Pause (min)',
+                            data: pause,
+                            borderColor: '#3498db',
+                            backgroundColor: 'transparent',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Minutes' }
+                        }
+                    }
+                }
+            });
+        }
+
+
         let chartInstance = null;
 
         function renderChart(dataByDate) {
@@ -172,6 +218,7 @@ function flowmodoro_stats_shortcode() {
             const stats = getStatsBetween(start, end);
             renderStats(stats);
             renderChart(stats.byDate);
+            renderLineChart(stats.byDate);
         }
 
         // Valeurs par défaut
