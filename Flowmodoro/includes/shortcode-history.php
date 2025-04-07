@@ -557,28 +557,28 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                     }
 
-                    div.remove();
-                    let detailBlock = container;
-                    while (
-                        detailBlock &&
-                        detailBlock.classList.contains("session-details") &&
-                        detailBlock.childElementCount === 0
-                    ) {
-                        const parentBlock = detailBlock.closest(".session-block");
-                        detailBlock.remove();
+                    // 🔁 Mise à jour du parent
+                    const container = div.parentElement; // .session-details
+                    const restants = Array.from(container.querySelectorAll(".delete-session-btn"))
+                        .map(btn => parseInt(btn.dataset.ts))
+                        .filter(t => !timestampsToDelete.includes(t));
 
-                        if (parentBlock && parentBlock.parentElement?.classList.contains("session-details")) {
-                            const outerDetail = parentBlock.parentElement;
-                            parentBlock.remove();
-                            detailBlock = outerDetail;
-                        } else {
-                            break;
-                        }
+                    if (restants.length === 0) {
+                        const parentBlock = container.closest(".session-block");
+                        container.remove();
+                        parentBlock?.remove();
+                    } else {
+                        const nouvellesSessions = groupSessions(allHistory).filter(s => {
+                            return restants.includes(s[0].timestamp);
+                        });
+
+                        container.innerHTML = '';
+                        renderSessions(nouvellesSessions, container);
+                        container.style.display = "block"; // garder ouvert
                     }
-
-                    render(); // Pour renuméroter
                 });
             };
+
 
             return div;
         });
@@ -612,6 +612,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 confirmCustom("Supprimer cette phase ?", (ok) => {
                     if (!ok) return;
 
+                    // Supprime la phase dans allHistory
                     for (let i = allHistory.length - 1; i >= 0; i--) {
                         if (allHistory[i].timestamp === ts) {
                             allHistory.splice(i, 1);
@@ -630,27 +631,22 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                     }
 
-                    // suppression récursive visuelle
-                    const currentLine = e.currentTarget.closest(".session-block, .entry-line");
-                    const parentDetail = currentLine?.parentElement;
-                    currentLine?.remove();
+                    // 🔁 Mise à jour du parent
+                    const container = e.currentTarget.closest(".session-details");
+                    const entries = Array.from(container.querySelectorAll(".delete-phase-btn"))
+                        .map(btn => parseInt(btn.dataset.ts))
+                        .filter(t => t !== ts); // exclut celle supprimée
 
-                    let detailBlock = parentDetail;
-                    while (
-                        detailBlock &&
-                        detailBlock.classList.contains("session-details") &&
-                        detailBlock.childElementCount === 0
-                    ) {
-                        const parentBlock = detailBlock.closest(".session-block");
-                        detailBlock.remove();
-
-                        if (parentBlock && parentBlock.parentElement?.classList.contains("session-details")) {
-                            const outerDetail = parentBlock.parentElement;
-                            parentBlock.remove();
-                            detailBlock = outerDetail;
-                        } else {
-                            break;
-                        }
+                    if (entries.length === 0) {
+                        const parentBlock = container.closest(".session-block");
+                        container.remove();
+                        parentBlock?.remove();
+                    } else {
+                        // recalculer les entrées à afficher
+                        const phasesRestantes = allHistory.filter(p => entries.includes(p.timestamp));
+                        container.innerHTML = '';
+                        renderPhases(phasesRestantes, container);
+                        container.style.display = "block"; // garder ouvert
                     }
                 });
             };
