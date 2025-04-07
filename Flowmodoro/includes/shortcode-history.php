@@ -392,6 +392,68 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function renderSessions(sessions, container = output) {
+        sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
+        sessions.forEach(session => {
+            const div = document.createElement("div");
+            div.className = "session-block";
+            let totalTravail = 0, totalPause = 0;
+
+            session.forEach(e => {
+                if (e.type === "Travail") totalTravail += e.duration || 0;
+                if (e.type === "Pause") totalPause += e.duration || 0;
+            });
+
+            const details = document.createElement("div");
+            details.className = "session-details";
+            session.forEach(e => {
+                const line = document.createElement("div");
+                line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
+                line.innerHTML = `
+                    <div class="entry-phase" style="justify-content: space-between;">
+                        <span>${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
+                        <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+                    </div>
+                `;
+                details.appendChild(line);
+            });
+
+            div.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h4 style="margin: 0;">${formatDate(session[0].timestamp, false)}</h4>
+                        <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
+                    </div>
+                    <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
+                </div>
+            `;
+            div.appendChild(details);
+            div.addEventListener("click", (e) => {
+                if (e.target.closest(".delete-session-btn")) return;
+                details.style.display = details.style.display === "block" ? "none" : "block";
+            });
+            container.appendChild(div);
+        });
+    }
+
+    function renderPhases(phases, container = output) {
+        const sorted = [...phases].sort((a, b) => b.timestamp - a.timestamp);
+        sorted.forEach(e => {
+            const div = document.createElement("div");
+            div.className = "session-block entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
+            div.innerHTML = `
+                <div class="entry-phase">
+                    <span><strong>${e.type}</strong> — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
+                    <div>
+                        <button class="view-session-btn" data-ts="${e.timestamp}">👁</button>
+                        <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
 
 
 
