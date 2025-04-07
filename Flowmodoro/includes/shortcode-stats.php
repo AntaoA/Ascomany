@@ -466,8 +466,8 @@ function flowmodoro_stats_shortcode() {
 
 
         function applyFilter() {
-            const start = document.getElementById("stats-start").value;
-            const end = document.getElementById("stats-end").value;
+            const range = document.getElementById("date-range-picker").value;
+            const [start, end] = range.split(" - ");
             if (!start || !end || start > end) {
                 alert("Veuillez sélectionner une période valide.");
                 return;
@@ -478,7 +478,6 @@ function flowmodoro_stats_shortcode() {
             renderChart(stats.byDate);
             renderLineChart(stats.byDate);
             renderHourChart(stats.filtered);
-
         }
 
         // Valeurs par défaut
