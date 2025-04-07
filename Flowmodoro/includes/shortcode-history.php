@@ -488,11 +488,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderSessions(sessions, container = output) {
         sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
+
         sessions.forEach((session, index) => {
             const div = document.createElement("div");
             div.className = "session-block";
-            let totalTravail = 0, totalPause = 0;
 
+            const sessionNumber = sessions.length - index;
+            const sessionStart = new Date(session[0].timestamp);
+            const startTime = sessionStart.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+            let totalTravail = 0, totalPause = 0;
             session.forEach(e => {
                 if (e.type === "Travail") totalTravail += e.duration || 0;
                 if (e.type === "Pause") totalPause += e.duration || 0;
@@ -500,6 +505,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const details = document.createElement("div");
             details.className = "session-details";
+
             session.forEach(e => {
                 const line = document.createElement("div");
                 line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
@@ -515,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function () {
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h4 style="margin: 0;">Session ${index + 1} — ${formatDate(session[0].timestamp, false)}</h4>
+                        <h4 style="margin: 0;">Session ${sessionNumber} — ${formatDate(session[0].timestamp, false)} à ${startTime}</h4>
                         <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
                     </div>
                     <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
@@ -524,7 +530,6 @@ document.addEventListener('DOMContentLoaded', function () {
             div.appendChild(details);
             container.appendChild(div);
 
-            // Ouvrir/fermer la session
             div.addEventListener("click", (e) => {
                 if (e.target.closest(".delete-session-btn")) return;
                 if (e.target.closest(".delete-phase-btn")) return;
@@ -532,7 +537,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 details.style.display = details.style.display === "block" ? "none" : "block";
             });
 
-            // Suppression de la session
+            // suppression session
             div.querySelector(".delete-session-btn").onclick = (e) => {
                 e.stopPropagation();
                 confirmCustom("Supprimer cette session ?", (ok) => {
@@ -579,7 +584,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             };
 
-            // ✅ Suppression des phases dans une session
+            // suppression phase
             details.querySelectorAll(".delete-phase-btn").forEach(btn => {
                 btn.onclick = (event) => {
                     event.stopPropagation();
@@ -632,6 +637,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         });
     }
+
 
 
 
