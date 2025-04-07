@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', function () {
             div.addEventListener("click", (e) => {
                 if (e.target.closest(".delete-session-btn")) return;
                 if (e.target.closest(".delete-phase-btn")) return;
-                e.stopPropagation(); // 🔒 empêche de fermer le bloc parent (jour/semaine/mois...)
+                e.stopPropagation(); // 🔒 empêche la fermeture du bloc parent
                 details.style.display = details.style.display === "block" ? "none" : "block";
             });
 
