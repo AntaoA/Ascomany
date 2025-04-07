@@ -107,7 +107,9 @@ function flowmodoro_stats_shortcode() {
                 const start = startDate.format('YYYY-MM-DD');
                 const end = endDate.format('YYYY-MM-DD');
                 document.getElementById("date-range-picker").value = `${start} - ${end}`;
-                applyFilter();
+                setTimeout(() => {
+                    applyFilter();
+                }, 10);
                 document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
             }
         });
