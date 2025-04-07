@@ -23,7 +23,7 @@ function flowmodoro_stats_shortcode() {
 
         <div style="margin-bottom: 30px;">
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
-                <button class="period-btn selected" data-period="full">Toute la période</button>
+                <button class="period-btn selected" data-period="full">Depuis le début</button>
                 <button class="period-btn" data-period="week">Cette semaine</button>
                 <button class="period-btn" data-period="month">Ce mois</button>
                 <button class="period-btn" data-period="year">Cette année</button>
@@ -111,6 +111,12 @@ function flowmodoro_stats_shortcode() {
                 document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
             }
         });
+
+        function getMinMaxDates(entries) {
+            const dates = entries.map(e => parseDate(e.timestamp)).sort();
+            return [dates[0], dates.at(-1)];
+        }
+
 
 
         const rawEntries = <?php echo json_encode($entries, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
@@ -472,10 +478,7 @@ function flowmodoro_stats_shortcode() {
                 const dates = rawEntries.map(e => parseDate(e.timestamp)).sort();
 
                 if (period === "full") {
-                    if (dates.length > 0) {
-                        start = new Date(dates[0]);
-                        end = new Date(); // maintenant
-                    }
+                    [start, end] = getMinMaxDates(rawEntries);
                 } else if (period === "week") {
                     const day = (now.getDay() + 6) % 7; // lundi = 0
                     start = new Date(now);
@@ -497,7 +500,9 @@ function flowmodoro_stats_shortcode() {
 
 
                 if (start && end) {
-                    document.getElementById("date-range-picker").value = start.toISOString().split("T")[0] + " - " + end.toISOString().split("T")[0];
+                    const startStr = typeof start === "string" ? start : start.toISOString().split("T")[0];
+                    const endStr = typeof end === "string" ? end : end.toISOString().split("T")[0];
+                    document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
                     applyFilter();
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
@@ -515,13 +520,11 @@ function flowmodoro_stats_shortcode() {
             }
 
             const stats = getStatsBetween(start, end);
-
-            const filledByDate = fillMissingDates(start, end, stats.byDate);
-            renderChart(filledByDate);
-            renderLineChart(filledByDate);
             renderStats(stats);
+            renderChart(fillMissingDates(stats.byDate, start, end));
+            renderLineChart(fillMissingDates(stats.byDate, start, end));
             renderHourChart(stats.filtered);
-}
+        }
 
 
         const fullByDate = {};
@@ -533,14 +536,10 @@ function flowmodoro_stats_shortcode() {
         });
         renderHeatmap(fullByDate);
 
-        // Valeurs par défaut
-        if (dates.length > 0) {
-            const start = dates[0];
-            const end = new Date().toISOString().split("T")[0];
-            document.getElementById("date-range-picker").value = `${start} - ${end}`;
-            document.querySelector('.period-btn[data-period="full"]')?.classList.add("selected");
-            applyFilter();
-        }
+        // Valeurs par défaut (depuis le début jusqu'à maintenant)
+        const [defaultStart, defaultEnd] = getMinMaxDates(rawEntries);
+        document.getElementById("date-range-picker").value = `${defaultStart} - ${defaultEnd}`;
+        applyFilter();
 
 
     });
