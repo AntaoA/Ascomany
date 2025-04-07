@@ -354,7 +354,6 @@ document.addEventListener('DOMContentLoaded', function () {
                         renderGroupedLevel(next, group, detail);
                     }
 
-                    // 🔁 Ajouter les événements de suppression dans les sous-niveaux
                     detail.querySelectorAll(".delete-group-btn").forEach(btn => {
                         btn.onclick = (e) => {
                             e.stopPropagation();
@@ -392,21 +391,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
                                 // Si le parent (session-details) devient vide, le supprimer aussi (récursivement)
                                 let detailBlock = parentDetail;
-                                while (detailBlock && detailBlock.classList.contains("session-details") && detailBlock.childElementCount === 0) {
-                                    const parentBlock = detailBlock.parentElement;
+                                while (
+                                    detailBlock &&
+                                    detailBlock.classList.contains("session-details") &&
+                                    detailBlock.childElementCount === 0
+                                ) {
+                                    const parentBlock = detailBlock.closest(".session-block");
                                     detailBlock.remove();
-                                    if (parentBlock && parentBlock.classList.contains("session-block")) {
-                                        detailBlock = parentBlock.querySelector(".session-details");
+
+                                    if (parentBlock && parentBlock.parentElement?.classList.contains("session-details")) {
+                                        const outerDetail = parentBlock.parentElement;
                                         parentBlock.remove();
+                                        detailBlock = outerDetail;
                                     } else {
                                         break;
                                     }
                                 }
-
-                                render(); // relance complète pour cohérence si tu veux, ou enlève si tout est géré en DOM
                             });
                         };
                     });
+
 
                 }
 
