@@ -604,9 +604,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 </div>
             `;
-            div.querySelector(".delete-phase-btn").onclick = (e) => {
-                e.stopPropagation();
-                const ts = parseInt(e.currentTarget.dataset.ts);
+            container.appendChild(div);
+
+            div.querySelector(".delete-phase-btn").onclick = (event) => {
+                event.stopPropagation();
+                const ts = parseInt(event.currentTarget.dataset.ts);
+
+                const currentLine = event.currentTarget.closest(".session-block, .entry-line");
+                const parentDetail = currentLine?.parentElement;
 
                 confirmCustom("Supprimer cette phase ?", (ok) => {
                     if (!ok) return;
@@ -630,8 +635,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     // suppression récursive visuelle
-                    const currentLine = e.currentTarget.closest(".session-block, .entry-line");
-                    const parentDetail = currentLine?.parentElement;
                     currentLine?.remove();
 
                     let detailBlock = parentDetail;
@@ -653,9 +656,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
             };
-
-            container.appendChild(div);
-
         });
     }
 
