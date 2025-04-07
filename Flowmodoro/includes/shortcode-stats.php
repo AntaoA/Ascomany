@@ -43,6 +43,10 @@ function flowmodoro_stats_shortcode() {
                 <span style="background: #e74c3c; padding: 2px 6px; border-radius: 3px; color: white;">+ de travail</span>
             </div>
 
+            <div id="hour-distribution" style="margin-top: 40px;">
+                <h3>🕓 Répartition horaire du travail</h3>
+                <canvas id="hour-chart" height="200" style="background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
+            </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -105,8 +109,10 @@ function flowmodoro_stats_shortcode() {
                 daysActive: days.size,
                 first: filtered[0]?.timestamp,
                 last: filtered.at(-1)?.timestamp,
-                byDate
+                byDate,
+                filtered
             };
+
         }
 
         function format(ms) {
@@ -210,7 +216,7 @@ function flowmodoro_stats_shortcode() {
             tmp.setDate(tmp.getDate() - ((tmp.getDay() + 6) % 7)); // aligné sur lundi
 
             const last = new Date(tmp);
-            last.setDate(tmp.getDate() + (7 * 53)-1); // 53 semaines fixes
+            last.setDate(tmp.getDate() + (7 * 53)-1);
             const dateArray = [];
             while (tmp <= last) {
                 dateArray.push(new Date(tmp));
@@ -252,7 +258,7 @@ function flowmodoro_stats_shortcode() {
                     if (d > todayISO) {
                         square.style.opacity = "0.3";
                         square.title += " (futur)";
-}
+                    }
 
                     if (day.getDate() === 1) {
                         square.style.borderTop = "2px solid #aaa"; // ligne discrète
@@ -264,6 +270,56 @@ function flowmodoro_stats_shortcode() {
             });
         }
 
+        let hourChartInstance = null;
+
+        function renderHourChart(filteredEntries) {
+            const hours = new Array(24).fill(0);
+
+            filteredEntries.forEach(e => {
+                if (e.type !== "Travail") return;
+                const start = new Date(e.timestamp);
+                const end = new Date(e.timestamp + e.duration);
+
+                const startHour = start.getHours();
+                const endHour = end.getHours();
+                for (let h = startHour; h <= endHour; h++) {
+                    const sliceStart = new Date(start);
+                    sliceStart.setHours(h, 0, 0, 0);
+                    const sliceEnd = new Date(sliceStart);
+                    sliceEnd.setHours(h + 1, 0, 0, 0);
+
+                    const overlap = Math.min(end, sliceEnd) - Math.max(start, sliceStart);
+                    if (overlap > 0) hours[h] += overlap;
+                }
+            });
+
+            // Convertir en minutes
+            const minutes = hours.map(ms => Math.round(ms / 60000));
+
+            const ctx = document.getElementById("hour-chart").getContext("2d");
+            if (hourChartInstance) hourChartInstance.destroy();
+
+            hourChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [...Array(24)].map((_, i) => `${String(i).padStart(2, '0')}h`),
+                    datasets: [{
+                        label: 'Temps de travail (min)',
+                        data: minutes,
+                        backgroundColor: '#e67e22'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Minutes' }
+                        }
+                    }
+                }
+            });
+        }
 
 
 
@@ -319,6 +375,7 @@ function flowmodoro_stats_shortcode() {
             renderChart(stats.byDate);
             renderLineChart(stats.byDate);
             renderHeatmap(stats.byDate);
+            renderHourChart(stats.filtered);
 
         }
 
