@@ -34,57 +34,171 @@ function flowmodoro_shortcode() {
 
 
     <style>
-        #flowmodoro-container {
-            background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            max-width: 600px;
+        .flowmodoro-history-container {
+            max-width: 800px;
             margin: auto;
-            padding: 30px;
+            padding: 25px;
+            background: #ffffff;
+            color: #111;
             font-family: 'Roboto', sans-serif;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        #flowmodoro-timer {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 70px;
-            color: #333;
-            margin: 30px 0;
+        .history-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
         }
 
-        button {
+        .toggle-button {
+            padding: 8px 14px;
             background: #3498db;
             color: white;
             border-radius: 8px;
             border: none;
-            padding: 12px 20px;
-            margin: 5px;
             cursor: pointer;
-            transition: 0.2s;
         }
 
-        button:hover {
+        .toggle-button:hover {
             background: #2980b9;
         }
 
-        #flowmodoro-settings-menu {
+        .session-block {
+            background: #fafafa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .session-block:hover {
+            background: #f2f2f2;
+        }
+
+        .session-details {
+            margin-top: 10px;
             border-top: 1px solid #ddd;
-            padding-top: 20px;
-            margin-top: 20px;
+            padding-top: 10px;
+            display: none;
         }
 
-        #flowmodoro-log-wrapper {
-            border-top: 1px dashed #ddd;
-            margin-top: 30px;
-            padding-top: 15px;
+        .entry-line {
+            font-family: monospace;
+            margin: 5px 0;
         }
 
-        #show-history {
-            background: none;
+        .entry-travail {
+            color: #e74c3c;
+        }
+
+        .entry-pause {
             color: #3498db;
-            border: none;
-            font-size: 16px;
         }
-        </style>
+
+        .entry-phase {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .view-session-btn {
+            font-size: 0.8em;
+            padding: 2px 8px;
+            border: 1px solid #ccc;
+            background: #fff;
+            color: #111;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .view-session-btn:hover {
+            background: #eee;
+            border-color: #bbb;
+        }
+
+        .delete-session-btn,
+        .delete-phase-btn,
+        .delete-group-btn {
+            background: none;
+            border: none;
+            color: #bbb;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .delete-session-btn:hover,
+        .delete-phase-btn:hover,
+        .delete-group-btn:hover {
+            color: #e74c3c;
+        }
+
+        .grouping-select {
+            position: relative;
+            display: inline-block;
+        }
+
+        .grouping-select .dropdown {
+            position: absolute;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 5px 0;
+            border-radius: 4px;
+            top: 100%;
+            left: 0;
+            margin-top: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 20;
+            list-style: none;
+        }
+
+        .grouping-select .dropdown.hidden {
+            display: none;
+        }
+
+        .grouping-select .dropdown li {
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+
+        .grouping-select .dropdown li:hover {
+            background-color: #eee;
+        }
+
+        .empty-message {
+            font-style: italic;
+            color: #888;
+        }
+
+        #popup-confirm {
+            background: rgba(0,0,0,0.6);
+        }
+
+        #popup-confirm div {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+
+        #popup-yes, #popup-no {
+            background: #3498db;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        #popup-yes:hover, #popup-no:hover {
+            background: #2980b9;
+        }
+
+
+    </style>
 
     <?php if (is_user_logged_in()) :
         $user_id = get_current_user_id();
