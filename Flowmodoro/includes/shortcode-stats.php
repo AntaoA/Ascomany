@@ -527,9 +527,13 @@ function flowmodoro_stats_shortcode() {
                     const startStr = start.toISOString().split("T")[0];
                     const endStr = end.toISOString().split("T")[0];
 
+
                     if (currentPeriodType === "week" && currentRange.start === startStr && currentRange.end === endStr) {
                         return; // déjà sur cette semaine
                     }
+
+                    currentPeriodType = "week";
+
                 } else if (period === "month") {
                     const today = new Date();
                     const month = today.getMonth();
@@ -544,6 +548,7 @@ function flowmodoro_stats_shortcode() {
 
                     start = new Date(year, month, 1);
                     end = new Date(year, month + 1, 0);
+                    currentPeriodType = "month";
                 } else if (period === "year") {
                     const today = new Date();
                     const thisYear = today.getFullYear();
@@ -557,6 +562,7 @@ function flowmodoro_stats_shortcode() {
  
                     start = new Date(thisYear, 0, 1);
                     end = new Date(thisYear, 11, 31);
+                    currentPeriodType = "year";
                 }
  
  
@@ -709,6 +715,7 @@ function flowmodoro_stats_shortcode() {
             const currentBtn = document.querySelector(`.period-btn[data-period="${currentPeriodType}"]`);
             if (currentBtn) currentBtn.classList.add("selected");
         }
+
 
 
  
