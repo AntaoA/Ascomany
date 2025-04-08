@@ -635,14 +635,14 @@ function flowmodoro_stats_shortcode() {
                 console.log("Week number:", weekNumber);
                 label.textContent = `Semaine ${weekNumber} (${start} → ${end})`;
             } else if (period === "month") {
-                const firstDay = new Date(start);
-                firstDay.setDate(1); // ✅ forcer le 1er jour du mois
+                const monthRef = new Date(end); // ✅ utiliser la fin de la période
+                monthRef.setDate(1);
 
-                console.log("Month date used:", firstDay.toISOString());
-                console.log("Month start.getMonth():", firstDay.getMonth());
+                console.log("Month date used:", monthRef.toISOString());
+                console.log("Month start.getMonth():", monthRef.getMonth());
 
-                const monthName = firstDay.toLocaleString('fr-FR', { month: 'long' });
-                const year = firstDay.getFullYear();
+                const monthName = monthRef.toLocaleString('fr-FR', { month: 'long' });
+                const year = monthRef.getFullYear();
                 label.textContent = `Mois de ${monthName} ${year}`;
 
                 console.log("Resolved label:", label.textContent);
@@ -697,11 +697,12 @@ function flowmodoro_stats_shortcode() {
                 start.setDate(start.getDate() + amount * 7);
                 end.setDate(end.getDate() + amount * 7);
             } else if (unit === "month") {
-                start.setMonth(start.getMonth() + amount);
-                end.setMonth(end.getMonth() + amount);
+                // Avance d’un mois, mais garde le 1er et le dernier jour propre
+                start.setMonth(start.getMonth() + amount, 1);
+                end.setMonth(start.getMonth() + 1, 0);
             } else if (unit === "year") {
-                start.setFullYear(start.getFullYear() + amount);
-                end.setFullYear(end.getFullYear() + amount);
+                start.setFullYear(start.getFullYear() + amount, 0, 1);
+                end.setFullYear(start.getFullYear(), 11, 31);
             } else {
                 start.setDate(start.getDate() + amount);
                 end.setDate(end.getDate() + amount);
@@ -711,27 +712,18 @@ function flowmodoro_stats_shortcode() {
             const endStr = end.toISOString().split("T")[0];
 
             currentRange = { start: startStr, end: endStr };
+            currentPeriodType = unit;
+
             document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
             applyFilter(startStr, endStr);
-            console.log("shiftDateRange →", {
-                unit,
-                startStr,
-                endStr,
-                startMonth: new Date(startStr).getMonth(),
-                startISO: new Date(startStr).toISOString()
-            });
-
-            currentPeriodType = unit;
             updatePeriodLabel(unit, startStr, endStr);
 
-
             if (unit === "manual") {
-                currentPeriodType = "manual";
                 document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                 document.getElementById("manual-picker-btn").classList.add("selected");
             }
-
         }
+
 
 
 
