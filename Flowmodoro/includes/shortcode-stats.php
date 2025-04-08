@@ -59,6 +59,12 @@ function flowmodoro_stats_shortcode() {
                 <h3>🕓 Répartition horaire du travail</h3>
                 <canvas id="hour-chart" height="200" style="background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
             </div>
+
+            <div id="top-ranking" style="margin-top: 50px;">
+                <h3>🏅 Classements</h3>
+                <div id="ranking-list"></div>
+                <button id="show-more-ranking" class="period-btn" style="margin-top: 10px;">Afficher plus</button>
+            </div>
     </div>
 
     <style>
@@ -586,6 +592,92 @@ function flowmodoro_stats_shortcode() {
             });
         });
  
+
+        function getTopRankings(filteredEntries, limit = 5) {
+            const byPhase = [...filteredEntries]
+                .filter(e => e.type === "Travail")
+                .sort((a, b) => b.duration - a.duration)
+                .slice(0, limit);
+
+            const sessions = [];
+            let currentSession = [];
+            let lastEnd = null;
+
+            filteredEntries.forEach(e => {
+                const start = e.timestamp;
+                const end = start + (e.duration || 0);
+                if (!lastEnd || start - lastEnd > 10 * 60 * 1000) {
+                    if (currentSession.length > 0) sessions.push(currentSession);
+                    currentSession = [];
+                }
+                currentSession.push(e);
+                lastEnd = end;
+            });
+            if (currentSession.length > 0) sessions.push(currentSession);
+
+            const sessionDurations = sessions.map(session => {
+                return {
+                    start: session[0].timestamp,
+                    end: session.at(-1).timestamp + session.at(-1).duration,
+                    duration: session.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0)
+                };
+            }).sort((a, b) => b.duration - a.duration).slice(0, limit);
+
+            const byDay = {};
+            filteredEntries.forEach(e => {
+                const d = parseDate(e.timestamp);
+                if (!byDay[d]) byDay[d] = 0;
+                if (e.type === "Travail") byDay[d] += e.duration || 0;
+            });
+
+            const topDays = Object.entries(byDay)
+                .map(([date, duration]) => ({ date, duration }))
+                .sort((a, b) => b.duration - a.duration)
+                .slice(0, limit);
+
+            return { byPhase, sessionDurations, topDays };
+        }
+
+
+        function renderTopRankings(rankings, showAll = false) {
+            const container = document.getElementById("ranking-list");
+            container.innerHTML = "";
+
+            const formatDuration = d => (d / 60000).toFixed(2) + " min";
+
+            const sections = [
+                {
+                    title: "Top phases de travail",
+                    items: rankings.byPhase,
+                    render: e => `${new Date(e.timestamp).toLocaleString()} — ${formatDuration(e.duration)}`
+                },
+                {
+                    title: "Top sessions",
+                    items: rankings.sessionDurations,
+                    render: s => `${new Date(s.start).toLocaleString()} — ${formatDuration(s.duration)}`
+                },
+                {
+                    title: "Top journées",
+                    items: rankings.topDays,
+                    render: d => `${d.date} — ${formatDuration(d.duration)}`
+                }
+            ];
+
+            sections.forEach(section => {
+                const div = document.createElement("div");
+                div.innerHTML = `<h4 style="margin-top: 20px;">${section.title}</h4>`;
+                const ul = document.createElement("ul");
+                ul.style.paddingLeft = "20px";
+                (showAll ? section.items : section.items.slice(0, 5)).forEach(item => {
+                    const li = document.createElement("li");
+                    li.textContent = section.render(item);
+                    ul.appendChild(li);
+                });
+                div.appendChild(ul);
+                container.appendChild(div);
+            });
+        }
+
  
  
         function shiftPeriod(days) {
@@ -665,7 +757,19 @@ function flowmodoro_stats_shortcode() {
             renderLineChart(fillMissingDates(start, end, stats.byDate));
             renderHourChart(stats.filtered);
             updatePeriodLabel();
+            const rankings = getTopRankings(stats.filtered);
+            renderTopRankings(rankings);
+
         }
+
+        let showAllRanking = false;
+        document.getElementById("show-more-ranking").addEventListener("click", () => {
+            showAllRanking = !showAllRanking;
+            const rankings = getTopRankings(stats.filtered, showAllRanking ? 100 : 5);
+            renderTopRankings(rankings, showAllRanking);
+            document.getElementById("show-more-ranking").textContent = showAllRanking ? "Afficher moins" : "Afficher plus";
+        });
+
  
         function shiftDateRange(amount, unit) {
             let newStart, newEnd;
