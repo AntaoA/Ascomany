@@ -522,22 +522,24 @@
  
  
          function applyFilter(start = null, end = null) {
-             if (!start || !end) {
-                 const range = document.getElementById("date-range-picker").value;
-                 [start, end] = range.split(" - ");
-             }
- 
-             if (!start || !end || start > end) {
-                 alert("Veuillez sélectionner une période valide.");
-                 return;
-             }
- 
-             const stats = getStatsBetween(start, end);
-             renderStats(stats);
-             renderChart(fillMissingDates(start, end, stats.byDate));
-             renderLineChart(fillMissingDates(start, end, stats.byDate));
-             renderHourChart(stats.filtered);
-         }
+            if (!start || !end) {
+                const range = document.getElementById("date-range-picker").value;
+                [start, end] = range.split(" - ");
+            }
+
+            if (!start || !end || start > end) {
+                alert("Veuillez sélectionner une période valide.");
+                return;
+            }
+
+            const stats = getStatsBetween(start, end);
+            renderStats(stats);
+            renderChart(fillMissingDates(start, end, stats.byDate));
+            renderLineChart(fillMissingDates(start, end, stats.byDate));
+            renderHourChart(stats.filtered);
+            updateSelectedDatesDisplay(start, end); // <-- ici
+        }
+
  
  
  
