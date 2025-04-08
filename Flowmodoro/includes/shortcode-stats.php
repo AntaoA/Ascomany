@@ -443,6 +443,11 @@ function flowmodoro_stats_shortcode() {
         }
 
 
+        function cloneDate(date) {
+            return new Date(date.getTime());
+        }
+
+
 
         let chartInstance = null;
 
@@ -516,18 +521,30 @@ function flowmodoro_stats_shortcode() {
                 } else if (period === "week") {
                     const reference = currentRange.start ? new Date(currentRange.start) : new Date();
                     const day = (reference.getDay() + 6) % 7;
-                    start = new Date(reference);
+                    start = cloneDate(reference);
                     start.setDate(start.getDate() - day);
-                    end = new Date(start);
+                    end = cloneDate(start);
                     end.setDate(end.getDate() + 6);
 
                 } else if (period === "month") {
-                    const reference = currentRange.start ? new Date(currentRange.start) : new Date();
-                    start = new Date(reference.getFullYear(), reference.getMonth(), 1);
-                    end = new Date(reference.getFullYear(), reference.getMonth() + 1, 0);                } else if (period === "year") {
-                    start = new Date(now.getFullYear(), 0, 1);
-                    end = new Date(now.getFullYear(), 11, 31);
-                }
+                        const today = new Date();
+                        const thisMonth = today.getMonth();
+                        const thisYear = today.getFullYear();
+
+                        const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
+                        const isAlreadyThisMonth = currentStartDate &&
+                            currentStartDate.getMonth() === thisMonth &&
+                            currentStartDate.getFullYear() === thisYear;
+
+                        if (currentPeriodType === "month" && isAlreadyThisMonth) {
+                            // Rien à faire, on est déjà sur ce mois
+                            return;
+                        }
+
+                        start = new Date(thisYear, thisMonth, 1);
+                        end = new Date(thisYear, thisMonth + 1, 0);
+                    }
+
 
                 if (start && end) {
                     const startStr = start.toISOString().split("T")[0];
@@ -633,8 +650,8 @@ function flowmodoro_stats_shortcode() {
         }
 
         function shiftDateRange(amount, unit) {
-            const start = new Date(currentRange.start);
-            const end = new Date(currentRange.end);
+            const start = cloneDate(new Date(currentRange.start));
+            const end = cloneDate(new Date(currentRange.end));
 
             let startStr, endStr;
 
@@ -646,7 +663,8 @@ function flowmodoro_stats_shortcode() {
                 start.setDate(start.getDate() + 7 * amount);
                 end.setDate(end.getDate() + 7 * amount);
             } else if (unit === "month") {
-                start.setMonth(start.getMonth() + amount);
+                start.setDate(1);
+                start.setMonth(start.getMonth() + 1);
                 end.setMonth(end.getMonth() + amount);
             } else if (unit === "year") {
                 start.setFullYear(start.getFullYear() + amount);
