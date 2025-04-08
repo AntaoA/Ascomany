@@ -509,22 +509,22 @@ function flowmodoro_stats_shortcode() {
                 }
  
                 if (start && end) {
-                    const startStr = typeof start === "string" ? start : start.toISOString().split("T")[0];
-                    const endStr = typeof end === "string" ? end : end.toISOString().split("T")[0];
+                console.log(">>> Bouton cliqué :", period);
+                console.log("Start (raw):", start);
+                console.log("End (raw):", end);
 
-                    console.log(">>> Bouton cliqué :", period);
-                    console.log("Start (raw):", start);
-                    console.log("End (raw):", end);
-                    console.log("StartStr:", startStr);
-                    console.log("EndStr:", endStr);
+                const startStr = start.getFullYear() + "-" + String(start.getMonth() + 1).padStart(2, '0') + "-" + String(start.getDate()).padStart(2, '0');
+                const endStr = end.getFullYear() + "-" + String(end.getMonth() + 1).padStart(2, '0') + "-" + String(end.getDate()).padStart(2, '0');
 
-                    document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-                    console.log("Date picker value mis à jour :", document.getElementById("date-range-picker").value);
+                console.log("StartStr:", startStr);
+                console.log("EndStr:", endStr);
 
-                    applyFilter(startStr, endStr);
-                    document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
-                    btn.classList.add("selected");
-                }
+                document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+                applyFilter(startStr, endStr);
+                document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
+            }
+
 
 
             });
