@@ -306,13 +306,14 @@ function flowmodoro_shortcode() {
         function renderHistory() {
             if (!log) return;
             log.innerHTML = "";
-            sessionHistory.forEach(item => {
+            [...sessionHistory].reverse().forEach(item => {
                 const li = document.createElement("li");
                 li.textContent = `${item.type} : ${formatTime(item.duration)}`;
                 li.style.color = item.type === "Travail" ? "#e74c3c" : "#3498db";
                 log.appendChild(li);
             });
         }
+
 
         function updateTotals() {
             const totalDiv = document.getElementById("flowmodoro-total");
