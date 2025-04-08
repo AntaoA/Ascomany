@@ -9,9 +9,17 @@ function flowmodoro_shortcode() {
     ?>
     <div id="flowmodoro-container">
         <!-- BOUTONS EN HAUT À DROITE -->
-        <div id="flowmodoro-top-right">
-            <button id="show-history" class="flowmodoro-main-btn">📜 Voir l’historique</button>
-            <button id="show-stats" class="flowmodoro-main-btn">📊 Voir les statistiques</button>
+        <div id="flowmodoro-right-panel">
+            <div class="flowmodoro-history-actions">
+                <button id="show-history" class="flowmodoro-main-btn">📜 Voir l’historique</button>
+                <button id="show-stats" class="flowmodoro-main-btn">📊 Voir les statistiques</button>
+            </div>
+
+            <div id="flowmodoro-log-wrapper" class="flowmodoro-history-log">
+                <h3>Historique (session)</h3>
+                <ul id="flowmodoro-log"></ul>
+                <div id="flowmodoro-total"></div>
+            </div>
         </div>
 
         <!-- TIMER + INFO GAUCHE + PAUSE DROITE -->
@@ -42,14 +50,6 @@ function flowmodoro_shortcode() {
             <button id="save-settings" class="flowmodoro-main-btn">Enregistrer</button>
         </div>
 
-        <!-- HISTORIQUE SESSIONS (EN HAUT A DROITE SOUS LES BOUTONS) -->
-        <div id="flowmodoro-fixed-right">
-            <div id="flowmodoro-log-wrapper" class="flowmodoro-history-log">
-                <h3>Historique (session)</h3>
-                <ul id="flowmodoro-log"></ul>
-                <div id="flowmodoro-total"></div>
-            </div>
-        </div>
     </div>
 
 
@@ -67,29 +67,24 @@ function flowmodoro_shortcode() {
 
 
         /* === BOUTONS HISTORIQUE + STATS EN HAUT À DROITE === */
-
-        #flowmodoro-top-right {
-            position: absolute;
+        #flowmodoro-right-panel {
+            position: fixed;
             top: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        #flowmodoro-fixed-right {
-            position: absolute;
-            top: 110px;
             right: 20px;
             width: 260px;
             text-align: left;
+            z-index: 100;
         }
-
-
+        
         .flowmodoro-history-actions {
             display: flex;
             flex-direction: column;
             gap: 10px;
+        }
+
+        .flowmodoro-history-log {
+            font-family: monospace;
+            margin-top: 20px;
         }
 
         .flowmodoro-main-btn {
