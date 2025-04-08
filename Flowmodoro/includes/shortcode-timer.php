@@ -10,13 +10,9 @@ function flowmodoro_shortcode() {
     <div id="flowmodoro-container" style="text-align: center; padding: 40px;">
         <h2>Flowmodoro</h2>
         <div id="flowmodoro-status" style="font-size: 24px; color: #888; margin-bottom: 10px;"></div>
-        <div id="flowmodoro-timer-row">
-            <div id="flowmodoro-timer-wrapper">
-                <div id="flowmodoro-timer">00:00:00</div>
-            </div>
-            <div id="pause-expected-box" class="info-box" style="display: none;">
-                Temps de pause attendu : <span id="pause-expected-time">00:00</span>
-            </div>
+        <div id="flowmodoro-timer-wrapper">
+            <div id="flowmodoro-timer">00:00:00</div>
+            <div id="pause-expected-box" class="info-box">🕒 Pause attendue : <span id="pause-expected-time">00:00</span></div>
         </div>
         <div class="flowmodoro-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
             <button id="flowmodoro-toggle" class="flowmodoro-main-btn">▶️ Démarrer</button>
@@ -425,7 +421,6 @@ function flowmodoro_shortcode() {
         function updatePauseExpected() {
             const pauseBox = document.getElementById("pause-expected-box");
 
-            // Afficher uniquement si travail en cours
             if (working && !reversing) {
                 const pauseMs = Math.floor(milliseconds / pauseFactor);
                 const min = Math.floor(pauseMs / 60000);
@@ -437,6 +432,7 @@ function flowmodoro_shortcode() {
                 pauseBox.style.display = "none";
             }
         }
+
 
 
         function renderLiveEntry() {
