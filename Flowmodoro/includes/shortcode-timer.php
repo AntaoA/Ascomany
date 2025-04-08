@@ -82,6 +82,11 @@ function flowmodoro_shortcode() {
             gap: 12px;           /* un peu plus d'espace entre les boutons */
         }
 
+
+        #pause-expected-box {
+            white-space: normal;
+        }
+
         .flowmodoro-history-log {
             font-family: monospace;
             margin-top: 25px;    /* espace sous les boutons */
