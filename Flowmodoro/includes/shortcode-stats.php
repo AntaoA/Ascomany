@@ -289,6 +289,16 @@ function flowmodoro_stats_shortcode() {
             };
         }
 
+        function updateGroupingVisibility() {
+            const select = document.getElementById("grouping-select");
+            if (["full", "year", "manual"].includes(currentPeriodType)) {
+                select.style.display = "inline-block";
+            } else {
+                select.style.display = "none";
+            }
+        }
+
+
 
         function computeConsistencyStreaks(dataByDate) {
             const dates = Object.keys(dataByDate).sort();
@@ -729,6 +739,7 @@ function flowmodoro_stats_shortcode() {
 
                     document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
                     applyFilter(startStr, endStr);
+                    updateGroupingVisibility();
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
                 }
@@ -963,9 +974,12 @@ function flowmodoro_stats_shortcode() {
             renderChart(grouped);
             renderLineChart(grouped);
             renderHourChart(stats.filtered);
-            updatePeriodLabel();
+
             const rankings = getTopRankings(stats.filtered);
             renderTopRankings(rankings);
+
+            updatePeriodLabel();
+            updateGroupingVisibility();
 
         }
 
