@@ -533,21 +533,10 @@ function flowmodoro_stats_shortcode() {
                         return; // déjà sur cette semaine
                     }
                 } else if (period === "month") {
-                    const today = new Date();
-                    const year = today.getFullYear();
-                    const month = today.getMonth(); // de 0 à 11
-
-                    start = new Date(year, month, 1);
-                    end = new Date(year, month + 1, 0);
-
-                    const startStr = start.toISOString().split("T")[0];
-                    const endStr = end.toISOString().split("T")[0];
-
-                    if (currentPeriodType === "month" && currentRange.start === startStr && currentRange.end === endStr) {
-                        return; // ne rien faire si déjà dessus
-                    }
-                }
-                else if (period === "year") {
+                    const reference = new Date();
+                    start = new Date(reference.getFullYear(), reference.getMonth(), 1);
+                    end = new Date(reference.getFullYear(), reference.getMonth() + 1, 0);
+                } else if (period === "year") {
                     const today = new Date();
                     const thisYear = today.getFullYear();
 
@@ -680,13 +669,8 @@ function flowmodoro_stats_shortcode() {
                 start.setDate(start.getDate() + 7 * amount);
                 end.setDate(end.getDate() + 7 * amount);
             } else if (unit === "month") {
-                const year = start.getFullYear();
-                const month = start.getMonth() + amount;
-
-                start.setFullYear(year);
-                start.setMonth(month);
-                start.setDate(1);
-                end = new Date(start.getFullYear(), start.getMonth() + 1, 0); // dernier jour du mois
+                start = new Date(start.getFullYear(), start.getMonth() + amount, 1);
+                end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
             } else if (unit === "year") {
                 start.setFullYear(start.getFullYear() + amount);
                 end.setFullYear(end.getFullYear() + amount);
