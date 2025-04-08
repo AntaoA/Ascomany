@@ -112,24 +112,24 @@ function flowmodoro_shortcode() {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 40px;
-            margin: 40px auto;
-            max-width: 1000px;
+            gap: 60px; /* était à 40px */
+            margin: 60px auto;  /* un peu plus d'espace vertical */
+            max-width: 1200px;  /* élargissement de la zone */
             position: relative;
         }
 
         #flowmodoro-timer-wrapper {
             background: #f9fbfd;
             border: 2px solid #dce6f2;
-            border-radius: 16px;
-            padding: 30px 40px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            border-radius: 20px;
+            padding: 50px 60px; /* plus d'air */
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
             text-align: center;
-            min-width: 300px;
+            min-width: 360px;
         }
 
         #flowmodoro-timer {
-            font-size: 72px;
+            font-size: 84px; /* au lieu de 72px */
             font-weight: bold;
             color: #2c80c4;
             user-select: none;
@@ -139,18 +139,19 @@ function flowmodoro_shortcode() {
         .side-info-box {
             background: #f0f4fa;
             border: 1px solid #dce6f2;
-            border-radius: 12px;
-            padding: 15px 20px;
-            min-width: 220px;
-            max-width: 220px;
-            font-size: 16px;
+            border-radius: 14px;
+            padding: 25px 28px;
+            min-width: 260px;
+            max-width: 260px;
+            font-size: 18px;
             color: #333;
             text-align: center;
-            min-height: 90px;
+            min-height: 110px;
             display: flex;
             justify-content: center;
             align-items: center;
         }
+
 
         /* === BOUTONS PARAMÈTRES ET CONTROLES === */
         .flowmodoro-controls {
