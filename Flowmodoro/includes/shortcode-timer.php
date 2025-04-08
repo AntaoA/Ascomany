@@ -27,9 +27,9 @@ function flowmodoro_shortcode() {
             <div id="flowmodoro-total" style="margin-top: 10px; font-weight: bold;"></div>
         </div>
 
-        <div id="flowmodoro-history" style="position: absolute; top: 120px; right: 40px; text-align: left;">
-            <button id="show-history" style="margin-top: 20px;">📜 Voir l’historique</button><br>
-            <button id="show-stats" style="margin-top: 10px;">📊 Voir les statistiques</button>
+        <div id="flowmodoro-history-buttons" style="position: absolute; top: 120px; right: 40px; text-align: left;">
+            <button class="flowmodoro-nav-btn" id="show-history">📜 Voir l’historique</button><br>
+            <button class="flowmodoro-nav-btn" id="show-stats" style="margin-top: 10px;">📊 Voir les statistiques</button>
         </div>
     </div>
 
@@ -197,6 +197,23 @@ function flowmodoro_shortcode() {
         #popup-yes:hover, #popup-no:hover {
             background: #2980b9;
         }
+
+        .flowmodoro-nav-btn {
+            font-size: 16px;
+            padding: 8px 14px;
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 180px;
+            text-align: left;
+            transition: background 0.2s ease;
+        }
+
+        .flowmodoro-nav-btn:hover {
+            background: #e6e6e6;
+        }
+
 
 
     </style>
