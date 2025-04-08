@@ -513,10 +513,11 @@ function flowmodoro_stats_shortcode() {
                     const startStr = typeof start === "string" ? start : start.toISOString().split("T")[0];
                     const endStr = typeof end === "string" ? end : end.toISOString().split("T")[0];
                     document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-                    applyFilter();
+                    applyFilter(startStr, endStr); // <-- PASSER LES DATES ICI !
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
                 }
+
             });
         });
  
