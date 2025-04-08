@@ -148,7 +148,7 @@ function flowmodoro_shortcode() {
             border-radius: 14px;
             padding: 20px 20px;
             min-width: 260px;
-            max-width: 260px;
+            max-width: 300px;
             font-size: 17px;
             color: #333;
             text-align: center;
