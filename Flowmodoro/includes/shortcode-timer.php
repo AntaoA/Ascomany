@@ -11,9 +11,9 @@ function flowmodoro_shortcode() {
         <h2>Flowmodoro</h2>
         <div id="flowmodoro-status" style="font-size: 24px; color: #888; margin-bottom: 10px;"></div>
         <div id="flowmodoro-timer" style="font-size: 60px; margin: 20px 0;">00:00:00</div>
-        <button id="flowmodoro-start" style="font-size: 18px; padding: 10px 20px;">Démarrer</button>
-        <button id="flowmodoro-stop" style="font-size: 18px; padding: 10px 20px;" disabled>Arrêter</button>
-        <button id="flowmodoro-settings" style="font-size: 18px; padding: 10px 20px;">Paramètres</button>
+        <button id="flowmodoro-start" class="flowmodoro-main-btn">Démarrer</button>
+        <button id="flowmodoro-stop" class="flowmodoro-main-btn" disabled>Arrêter</button>
+        <button id="flowmodoro-settings" class="flowmodoro-main-btn">Paramètres</button>
 
         <div id="flowmodoro-settings-menu" style="display: none; margin-top: 20px; text-align: center;">
             <label for="pause-factor">Facteur de pause :</label>
@@ -214,6 +214,7 @@ function flowmodoro_shortcode() {
         .flowmodoro-main-btn:hover {
             background: #2980b9;
         }
+
 
 
     </style>
