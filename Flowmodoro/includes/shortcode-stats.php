@@ -123,7 +123,7 @@ function flowmodoro_stats_shortcode() {
                     applyFilter(start, end);
 
                     // Forcer mise à jour visuelle du label
-                    updatePeriodLabel("manuel", start, end);
+                    updatePeriodLabel("manual", start, end);
 
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     document.getElementById("manual-picker-btn").classList.add("selected");
@@ -558,11 +558,11 @@ function flowmodoro_stats_shortcode() {
             const endStr = end.toISOString().split("T")[0];
 
             currentRange = { start: startStr, end: endStr };
-            currentPeriodType = "manuel"; // bien forcer ici
+            currentPeriodType = "manual"; // bien forcer ici
 
             document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
             applyFilter(startStr, endStr);
-            updatePeriodLabel("manuel", startStr, endStr);
+            updatePeriodLabel("manual", startStr, endStr);
 
             document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
             document.getElementById("manual-picker-btn").classList.add("selected");
@@ -571,6 +571,7 @@ function flowmodoro_stats_shortcode() {
 
 
         function updatePeriodLabel(period = currentPeriodType, start = currentRange.start, end = currentRange.end) {
+            currentPeriodType = period;
             const label = document.getElementById("period-label");
             if (!label) return;
 
@@ -590,7 +591,7 @@ function flowmodoro_stats_shortcode() {
             } else if (period === "year") {
                 const year = start.split("-")[0];
                 label.textContent = `Année ${year}`;
-            } else if (period === "manuel") {
+            } else if (period === "manual") {
                 label.textContent = `${start} → ${end}`;
             }
         }
@@ -658,26 +659,13 @@ function flowmodoro_stats_shortcode() {
             updatePeriodLabel(currentPeriodType, startStr, endStr);
 
             if (unit === "manual") {
-                currentPeriodType = "manuel";
+                currentPeriodType = "manual";
                 document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                 document.getElementById("manual-picker-btn").classList.add("selected");
             }
         }
 
 
-
-
-        document.getElementById("prev-period").addEventListener("click", () => {
-            if (["week", "month", "year"].includes(currentPeriodType)) {
-                shiftDateRange(-1, currentPeriodType);
-            }
-        });
-
-        document.getElementById("next-period").addEventListener("click", () => {
-            if (["week", "month", "year"].includes(currentPeriodType)) {
-                shiftDateRange(1, currentPeriodType);
-            }
-        });
 
 
         document.getElementById("prev-period").addEventListener("click", () => {
