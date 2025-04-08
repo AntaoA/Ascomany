@@ -626,8 +626,9 @@ function flowmodoro_stats_shortcode() {
             } else if (period === "month") {
                 const monthStart = new Date(start);
                 const monthName = monthStart.toLocaleString('fr-FR', { month: 'long' });
+                const monthNameCapitalized = monthName.charAt(0).toUpperCase() + monthName.slice(1);
                 const year = monthStart.getFullYear();
-                label.textContent = `Mois de ${monthName} ${year}`;
+                label.textContent = `${monthNameCapitalized} ${year}`;
             } else if (period === "year") {
                 const year = start.split("-")[0];
                 label.textContent = `Année ${year}`;
