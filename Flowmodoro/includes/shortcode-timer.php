@@ -69,22 +69,22 @@ function flowmodoro_shortcode() {
         /* === BOUTONS HISTORIQUE + STATS EN HAUT À DROITE === */
         #flowmodoro-right-panel {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 260px;
+            top: 40px;           /* ↓ un peu plus bas */
+            right: 40px;         /* ← un peu plus à gauche */
+            width: 300px;        /* ⬅️ plus large pour éviter retour à la ligne */
             text-align: left;
             z-index: 100;
         }
-        
+
         .flowmodoro-history-actions {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;           /* un peu plus d'espace entre les boutons */
         }
 
         .flowmodoro-history-log {
             font-family: monospace;
-            margin-top: 20px;
+            margin-top: 25px;    /* espace sous les boutons */
         }
 
         .flowmodoro-main-btn {
