@@ -7,21 +7,14 @@
 function flowmodoro_shortcode() {
     ob_start();
     ?>
-    <div id="flowmodoro-container" style="text-align: center; padding: 40px;">
-
-        <div id="flowmodoro-top-left">
-            <div class="flowmodoro-history-actions">
-                <button id="show-history" class="flowmodoro-main-btn">📜 Voir l’historique</button>
-                <button id="show-stats" class="flowmodoro-main-btn">📊 Voir les statistiques</button>
-            </div>
-
-            <div id="flowmodoro-log-wrapper" class="flowmodoro-history-log">
-                <h3>Historique (session)</h3>
-                <ul id="flowmodoro-log"></ul>
-                <div id="flowmodoro-total"></div>
-            </div>
+    <div id="flowmodoro-container">
+        <!-- BOUTONS EN HAUT À DROITE -->
+        <div id="flowmodoro-top-right">
+            <button id="show-history" class="flowmodoro-main-btn">📜 Voir l’historique</button>
+            <button id="show-stats" class="flowmodoro-main-btn">📊 Voir les statistiques</button>
         </div>
 
+        <!-- TIMER + INFO GAUCHE + PAUSE DROITE -->
         <div id="flowmodoro-layout-wrapper">
             <div id="flowmodoro-left-text" class="side-info-box">
                 Lancez-vous dans une session de travail
@@ -30,18 +23,35 @@ function flowmodoro_shortcode() {
             <div id="flowmodoro-timer-wrapper">
                 <div id="flowmodoro-timer">00:00:00</div>
             </div>
-            <div class="flowmodoro-controls">
-                <button id="flowmodoro-toggle" class="flowmodoro-main-btn">▶️ Démarrer</button>
-                <button id="flowmodoro-settings" class="flowmodoro-main-btn">⚙️ Paramètres</button>
-            </div>
 
             <div id="pause-expected-box" class="side-info-box" style="visibility: hidden;">
                 🕒 Pause attendue : <span id="pause-expected-time">00:00</span>
             </div>
         </div>
 
+        <!-- BOUTONS DEMARRER + PARAMETRES -->
+        <div class="flowmodoro-controls">
+            <button id="flowmodoro-toggle" class="flowmodoro-main-btn">▶️ Démarrer</button>
+            <button id="flowmodoro-settings" class="flowmodoro-main-btn">⚙️ Paramètres</button>
+        </div>
 
+        <!-- MENU PARAMETRES -->
+        <div id="flowmodoro-settings-menu">
+            <label for="pause-factor">Facteur de pause :</label>
+            <input type="number" id="pause-factor" value="5" min="0.1" step="0.1" style="width: 75px;">
+            <button id="save-settings" class="flowmodoro-main-btn">Enregistrer</button>
+        </div>
+
+        <!-- HISTORIQUE SESSIONS (EN HAUT A DROITE SOUS LES BOUTONS) -->
+        <div id="flowmodoro-fixed-right">
+            <div id="flowmodoro-log-wrapper" class="flowmodoro-history-log">
+                <h3>Historique (session)</h3>
+                <ul id="flowmodoro-log"></ul>
+                <div id="flowmodoro-total"></div>
+            </div>
+        </div>
     </div>
+
 
 
     <style>
@@ -55,24 +65,26 @@ function flowmodoro_shortcode() {
             font-family: 'Roboto', sans-serif;
         }
 
-        #flowmodoro-top-left {
+
+        /* === BOUTONS HISTORIQUE + STATS EN HAUT À DROITE === */
+
+        #flowmodoro-top-right {
             position: absolute;
             top: 20px;
-            left: 20px;
+            right: 20px;
             display: flex;
             flex-direction: column;
             gap: 10px;
         }
 
-
-        /* === BOUTONS HISTORIQUE + STATS EN HAUT À DROITE === */
         #flowmodoro-fixed-right {
             position: absolute;
-            top: 40px;
-            right: 40px;
+            top: 110px;
+            right: 20px;
             width: 260px;
             text-align: left;
         }
+
 
         .flowmodoro-history-actions {
             display: flex;
