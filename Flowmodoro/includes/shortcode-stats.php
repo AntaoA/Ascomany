@@ -37,6 +37,13 @@ function flowmodoro_stats_shortcode() {
                 <div id="period-label" style="margin-top: 10px; font-weight: bold; font-size: 16px;"></div>
                 <input type="hidden" id="date-range-picker">
             </div>
+            <select id="grouping-select" style="margin-left: 10px; padding: 6px; border-radius: 4px;">
+                <option value="day">📅 Jour</option>
+                <option value="week">📖 Semaine</option>
+                <option value="month">🗓 Mois</option>
+                <option value="year">📆 Année</option>
+            </select>
+
         </div>
 
 
@@ -150,6 +157,33 @@ function flowmodoro_stats_shortcode() {
         }
  
  
+        function groupDataByTemporalUnit(dataByDate, unit) {
+            const grouped = {};
+
+            Object.entries(dataByDate).forEach(([dateStr, value]) => {
+                const d = new Date(dateStr);
+                let key = "";
+
+                if (unit === "day") {
+                    key = dateStr;
+                } else if (unit === "week") {
+                    const year = d.getFullYear();
+                    const week = Math.ceil((((d - new Date(year, 0, 1)) / 86400000) + d.getDay() + 1) / 7);
+                    key = `${year}-S${String(week).padStart(2, "0")}`;
+                } else if (unit === "month") {
+                    key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+                } else if (unit === "year") {
+                    key = `${d.getFullYear()}`;
+                }
+
+                if (!grouped[key]) grouped[key] = { travail: 0, pause: 0 };
+                grouped[key].travail += value.travail;
+                grouped[key].pause += value.pause;
+            });
+
+            return grouped;
+        }
+
  
         const rawEntries = <?php echo json_encode($entries, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
  
@@ -673,6 +707,13 @@ function flowmodoro_stats_shortcode() {
                     end = new Date(thisYear, 11, 31);
                     currentPeriodType = "year";
                 }
+
+                if (period === "year") {
+                    document.getElementById("grouping-select").value = "month";
+                } else {
+                    document.getElementById("grouping-select").value = "day";
+                }
+
  
  
                 if (start && end) {
@@ -906,6 +947,9 @@ function flowmodoro_stats_shortcode() {
         function applyFilter() {
             const range = document.getElementById("date-range-picker").value;
             const [start, end] = range.split(" - ");
+            const grouping = document.getElementById("grouping-select").value || "day";
+            const grouped = groupDataByTemporalUnit(fillMissingDates(start, end, stats.byDate), grouping);
+
             if (!start || !end || start > end) {
                 alert("Veuillez sélectionner une période valide.");
                 return;
@@ -915,14 +959,18 @@ function flowmodoro_stats_shortcode() {
               currentRange = { start, end }; // <-- stocke la période
              const stats = getStatsBetween(start, end);
             renderStats(stats);
-            renderChart(fillMissingDates(start, end, stats.byDate));
-            renderLineChart(fillMissingDates(start, end, stats.byDate));
+            renderChart(grouped);
+            renderLineChart(grouped);
             renderHourChart(stats.filtered);
             updatePeriodLabel();
             const rankings = getTopRankings(stats.filtered);
             renderTopRankings(rankings);
 
         }
+
+        document.getElementById("grouping-select").addEventListener("change", () => {
+            applyFilter();
+        });
 
         let showAllRanking = false;
         document.getElementById("show-more-ranking").addEventListener("click", () => {
