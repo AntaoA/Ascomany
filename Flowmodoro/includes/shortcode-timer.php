@@ -386,6 +386,9 @@ function flowmodoro_shortcode() {
             : `${m}:${s}<span style="font-size: 60%;">.${d}</span>`;
         }
 
+        let lastPhaseEndedWithPause = false;
+
+
         function logHistory(type, duration) {
             clearInterval(liveEntryInterval);
             if (currentLiveEntry) {
@@ -453,14 +456,17 @@ function flowmodoro_shortcode() {
         function updateStatusText() {
             const statusText = document.getElementById("flowmodoro-left-text");
 
-            if (!working && !reversing) {
-                statusText.textContent = "Lancez-vous dans une session de travail";
-            } else if (working) {
+            if (working) {
                 statusText.textContent = "💼 Travail en cours";
             } else if (reversing) {
                 statusText.textContent = "☕ Pause en cours";
+            } else if (lastPhaseEndedWithPause) {
+                statusText.textContent = "⏰ C’est l’heure de reprendre le travail";
+            } else {
+                statusText.textContent = "Lancez-vous dans une session de travail";
             }
         }
+
 
 
 
@@ -517,6 +523,7 @@ function flowmodoro_shortcode() {
                 // Lancer le travail
                 working = true;
                 reversing = false;
+                lastPhaseEndedWithPause = false;
                 milliseconds = 0;
                 updatePauseExpected();
                 updateStatusText();
@@ -579,6 +586,7 @@ function flowmodoro_shortcode() {
                         milliseconds = 0;
                         update();
                         reversing = false;
+                        lastPhaseEndedWithPause = true;
                         updatePauseExpected();
                         updateStatusText();
                     }
