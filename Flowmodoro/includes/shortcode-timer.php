@@ -8,32 +8,37 @@ function flowmodoro_shortcode() {
     ob_start();
     ?>
     <div id="flowmodoro-container" style="text-align: center; padding: 40px;">
-        <div id="flowmodoro-fixed-right">
-        <div class="flowmodoro-history-actions">
-            <button id="show-history" class="flowmodoro-main-btn">📜 Voir l’historique</button>
-            <button id="show-stats" class="flowmodoro-main-btn">📊 Voir les statistiques</button>
+
+        <div id="flowmodoro-top-left">
+            <div class="flowmodoro-history-actions">
+                <button id="show-history" class="flowmodoro-main-btn">📜 Voir l’historique</button>
+                <button id="show-stats" class="flowmodoro-main-btn">📊 Voir les statistiques</button>
+            </div>
+
+            <div id="flowmodoro-log-wrapper" class="flowmodoro-history-log">
+                <h3>Historique (session)</h3>
+                <ul id="flowmodoro-log"></ul>
+                <div id="flowmodoro-total"></div>
+            </div>
         </div>
 
-        <div id="flowmodoro-log-wrapper" class="flowmodoro-history-log">
-            <h3>Historique (session)</h3>
-            <ul id="flowmodoro-log"></ul>
-            <div id="flowmodoro-total"></div>
-        </div>
-    </div>
+        <div id="flowmodoro-layout-wrapper">
+            <div id="flowmodoro-left-text" class="side-info-box">
+                Lancez-vous dans une session de travail
+            </div>
 
-    <div id="flowmodoro-layout-wrapper">
-        <div id="flowmodoro-left-text" class="side-info-box">
-            Lancez-vous dans une session de travail
-        </div>
+            <div id="flowmodoro-timer-wrapper">
+                <div id="flowmodoro-timer">00:00:00</div>
+            </div>
+            <div class="flowmodoro-controls">
+                <button id="flowmodoro-toggle" class="flowmodoro-main-btn">▶️ Démarrer</button>
+                <button id="flowmodoro-settings" class="flowmodoro-main-btn">⚙️ Paramètres</button>
+            </div>
 
-        <div id="flowmodoro-timer-wrapper">
-            <div id="flowmodoro-timer">00:00:00</div>
+            <div id="pause-expected-box" class="side-info-box" style="visibility: hidden;">
+                🕒 Pause attendue : <span id="pause-expected-time">00:00</span>
+            </div>
         </div>
-
-        <div id="pause-expected-box" class="side-info-box" style="visibility: hidden;">
-            🕒 Pause attendue : <span id="pause-expected-time">00:00</span>
-        </div>
-    </div>
 
 
     </div>
@@ -49,6 +54,16 @@ function flowmodoro_shortcode() {
             position: relative;
             font-family: 'Roboto', sans-serif;
         }
+
+        #flowmodoro-top-left {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
 
         /* === BOUTONS HISTORIQUE + STATS EN HAUT À DROITE === */
         #flowmodoro-fixed-right {
