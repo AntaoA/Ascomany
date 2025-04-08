@@ -32,6 +32,60 @@ function flowmodoro_shortcode() {
         </div>
     </div>
 
+
+    <style>
+        #flowmodoro-container {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: auto;
+            padding: 30px;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        #flowmodoro-timer {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 70px;
+            color: #333;
+            margin: 30px 0;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border-radius: 8px;
+            border: none;
+            padding: 12px 20px;
+            margin: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: #2980b9;
+        }
+
+        #flowmodoro-settings-menu {
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+            margin-top: 20px;
+        }
+
+        #flowmodoro-log-wrapper {
+            border-top: 1px dashed #ddd;
+            margin-top: 30px;
+            padding-top: 15px;
+        }
+
+        #show-history {
+            background: none;
+            color: #3498db;
+            border: none;
+            font-size: 16px;
+        }
+        </style>
+
     <?php if (is_user_logged_in()) :
         $user_id = get_current_user_id();
         $raw_history = get_user_meta($user_id, 'flowmodoro_history', true);

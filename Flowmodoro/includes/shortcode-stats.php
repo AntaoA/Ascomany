@@ -76,29 +76,40 @@ function flowmodoro_stats_shortcode() {
 
     <style>
         .period-btn {
-            padding: 8px 14px;
-            background: #f7f7f7;
-            border: 1px solid #aaa;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 15px;
-            color: #111;
-            font-weight: 500;
-            transition: 0.2s ease;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
- 
-        .period-btn:hover {
-            background: #3498db;
-            color: white;
-            border-color: #3498db;
+
+        #period-label {
+            font-weight: 600;
+            color: #444;
         }
- 
-        .period-btn.selected {
-            background: #3498db;
-            color: white;
-            font-weight: bold;
-            border-color: #2980b9;
+
+        #stats-summary {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
+
+        #ranking-list div {
+            transition: box-shadow 0.2s ease, transform 0.1s ease;
+        }
+
+        #ranking-list div:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+        }
+
+        #heatmap-container div {
+            transition: transform 0.1s ease;
+        }
+
+        #heatmap-container div:hover {
+            transform: scale(1.2);
+            z-index: 10;
+        }
+
 
     </style>
  

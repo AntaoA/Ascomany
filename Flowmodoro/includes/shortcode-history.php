@@ -44,193 +44,44 @@ function flowmodoro_history_shortcode() {
 
     <style>
         .flowmodoro-history-container {
-            max-width: 800px;
-            margin: auto;
-            padding: 20px;
-            font-family: sans-serif;
-            background: #fafafa;
-            color: #111;
-        }
-
-        .history-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .toggle-button, #filter-button {
-            padding: 8px 16px;
-            background: #f0f0f0;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            color: #111;
-        }
-
-        .toggle-button:hover, #filter-button:hover {
-            background: #ddd;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            font-family: 'Roboto', sans-serif;
         }
 
         .session-block {
-            background: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            padding: 10px 15px;
-            cursor: pointer;
-            color: #111;
+            background: #fafafa;
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            transition: background 0.2s ease;
         }
 
         .session-block:hover {
-            background: #f2f2f2;
+            background: #f0f0f0;
         }
 
         .session-details {
-            margin-top: 10px;
-            display: none;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
         }
 
-        .entry-line {
-            font-family: monospace;
-            margin: 5px 0;
-            color: #222;
+        .toggle-button {
+            background: #3498db;
+            color: white;
+            border-radius: 8px;
         }
 
-        .entry-travail {
+        .delete-session-btn, .delete-phase-btn, .delete-group-btn {
+            color: #bbb;
+            transition: color 0.2s ease;
+        }
+
+        .delete-session-btn:hover, .delete-phase-btn:hover, .delete-group-btn:hover {
             color: #e74c3c;
         }
-
-        .entry-pause {
-            color: #3498db;
-        }
-
-        .entry-phase {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .view-session-btn {
-            font-size: 0.8em;
-            padding: 2px 6px;
-            border: 1px solid #ccc;
-            background: white;
-            color: #111;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-
-        .view-session-btn:hover {
-            background: #eee;
-        }
-
-        .filter-dropdown {
-            position: absolute;
-            background: #fff;
-            border: 1px solid #ccc;
-            padding: 10px;
-            z-index: 10;
-            max-height: 300px;
-            overflow-y: auto;
-            color: #111;
-        }
-
-        .filter-dropdown ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .filter-dropdown li {
-            padding: 5px 10px;
-            cursor: pointer;
-            color: #111;
-        }
-
-        .filter-dropdown li:hover {
-            background: #eee;
-        }
-
-        .empty-message {
-            font-style: italic;
-            color: #888;
-        }
-
-
-        .delete-session-btn {
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 16px;
-            cursor: pointer;
-        }
-        .delete-session-btn:hover {
-            color: #e74c3c;
-        }
-
-        .delete-phase-btn {
-            background: none;
-            border: none;
-            font-size: 14px;
-            cursor: pointer;
-            color: #888;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-
-        .delete-phase-btn:hover {
-            color: #e74c3c;
-            background: #f5f5f5;
-        }
-
-        .grouping-select {
-            position: relative;
-            display: inline-block;
-        }
-
-        .grouping-select .dropdown {
-            position: absolute;
-            background: white;
-            border: 1px solid #ccc;
-            padding: 5px 0;
-            border-radius: 4px;
-            list-style: none;
-            top: 100%;
-            left: 0;
-            margin-top: 5px;
-            min-width: 160px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-            z-index: 20;
-        }
-
-        .grouping-select .dropdown li {
-            padding: 8px 16px;
-            cursor: pointer;
-            color: #111;
-            font-size: 14px;
-        }
-
-        .grouping-select .dropdown li:hover {
-            background-color: #eee;
-        }
-
-        .grouping-select .dropdown.hidden {
-            display: none;
-        }
-
-        .delete-group-btn {
-            background: none;
-            border: none;
-            color: #888;
-            font-size: 16px;
-            cursor: pointer;
-            margin-left: 10px;
-        }
-        .delete-group-btn:hover {
-            color: #e74c3c;
-        }
-
 
     </style>
 <script>
