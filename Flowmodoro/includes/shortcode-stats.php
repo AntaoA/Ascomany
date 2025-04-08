@@ -237,6 +237,7 @@ function flowmodoro_stats_shortcode() {
 
             const today = new Date().toISOString().split("T")[0];
             let ongoingStreak = 0, ongoingStart = null;
+            let todayIncluded = false;
 
             for (let i = 0; i < dates.length; i++) {
                 const d = dates[i];
@@ -245,20 +246,29 @@ function flowmodoro_stats_shortcode() {
                 if (hasWork) {
                     if (currentStreak === 0) currentStart = d;
                     currentStreak++;
+
+                    if (d === today) todayIncluded = true;
+
+                    // vérifie aussi en fin de tableau
+                    const isLast = i === dates.length - 1;
+                    const nextDate = new Date(dates[i]);
+                    nextDate.setDate(nextDate.getDate() + 1);
+                    const expectedNext = nextDate.toISOString().split("T")[0];
+
+                    const endsHere = isLast || dates[i + 1] !== expectedNext;
+
+                    if (endsHere && currentStreak > maxStreak) {
+                        maxStreak = currentStreak;
+                        maxStart = currentStart;
+                        maxEnd = d;
+                    }
                 } else {
                     currentStreak = 0;
                     currentStart = null;
                 }
-
-                // maj max streak
-                if (currentStreak > maxStreak) {
-                    maxStreak = currentStreak;
-                    maxStart = currentStart;
-                    maxEnd = d;
-                }
             }
 
-            // Streak en cours : on part d’aujourd’hui et on remonte
+            // Streak en cours : part de today et recule
             let cursor = new Date(today);
             ongoingStreak = 0;
             ongoingStart = null;
@@ -276,9 +286,13 @@ function flowmodoro_stats_shortcode() {
 
             return {
                 max: { streak: maxStreak, start: maxStart, end: maxEnd },
-                current: { streak: ongoingStreak, start: ongoingStart }
+                current: { streak: ongoingStreak, start: ongoingStart },
+                todayIncluded
             };
         }
+
+
+
 
 
         function format(ms) {
@@ -299,8 +313,8 @@ function flowmodoro_stats_shortcode() {
                     <li><strong>Pause réelle cumulée :</strong> ${format(stats.pauseReal)}</li>
                     <li><strong>Nombre de sessions :</strong> ${stats.sessionCount}</li>
                     <li><strong>Jours actifs :</strong> ${stats.daysActive}</li>
-                    <li><strong>🔥 Streak en cours :</strong> ${streaks.current.streak} jour(s) ${streaks.current.streak > 0 ? `depuis ${streaks.current.start}` : ''}</li>
-                    <li><strong>🏅 Streak maximum :</strong> ${streaks.max.streak} jour(s) ${streaks.max.streak > 0 ? `(${streaks.max.start} → ${streaks.max.end})` : ''}</li>                    <li><strong>Durée moyenne par session :</strong> ${format(stats.work / Math.max(stats.sessionCount, 1))}</li>
+                    <li><strong>🔥 Streak en cours :</strong> ${streaks.current.streak} jour(s) ${streaks.current.streak > 0 ? `depuis ${streaks.current.start}` : ''} ${!streaks.todayIncluded ? `<span style="color:#e74c3c;">(⚠️ aujourd'hui non compté)</span>` : ''}</li>
+                    <li><strong>🏅 Streak maximum :</strong> ${streaks.max.streak} jour(s) ${streaks.max.streak > 0 ? `(${streaks.max.start} → ${streaks.max.end})` : ''}</li>
                     <li><strong>Première entrée :</strong> ${stats.first ? new Date(stats.first).toLocaleString() : "—"}</li>
                     <li><strong>Dernière entrée :</strong> ${stats.last ? new Date(stats.last).toLocaleString() : "—"}</li>
                 </ul>
