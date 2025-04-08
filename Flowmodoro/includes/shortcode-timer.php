@@ -362,7 +362,7 @@ function flowmodoro_shortcode() {
 
             const li = document.createElement("li");
             li.style.color = currentLiveEntry.type === "Travail" ? "#e74c3c" : "#3498db";
-            log.appendChild(li);
+            log.insertBefore(li, log.firstChild);
 
             function updateLive(addToTotal = false) {
                 const now = Date.now();
