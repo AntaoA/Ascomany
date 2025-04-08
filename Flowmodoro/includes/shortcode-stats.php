@@ -582,8 +582,7 @@ function flowmodoro_stats_shortcode() {
                 const weekNumber = getWeekNumber(weekStart);
                 label.textContent = `Semaine ${weekNumber} (${start} → ${end})`;
             } else if (period === "month") {
-                const [year, month] = start.split("-");
-                const date = new Date(year, parseInt(month, 10) - 1, 1);
+                const date = new Date(start + "T00:00:00"); // création directe et sûre
                 label.textContent = date.toLocaleDateString("fr-FR", {
                     month: "long",
                     year: "numeric"
