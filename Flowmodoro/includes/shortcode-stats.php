@@ -405,8 +405,8 @@ function flowmodoro_stats_shortcode() {
  
             const ctx = document.getElementById('stats-line-chart').getContext('2d');
             const labels = Object.keys(dataByDate).sort();
-            const travail = labels.map(d => Math.round((dataByDate[d].travail || 0) / 60000));
-            const pause = labels.map(d => Math.round((dataByDate[d].pause || 0) / 60000));
+            const travail = labels.map(d => parseFloat((dataByDate[d].travail || 0) / 60000).toFixed(2));
+            const pause = labels.map(d => parseFloat((dataByDate[d].pause || 0) / 60000).toFixed(2));
  
             if (lineChartInstance) lineChartInstance.destroy();
  
@@ -607,8 +607,8 @@ function flowmodoro_stats_shortcode() {
         function renderChart(dataByDate) {
             const ctx = document.getElementById('stats-chart').getContext('2d');
             const labels = Object.keys(dataByDate).sort();
-            const travail = labels.map(d => Math.round((dataByDate[d].travail || 0) / 60000));
-            const pause = labels.map(d => Math.round((dataByDate[d].pause || 0) / 60000));
+            const travail = labels.map(d => parseFloat((dataByDate[d].travail || 0) / 60000).toFixed(2));
+            const pause = labels.map(d => parseFloat((dataByDate[d].pause || 0) / 60000).toFixed(2));
 
             if (chartInstance) chartInstance.destroy();
 
