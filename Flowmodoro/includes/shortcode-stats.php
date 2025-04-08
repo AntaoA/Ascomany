@@ -571,7 +571,7 @@ function flowmodoro_stats_shortcode() {
 
                     document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
                     applyFilter(startStr, endStr);
-                    updatePeriodLabel();
+                    updatePeriodLabel(period, startStr, endStr);
 
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
