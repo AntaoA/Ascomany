@@ -615,45 +615,45 @@ document.addEventListener('DOMContentLoaded', function () {
         phases.sort((a, b) => b.timestamp - a.timestamp);
 
         phases.forEach(e => {
+            const isTravail = e.type === "Travail";
+            const icon = isTravail ? "💼" : "☕";
+            const color = isTravail ? "#e74c3c" : "#3498db";
+
             const div = document.createElement("div");
             div.className = "session-block";
+            div.style.borderLeft = `6px solid ${color}`;
+
             div.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div class="entry-phase" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="color: ${color}; font-weight: bold;">${icon} ${e.type}</div>
+                    <div>${formatTime(e.duration)} — ${formatDate(e.timestamp)}</div>
                     <div>
-                        <strong>${e.type}</strong><br>
-                        <small>${formatTime(e.duration)} — ${formatDate(e.timestamp)}</small>
+                        <button class="view-session-btn" data-ts="${e.timestamp}">👁</button>
+                        <button class="delete-phase-btn" data-ts="${e.timestamp}">🗑</button>
                     </div>
-                    <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
                 </div>
             `;
 
-            div.addEventListener("click", (ev) => {
-                if (ev.target.closest(".delete-phase-btn")) return;
-
-                const detail = div.querySelector(".session-details");
-                if (detail) {
-                    detail.style.display = detail.style.display === "block" ? "none" : "block";
-                } else {
-                    const d = document.createElement("div");
-                    d.className = "session-details";
-                    d.style.display = "block";
-                    d.innerHTML = `
-                        <p><strong>Type :</strong> ${e.type}</p>
-                        <p><strong>Durée :</strong> ${formatTime(e.duration)}</p>
-                        <p><strong>Date :</strong> ${formatDate(e.timestamp)}</p>
-                    `;
-                    div.appendChild(d);
-                }
-            });
-
             div.querySelector(".delete-phase-btn").onclick = (ev) => {
                 ev.stopPropagation();
-                // suppression comme avant...
+                // garde ton ancienne logique ici
+            };
+
+            div.querySelector(".view-session-btn").onclick = (ev) => {
+                ev.stopPropagation();
+                // trouve la session correspondante
+                const sessions = groupSessions(allHistory);
+                const session = sessions.find(s => s.some(p => p.timestamp === e.timestamp));
+                if (session) {
+                    renderSingleSession(session);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                }
             };
 
             container.appendChild(div);
         });
     }
+
 
 
 
@@ -894,7 +894,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     const label = header?.textContent || "";
 
                     if (
-                        (level === "day" && new Date(label).toLocaleDateString('fr-CA') === target)
+                        (level === "day" && label && new Date(label).toLocaleDateString('fr-CA') === target)
                         (level === "month" && label.toLowerCase().includes(target.toLowerCase())) ||
                         (level === "year" && label.includes(target)) ||
                         (level === "session" && block.innerHTML.includes(target)) // un peu plus vague
@@ -908,9 +908,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Si pas encore affiché, on attend un peu que render() ait fini
             setTimeout(() => {
-                document.querySelector(`#grouping-options li[data-mode="${level}"]`)?.click();
-                setTimeout(tryFocus, 400); // déplier après render
+                const opt = document.querySelector(`#grouping-options li[data-mode="${level}"]`);
+                if (opt) {
+                    opt.click();
+                    setTimeout(() => {
+                        // attends que les blocs soient générés
+                        tryFocus();
+                    }, 500);
+                } else {
+                    tryFocus();
+                }
             }, 100);
+
         }
 
 
