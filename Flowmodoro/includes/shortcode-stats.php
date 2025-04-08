@@ -501,7 +501,7 @@ function flowmodoro_stats_shortcode() {
         document.querySelectorAll(".period-btn").forEach(btn => {
             btn.addEventListener("click", () => {
                 const period = btn.dataset.period;
-                const now = new Date();
+                const now = currentRange.start ? new Date(currentRange.start) : new Date();
                 let start, end;
 
                 if (period === "full") {
@@ -514,16 +514,17 @@ function flowmodoro_stats_shortcode() {
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
                 } else if (period === "week") {
-                    const day = (now.getDay() + 6) % 7;
-                    start = new Date(now);
+                    const reference = currentRange.start ? new Date(currentRange.start) : new Date();
+                    const day = (reference.getDay() + 6) % 7;
+                    start = new Date(reference);
                     start.setDate(start.getDate() - day);
                     end = new Date(start);
                     end.setDate(end.getDate() + 6);
+
                 } else if (period === "month") {
-                    start = new Date(currentRange.start || now);
-                    start = new Date(start.getFullYear(), start.getMonth(), 1);
-                    end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
-                } else if (period === "year") {
+                    const reference = currentRange.start ? new Date(currentRange.start) : new Date();
+                    start = new Date(reference.getFullYear(), reference.getMonth(), 1);
+                    end = new Date(reference.getFullYear(), reference.getMonth() + 1, 0);                } else if (period === "year") {
                     start = new Date(now.getFullYear(), 0, 1);
                     end = new Date(now.getFullYear(), 11, 31);
                 }
