@@ -534,8 +534,8 @@ function flowmodoro_stats_shortcode() {
                     }
                 } else if (period === "month") {
                     const today = new Date();
-                    const month = today.getMonth();
                     const year = today.getFullYear();
+                    const month = today.getMonth(); // de 0 à 11
 
                     start = new Date(year, month, 1);
                     end = new Date(year, month + 1, 0);
@@ -544,9 +544,10 @@ function flowmodoro_stats_shortcode() {
                     const endStr = end.toISOString().split("T")[0];
 
                     if (currentPeriodType === "month" && currentRange.start === startStr && currentRange.end === endStr) {
-                        return;
+                        return; // ne rien faire si déjà dessus
                     }
-                } else if (period === "year") {
+                }
+                else if (period === "year") {
                     const today = new Date();
                     const thisYear = today.getFullYear();
 
@@ -679,10 +680,13 @@ function flowmodoro_stats_shortcode() {
                 start.setDate(start.getDate() + 7 * amount);
                 end.setDate(end.getDate() + 7 * amount);
             } else if (unit === "month") {
+                const year = start.getFullYear();
+                const month = start.getMonth() + amount;
+
+                start.setFullYear(year);
+                start.setMonth(month);
                 start.setDate(1);
-                start.setMonth(start.getMonth() + amount);
-                end.setTime(start.getTime());
-                end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+                end = new Date(start.getFullYear(), start.getMonth() + 1, 0); // dernier jour du mois
             } else if (unit === "year") {
                 start.setFullYear(start.getFullYear() + amount);
                 end.setFullYear(end.getFullYear() + amount);
