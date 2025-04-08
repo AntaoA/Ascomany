@@ -525,25 +525,32 @@ function flowmodoro_stats_shortcode() {
                     start.setDate(start.getDate() - day);
                     end = cloneDate(start);
                     end.setDate(end.getDate() + 6);
-
                 } else if (period === "month") {
-                        const today = new Date();
-                        const thisMonth = today.getMonth();
-                        const thisYear = today.getFullYear();
+                    const today = new Date();
+                    start = new Date(today.getFullYear(), today.getMonth(), 1);
+                    end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-                        const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
-                        const isAlreadyThisMonth = currentStartDate &&
-                            currentStartDate.getMonth() === thisMonth &&
-                            currentStartDate.getFullYear() === thisYear;
+                    const startStr = start.toISOString().split("T")[0];
+                    const endStr = end.toISOString().split("T")[0];
 
-                        if (currentPeriodType === "month" && isAlreadyThisMonth) {
-                            // Rien à faire, on est déjà sur ce mois
-                            return;
-                        }
-
-                        start = new Date(thisYear, thisMonth, 1);
-                        end = new Date(thisYear, thisMonth + 1, 0);
+                    // Évite de recliquer si déjà sur ce mois
+                    if (currentPeriodType === "month" && currentRange.start === startStr && currentRange.end === endStr) {
+                        return;
                     }
+                } else if (period === "year") {
+                    const today = new Date();
+                    const thisYear = today.getFullYear();
+
+                    const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
+                    const isAlreadyThisYear = currentStartDate && currentStartDate.getFullYear() === thisYear;
+
+                    if (currentPeriodType === "year" && isAlreadyThisYear) {
+                        return;
+                    }
+
+                    start = new Date(thisYear, 0, 1);
+                    end = new Date(thisYear, 11, 31);
+                }
 
 
                 if (start && end) {
@@ -664,8 +671,10 @@ function flowmodoro_stats_shortcode() {
                 end.setDate(end.getDate() + 7 * amount);
             } else if (unit === "month") {
                 start.setDate(1);
-                start.setMonth(start.getMonth() + 1);
-                end.setMonth(end.getMonth() + amount);
+                start.setMonth(start.getMonth() + amount);
+                end.setTime(start.getTime());
+                end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+            }
             } else if (unit === "year") {
                 start.setFullYear(start.getFullYear() + amount);
                 end.setFullYear(end.getFullYear() + amount);
