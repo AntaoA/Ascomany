@@ -172,7 +172,7 @@ function flowmodoro_stats_shortcode() {
             return filled;
         }
  
-         function getStatsBetween(startDate, endDate) {
+        function getStatsBetween(startDate, endDate) {
             const filtered = rawEntries.filter(e => {
                 const d = parseDate(e.timestamp);
                 return d >= startDate && d <= endDate;
@@ -228,6 +228,55 @@ function flowmodoro_stats_shortcode() {
 
         }
 
+
+        function computeConsistencyIndex(dataByDate) {
+            const dates = Object.keys(dataByDate).sort();
+            let maxStreak = 0;
+            let currentStreak = 0;
+
+            let longestStart = null;
+            let longestEnd = null;
+            let currentStart = null;
+
+            for (let i = 0; i < dates.length; i++) {
+                const d1 = new Date(dates[i]);
+                const d2 = new Date(d1);
+                d2.setDate(d2.getDate() + 1);
+
+                const nextDate = dates[i + 1];
+
+                if (dataByDate[dates[i]]?.travail > 0) {
+                    if (currentStreak === 0) {
+                        currentStart = dates[i];
+                    }
+                    currentStreak++;
+                } else {
+                    currentStreak = 0;
+                    currentStart = null;
+                }
+
+                const isEndOfStreak = !nextDate || new Date(nextDate).getTime() !== d2.getTime();
+
+                if (isEndOfStreak && currentStreak > maxStreak) {
+                    maxStreak = currentStreak;
+                    longestStart = currentStart;
+                    longestEnd = dates[i];
+                }
+
+                if (isEndOfStreak) {
+                    currentStreak = 0;
+                    currentStart = null;
+                }
+            }
+
+            return {
+                streak: maxStreak,
+                start: longestStart,
+                end: longestEnd
+            };
+        }
+
+
         function format(ms) {
             const s = Math.floor(ms / 1000);
             const h = Math.floor(s / 3600);
@@ -238,6 +287,7 @@ function flowmodoro_stats_shortcode() {
  
         function renderStats(stats) {
             const el = document.getElementById("stats-summary");
+            const consistency = computeConsistencyIndex(stats.byDate);
             el.innerHTML = `
                 <ul style="list-style: none; padding: 0; font-size: 16px;">
                     <li><strong>Total travail :</strong> ${format(stats.work)}</li>
@@ -245,6 +295,8 @@ function flowmodoro_stats_shortcode() {
                     <li><strong>Pause réelle cumulée :</strong> ${format(stats.pauseReal)}</li>
                     <li><strong>Nombre de sessions :</strong> ${stats.sessionCount}</li>
                     <li><strong>Jours actifs :</strong> ${stats.daysActive}</li>
+                    <li><strong>Indice de constance :</strong> ${consistency.streak} jour(s)</li>
+                    ${consistency.streak > 0 ? `<li><strong>Période :</strong> ${consistency.start} → ${consistency.end}</li>` : ''}
                     <li><strong>Durée moyenne par session :</strong> ${format(stats.work / Math.max(stats.sessionCount, 1))}</li>
                     <li><strong>Première entrée :</strong> ${stats.first ? new Date(stats.first).toLocaleString() : "—"}</li>
                     <li><strong>Dernière entrée :</strong> ${stats.last ? new Date(stats.last).toLocaleString() : "—"}</li>
