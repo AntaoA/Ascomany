@@ -519,21 +519,30 @@ function flowmodoro_stats_shortcode() {
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
                 } else if (period === "week") {
-                    const reference = currentRange.start ? new Date(currentRange.start) : new Date();
-                    const day = (reference.getDay() + 6) % 7;
-                    start = cloneDate(reference);
-                    start.setDate(start.getDate() - day);
-                    end = cloneDate(start);
-                    end.setDate(end.getDate() + 6);
-                } else if (period === "month") {
                     const today = new Date();
-                    start = new Date(today.getFullYear(), today.getMonth(), 1);
-                    end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+                    const day = (today.getDay() + 6) % 7; // lundi = 0
+                    start = new Date(today);
+                    start.setDate(today.getDate() - day);
+                    end = new Date(start);
+                    end.setDate(start.getDate() + 6);
 
                     const startStr = start.toISOString().split("T")[0];
                     const endStr = end.toISOString().split("T")[0];
 
-                    // Évite de recliquer si déjà sur ce mois
+                    if (currentPeriodType === "week" && currentRange.start === startStr && currentRange.end === endStr) {
+                        return; // déjà sur cette semaine
+                    }
+                } else if (period === "month") {
+                    const today = new Date();
+                    const month = today.getMonth();
+                    const year = today.getFullYear();
+
+                    start = new Date(year, month, 1);
+                    end = new Date(year, month + 1, 0);
+
+                    const startStr = start.toISOString().split("T")[0];
+                    const endStr = end.toISOString().split("T")[0];
+
                     if (currentPeriodType === "month" && currentRange.start === startStr && currentRange.end === endStr) {
                         return;
                     }
