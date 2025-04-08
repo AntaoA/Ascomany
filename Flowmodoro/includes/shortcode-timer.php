@@ -44,7 +44,7 @@ function flowmodoro_shortcode() {
         </div>
 
         <!-- MENU PARAMETRES -->
-        <div id="flowmodoro-settings-menu">
+        <div id="flowmodoro-settings-menu" style="display: none;">
             <label for="pause-factor">Facteur de pause :</label>
             <input type="number" id="pause-factor" value="5" min="0.1" step="0.1" style="width: 75px;">
             <button id="save-settings" class="flowmodoro-main-btn">Enregistrer</button>
@@ -147,23 +147,6 @@ function flowmodoro_shortcode() {
             display: flex;
             justify-content: center;
             align-items: center;
-        }
-
-        /* === BLOC HISTORIQUE (SOUS LES BOUTONS) === */
-        .flowmodoro-history-log {
-            font-family: monospace;
-            margin-top: 20px;
-        }
-
-        #flowmodoro-log {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        #flowmodoro-total {
-            margin-top: 10px;
-            font-weight: bold;
         }
 
         /* === BOUTONS PARAMÈTRES ET CONTROLES === */
