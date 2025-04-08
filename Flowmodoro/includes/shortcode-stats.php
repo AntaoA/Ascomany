@@ -532,27 +532,25 @@ function flowmodoro_stats_shortcode() {
                     if (currentPeriodType === "week" && currentRange.start === startStr && currentRange.end === endStr) {
                         return; // déjà sur cette semaine
                     }
+                } else if (period === "month") {
                     const today = new Date();
-                        const year = today.getFullYear();
-                        const month = today.getMonth(); // 0-indexed
+                    const year = today.getFullYear();
+                    const month = today.getMonth(); // 0-indexed
 
-                        const start = new Date(year, month, 1);
-                        const end = new Date(year, month + 1, 0); // dernier jour du mois
+                    start = new Date(year, month, 1);
+                    end = new Date(year, month + 1, 0);
 
-                        const startStr = start.toISOString().split("T")[0];
-                        const endStr = end.toISOString().split("T")[0];
+                    const startStr = start.toISOString().split("T")[0];
+                    const endStr = end.toISOString().split("T")[0];
 
-                        currentRange = { start: startStr, end: endStr };
-                        currentPeriodType = period;
+                    const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
+                    const isAlreadyThisMonth = currentStartDate &&
+                        currentPeriodType === "month" &&
+                        currentStartDate.getFullYear() === year &&
+                        currentStartDate.getMonth() === month;
 
-                        document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-                        applyFilter(startStr, endStr);
-                        updatePeriodLabel(period, startStr, endStr);
-
-                        document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
-                        btn.classList.add("selected");
-                        return;
-                    } else if (period === "year") {
+                    if (isAlreadyThisMonth) return;
+                } else if (period === "year") {
                     const today = new Date();
                     const thisYear = today.getFullYear();
 
@@ -687,8 +685,22 @@ function flowmodoro_stats_shortcode() {
                 start.setDate(start.getDate() + amount * 7);
                 end.setDate(end.getDate() + amount * 7);
             } else if (unit === "month") {
-                start.setMonth(start.getMonth() + amount);
-                end.setMonth(end.getMonth() + amount);
+                // Calcul correct : 1er jour du nouveau mois
+                const startMonth = new Date(currentRange.start);
+                const newStart = new Date(startMonth.getFullYear(), startMonth.getMonth() + amount, 1);
+                const newEnd = new Date(newStart.getFullYear(), newStart.getMonth() + 1, 0); // dernier jour
+
+                const startStr = newStart.toISOString().split("T")[0];
+                const endStr = newEnd.toISOString().split("T")[0];
+
+                currentRange = { start: startStr, end: endStr };
+                currentPeriodType = unit;
+
+                document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+                applyFilter(startStr, endStr);
+                updatePeriodLabel(unit, startStr, endStr);
+
+                return;
             } else if (unit === "year") {
                 start.setFullYear(start.getFullYear() + amount);
                 end.setFullYear(end.getFullYear() + amount);
