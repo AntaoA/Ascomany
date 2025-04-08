@@ -8,207 +8,61 @@ function flowmodoro_shortcode() {
     ob_start();
     ?>
     <div id="flowmodoro-container" style="text-align: center; padding: 40px;">
-        <h2>Flowmodoro</h2>
-        <div id="flowmodoro-layout-wrapper">
-            <div id="flowmodoro-left-text" class="side-info-box">
-                Lancez-vous dans une session de travail
-            </div>
-
-            <div id="flowmodoro-timer-wrapper">
-                <div id="flowmodoro-timer">00:00:00</div>
-            </div>
-
-            <div id="pause-expected-box" class="side-info-box" style="visibility: hidden;">
-                🕒 Pause attendue : <span id="pause-expected-time">00:00</span>
-            </div>
+        <div id="flowmodoro-fixed-right">
+        <div class="flowmodoro-history-actions">
+            <button id="show-history" class="flowmodoro-main-btn">📜 Voir l’historique</button>
+            <button id="show-stats" class="flowmodoro-main-btn">📊 Voir les statistiques</button>
         </div>
 
-        <div class="flowmodoro-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
-            <button id="flowmodoro-toggle" class="flowmodoro-main-btn">▶️ Démarrer</button>
-            <button id="flowmodoro-settings" class="flowmodoro-main-btn">⚙️ Paramètres</button>
-        </div>
-
-        <div id="flowmodoro-settings-menu" style="display: none; margin-top: 20px; text-align: center;">
-            <label for="pause-factor">Facteur de pause :</label>
-            <input type="number" id="pause-factor" value="5" min="0.1" step="0.1" style="width: 75px;">
-            <button id="save-settings" class="flowmodoro-main-btn" style="margin-left: 10px;">Enregistrer</button>
-        </div>
-
-        <div id="flowmodoro-log-wrapper" style="margin-top: 30px;">
+        <div id="flowmodoro-log-wrapper" class="flowmodoro-history-log">
             <h3>Historique (session)</h3>
-            <ul id="flowmodoro-log" style="list-style: none; padding: 0; font-family: monospace;"></ul>
-            <div id="flowmodoro-total" style="margin-top: 10px; font-weight: bold;"></div>
+            <ul id="flowmodoro-log"></ul>
+            <div id="flowmodoro-total"></div>
+        </div>
+    </div>
+
+    <div id="flowmodoro-layout-wrapper">
+        <div id="flowmodoro-left-text" class="side-info-box">
+            Lancez-vous dans une session de travail
         </div>
 
-        <div id="flowmodoro-history-buttons" style="position: absolute; top: 120px; right: 40px; text-align: left; width: 200px;">
-            <button id="show-history" class="flowmodoro-main-btn" style="margin-top: 20px;">📜 Voir l’historique</button><br>
-            <button id="show-stats" class="flowmodoro-main-btn" style="margin-top: 10px;">📊 Voir les statistiques</button>
+        <div id="flowmodoro-timer-wrapper">
+            <div id="flowmodoro-timer">00:00:00</div>
+        </div>
+
+        <div id="pause-expected-box" class="side-info-box" style="visibility: hidden;">
+            🕒 Pause attendue : <span id="pause-expected-time">00:00</span>
         </div>
     </div>
 
 
+    </div>
+
+
     <style>
-        .flowmodoro-history-container {
-            max-width: 800px;
+        /* === CONTAINER PRINCIPAL === */
+        #flowmodoro-container {
+            text-align: center;
+            padding: 40px;
+            max-width: 1000px;
             margin: auto;
-            padding: 25px;
-            background: #ffffff;
-            color: #111;
-            font-family: 'Roboto', sans-serif;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
-        .history-controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .toggle-button {
-            padding: 8px 14px;
-            background: #3498db;
-            color: white;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-        }
-
-        .toggle-button:hover {
-            background: #2980b9;
-        }
-
-        .session-block {
-            background: #fafafa;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 12px;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-
-        .session-block:hover {
-            background: #f2f2f2;
-        }
-
-        .session-details {
-            margin-top: 10px;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
-            display: none;
-        }
-
-        .entry-line {
-            font-family: monospace;
-            margin: 5px 0;
-        }
-
-        .entry-travail {
-            color: #e74c3c;
-        }
-
-        .entry-pause {
-            color: #3498db;
-        }
-
-        .entry-phase {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .view-session-btn {
-            font-size: 0.8em;
-            padding: 2px 8px;
-            border: 1px solid #ccc;
-            background: #fff;
-            color: #111;
-            cursor: pointer;
-            border-radius: 4px;
-            transition: background 0.2s ease, border-color 0.2s ease;
-        }
-
-        .view-session-btn:hover {
-            background: #eee;
-            border-color: #bbb;
-        }
-
-        .delete-session-btn,
-        .delete-phase-btn,
-        .delete-group-btn {
-            background: none;
-            border: none;
-            color: #bbb;
-            cursor: pointer;
-            transition: color 0.2s ease;
-        }
-
-        .delete-session-btn:hover,
-        .delete-phase-btn:hover,
-        .delete-group-btn:hover {
-            color: #e74c3c;
-        }
-
-        .grouping-select {
             position: relative;
-            display: inline-block;
+            font-family: 'Roboto', sans-serif;
         }
 
-        .grouping-select .dropdown {
+        /* === BOUTONS HISTORIQUE + STATS EN HAUT À DROITE === */
+        #flowmodoro-fixed-right {
             position: absolute;
-            background: #fff;
-            border: 1px solid #ccc;
-            padding: 5px 0;
-            border-radius: 4px;
-            top: 100%;
-            left: 0;
-            margin-top: 5px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            z-index: 20;
-            list-style: none;
+            top: 40px;
+            right: 40px;
+            width: 260px;
+            text-align: left;
         }
 
-        .grouping-select .dropdown.hidden {
-            display: none;
-        }
-
-        .grouping-select .dropdown li {
-            padding: 8px 16px;
-            cursor: pointer;
-        }
-
-        .grouping-select .dropdown li:hover {
-            background-color: #eee;
-        }
-
-        .empty-message {
-            font-style: italic;
-            color: #888;
-        }
-
-        #popup-confirm {
-            background: rgba(0,0,0,0.6);
-        }
-
-        #popup-confirm div {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-
-        #popup-yes, #popup-no {
-            background: #3498db;
-            color: white;
-            padding: 6px 14px;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s ease;
-        }
-
-        #popup-yes:hover, #popup-no:hover {
-            background: #2980b9;
+        .flowmodoro-history-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .flowmodoro-main-btn {
@@ -221,21 +75,14 @@ function flowmodoro_shortcode() {
             cursor: pointer;
             box-sizing: border-box;
             transition: background 0.2s ease;
+            width: 100%;
         }
 
         .flowmodoro-main-btn:hover {
             background: #21679d;
         }
 
-        .flowmodoro-controls {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-
+        /* === BLOC DU TIMER AU CENTRE === */
         #flowmodoro-layout-wrapper {
             display: flex;
             justify-content: center;
@@ -243,50 +90,29 @@ function flowmodoro_shortcode() {
             gap: 40px;
             margin: 40px auto;
             max-width: 1000px;
+            position: relative;
         }
-
 
         #flowmodoro-timer-wrapper {
             background: #f9fbfd;
             border: 2px solid #dce6f2;
             border-radius: 16px;
-            padding: 30px 20px;
+            padding: 30px 40px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             text-align: center;
-            min-width: 280px;
+            min-width: 300px;
         }
 
         #flowmodoro-timer {
             font-size: 72px;
             font-weight: bold;
             color: #2c80c4;
-            font-family: 'Roboto', sans-serif;
             user-select: none;
         }
 
-        #flowmodoro-container {
-            text-align: center;
-            padding: 40px;
-            max-width: 800px;
-            margin: auto;
-        }
-
-        #flowmodoro-settings-menu label,
-        #flowmodoro-settings-menu input {
-            font-size: 16px;
-        }
-
-        #flowmodoro-settings-menu {
-            margin-top: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
+        /* === BLOCS LATÉRAUX GAUCHE / DROITE DU TIMER === */
         .side-info-box {
-            background: #f9fbfb;
+            background: #f0f4fa;
             border: 1px solid #dce6f2;
             border-radius: 12px;
             padding: 15px 20px;
@@ -301,9 +127,45 @@ function flowmodoro_shortcode() {
             align-items: center;
         }
 
+        /* === BLOC HISTORIQUE (SOUS LES BOUTONS) === */
+        .flowmodoro-history-log {
+            font-family: monospace;
+            margin-top: 20px;
+        }
 
+        #flowmodoro-log {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
 
+        #flowmodoro-total {
+            margin-top: 10px;
+            font-weight: bold;
+        }
 
+        /* === BOUTONS PARAMÈTRES ET CONTROLES === */
+        .flowmodoro-controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        #flowmodoro-settings-menu {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #flowmodoro-settings-menu label,
+        #flowmodoro-settings-menu input {
+            font-size: 16px;
+        }
 
     </style>
 
