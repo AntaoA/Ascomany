@@ -21,7 +21,7 @@ function flowmodoro_shortcode() {
         <div id="flowmodoro-settings-menu" style="display: none; margin-top: 20px; text-align: center;">
             <label for="pause-factor">Facteur de pause :</label>
             <input type="number" id="pause-factor" value="5" min="0.1" step="0.1" style="width: 75px;">
-            <button id="save-settings" style="margin-left: 10px;">Enregistrer</button>
+            <button id="save-settings" class="flowmodoro-main-btn" style="margin-left: 10px;">Enregistrer</button>
         </div>
 
         <div id="flowmodoro-log-wrapper" style="margin-top: 30px;">
@@ -249,6 +249,20 @@ function flowmodoro_shortcode() {
             padding: 40px;
             max-width: 800px;
             margin: auto;
+        }
+
+        #flowmodoro-settings-menu label,
+        #flowmodoro-settings-menu input {
+            font-size: 16px;
+        }
+
+        #flowmodoro-settings-menu {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
 
