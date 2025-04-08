@@ -620,13 +620,17 @@ function flowmodoro_stats_shortcode() {
                 console.log("Week number:", weekNumber);
                 label.textContent = `Semaine ${weekNumber} (${start} → ${end})`;
             } else if (period === "month") {
-                const monthStart = new Date(start);
-                console.log("Month date used:", monthStart.toISOString());
-                console.log("Month start.getMonth():", monthStart.getMonth());
-                const monthName = monthStart.toLocaleString('fr-FR', { month: 'long' });
-                const year = monthStart.getFullYear();
-                console.log("Resolved label:", `Mois de ${monthName} ${year}`);
+                const firstDay = new Date(start);
+                firstDay.setDate(1); // ✅ forcer le 1er jour du mois
+
+                console.log("Month date used:", firstDay.toISOString());
+                console.log("Month start.getMonth():", firstDay.getMonth());
+
+                const monthName = firstDay.toLocaleString('fr-FR', { month: 'long' });
+                const year = firstDay.getFullYear();
                 label.textContent = `Mois de ${monthName} ${year}`;
+
+                console.log("Resolved label:", label.textContent);
             } else if (period === "year") {
                 const year = start.split("-")[0];
                 label.textContent = `Année ${year}`;
