@@ -622,37 +622,63 @@ document.addEventListener('DOMContentLoaded', function () {
             const div = document.createElement("div");
             div.className = "session-block";
             div.style.borderLeft = `6px solid ${color}`;
+            div.style.cursor = "pointer";
 
             div.innerHTML = `
                 <div class="entry-phase" style="display: flex; justify-content: space-between; align-items: center;">
                     <div style="color: ${color}; font-weight: bold;">${icon} ${e.type}</div>
                     <div>${formatTime(e.duration)} — ${formatDate(e.timestamp)}</div>
                     <div>
-                        <button class="view-session-btn" data-ts="${e.timestamp}">👁</button>
                         <button class="delete-phase-btn" data-ts="${e.timestamp}">🗑</button>
                     </div>
                 </div>
             `;
 
-            div.querySelector(".delete-phase-btn").onclick = (ev) => {
-                ev.stopPropagation();
-                // garde ton ancienne logique ici
-            };
+            const sessionDetail = document.createElement("div");
+            sessionDetail.className = "session-details";
+            sessionDetail.style.display = "none";
+            sessionDetail.style.padding = "10px";
+            sessionDetail.style.borderTop = "1px solid #ddd";
+            sessionDetail.style.marginTop = "10px";
+            sessionDetail.style.fontSize = "14px";
+            div.appendChild(sessionDetail);
 
-            div.querySelector(".view-session-btn").onclick = (ev) => {
-                ev.stopPropagation();
-                // trouve la session correspondante
+            div.addEventListener("click", (ev) => {
+                if (ev.target.closest(".delete-phase-btn")) return;
+
+                // afficher ou masquer
+                if (sessionDetail.innerHTML !== "") {
+                    sessionDetail.style.display = sessionDetail.style.display === "none" ? "block" : "none";
+                    return;
+                }
+
                 const sessions = groupSessions(allHistory);
                 const session = sessions.find(s => s.some(p => p.timestamp === e.timestamp));
-                if (session) {
-                    renderSingleSession(session);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                }
+                if (!session) return;
+
+                const travail = session.filter(p => p.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
+                const pause = session.filter(p => p.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
+                const start = new Date(session[0].timestamp).toLocaleString();
+
+                sessionDetail.innerHTML = `
+                    <strong>Session contenant cette phase :</strong><br>
+                    Début : ${start}<br>
+                    Travail : ${formatTime(travail)}<br>
+                    Pause : ${formatTime(pause)}<br>
+                    Phases : ${session.length}
+                `;
+                sessionDetail.style.display = "block";
+            });
+
+            div.querySelector(".delete-phase-btn").onclick = (ev) => {
+                ev.stopPropagation();
+                // garde ta logique actuelle
             };
 
             container.appendChild(div);
         });
     }
+
 
 
 
