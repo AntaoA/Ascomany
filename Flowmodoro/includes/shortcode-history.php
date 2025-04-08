@@ -916,36 +916,123 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 
-    // Auto-focus à l'ouverture via URL (focus=...)
     const focusParam = new URLSearchParams(window.location.search).get("focus");
 
     if (focusParam) {
         const [level, target] = focusParam.split(":");
 
+        const normalized = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const switchToMode = (mode) => {
+            const li = document.querySelector(`#grouping-options li[data-mode="${mode}"]`);
+            if (li) li.click();
+        };
+
         if (level === "session") {
             const ts = parseInt(target);
+            switchToMode("session");
 
-            // 1. Bascule en regroupement "Session"
-            const li = document.querySelector(`#grouping-options li[data-mode="session"]`);
-            if (li) li.click();
-
-            // 2. Une fois rendu, simule un clic sur la bonne session
             setTimeout(() => {
                 const blocks = document.querySelectorAll(".session-block");
                 for (const block of blocks) {
                     const btn = block.querySelector(".delete-session-btn");
                     if (!btn) continue;
-
                     const blockTs = parseInt(btn.dataset.ts);
                     if (blockTs === ts) {
                         block.scrollIntoView({ behavior: "smooth", block: "center" });
-                        block.click(); // déplie
+                        block.click();
+                        break;
+                    }
+                }
+            }, 500);
+        }
+
+        else if (level === "phase") {
+            const ts = parseInt(target);
+            switchToMode("phase");
+
+            setTimeout(() => {
+                const block = document.querySelector(`.delete-phase-btn[data-ts="${ts}"]`)?.closest(".session-block");
+                if (block) {
+                    block.scrollIntoView({ behavior: "smooth", block: "center" });
+                    block.click();
+                }
+            }, 500);
+        }
+
+        else if (level === "day") {
+            const dateStr = new Date(target).toLocaleDateString("fr-FR");
+            switchToMode("day");
+
+            setTimeout(() => {
+                const blocks = document.querySelectorAll(".session-block");
+                for (const block of blocks) {
+                    const h = block.querySelector("h5");
+                    if (h && normalized(h.textContent).includes(normalized(dateStr))) {
+                        block.scrollIntoView({ behavior: "smooth", block: "center" });
+                        block.click();
+                        break;
+                    }
+                }
+            }, 500);
+        }
+
+        else if (level === "month") {
+            const [y, m] = target.split("-");
+            const monthName = new Date(`${y}-${m}-01`).toLocaleString('fr-FR', { month: 'long' });
+            const label = `${monthName} ${y}`;
+            switchToMode("month");
+
+            setTimeout(() => {
+                const blocks = document.querySelectorAll(".session-block");
+                for (const block of blocks) {
+                    const h = block.querySelector("h5");
+                    if (h && normalized(h.textContent).includes(normalized(label))) {
+                        block.scrollIntoView({ behavior: "smooth", block: "center" });
+                        block.click();
+                        break;
+                    }
+                }
+            }, 500);
+        }
+
+        else if (level === "year") {
+            switchToMode("year");
+
+            setTimeout(() => {
+                const blocks = document.querySelectorAll(".session-block");
+                for (const block of blocks) {
+                    const h = block.querySelector("h5");
+                    if (h && h.textContent.includes(target)) {
+                        block.scrollIntoView({ behavior: "smooth", block: "center" });
+                        block.click();
+                        break;
+                    }
+                }
+            }, 500);
+        }
+
+        else if (level === "week") {
+            // Format attendu : 2025-W14
+            const [y, w] = target.split("-W");
+            const label = `${y} - Semaine ${parseInt(w)}`;
+            switchToMode("week");
+
+            setTimeout(() => {
+                const blocks = document.querySelectorAll(".session-block");
+                for (const block of blocks) {
+                    const h = block.querySelector("h5");
+                    if (h && normalized(h.textContent).includes(normalized(label))) {
+                        block.scrollIntoView({ behavior: "smooth", block: "center" });
+                        block.click();
                         break;
                     }
                 }
             }, 500);
         }
     }
+
+
+
 
 
 
