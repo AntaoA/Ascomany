@@ -10,10 +10,20 @@ function flowmodoro_shortcode() {
     <div id="flowmodoro-container" style="text-align: center; padding: 40px;">
         <h2>Flowmodoro</h2>
         <div id="flowmodoro-status" style="font-size: 24px; color: #888; margin-bottom: 10px;"></div>
-        <div id="flowmodoro-timer-wrapper">
-            <div id="flowmodoro-timer">00:00:00</div>
-            <div id="pause-expected-box" class="info-box">🕒 Pause attendue : <span id="pause-expected-time">00:00</span></div>
+        <div id="flowmodoro-layout-wrapper">
+            <div id="flowmodoro-left-text" class="side-info-box">
+                Lancez-vous dans une session de travail
+            </div>
+
+            <div id="flowmodoro-timer-wrapper">
+                <div id="flowmodoro-timer">00:00:00</div>
+            </div>
+
+            <div id="pause-expected-box" class="side-info-box" style="visibility: hidden;">
+                🕒 Pause attendue : <span id="pause-expected-time">00:00</span>
+            </div>
         </div>
+
         <div class="flowmodoro-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
             <button id="flowmodoro-toggle" class="flowmodoro-main-btn">▶️ Démarrer</button>
             <button id="flowmodoro-settings" class="flowmodoro-main-btn">⚙️ Paramètres</button>
@@ -226,14 +236,16 @@ function flowmodoro_shortcode() {
             gap: 10px;
         }
 
-        #flowmodoro-timer-row {
+
+        #flowmodoro-layout-wrapper {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin: 30px auto;
+            gap: 40px;
+            margin: 40px auto;
+            max-width: 1000px;
         }
+
 
         #flowmodoro-timer-wrapper {
             background: #f9fbfd;
@@ -241,6 +253,7 @@ function flowmodoro_shortcode() {
             border-radius: 16px;
             padding: 30px 20px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            text-align: center;
             min-width: 280px;
         }
 
@@ -249,7 +262,6 @@ function flowmodoro_shortcode() {
             font-weight: bold;
             color: #2c80c4;
             font-family: 'Roboto', sans-serif;
-            text-align: center;
             user-select: none;
         }
 
@@ -274,14 +286,20 @@ function flowmodoro_shortcode() {
             flex-wrap: wrap;
         }
 
-        .info-box {
-            font-size: 16px;
-            color: #555;
+        .side-info-box {
             background: #f9fbfb;
             border: 1px solid #dce6f2;
-            padding: 10px 15px;
-            border-radius: 8px;
-            white-space: nowrap;
+            border-radius: 12px;
+            padding: 15px 20px;
+            min-width: 220px;
+            max-width: 220px;
+            font-size: 16px;
+            color: #333;
+            text-align: center;
+            min-height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
 
@@ -427,11 +445,24 @@ function flowmodoro_shortcode() {
                 const sec = Math.floor((pauseMs % 60000) / 1000);
                 document.getElementById("pause-expected-time").textContent =
                     `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-                pauseBox.style.display = "inline-block";
+                pauseBox.style.visibility = "visible";
             } else {
-                pauseBox.style.display = "none";
+                pauseBox.style.visibility = "hidden";
             }
         }
+
+        function updateStatusText() {
+            const statusText = document.getElementById("flowmodoro-left-text");
+
+            if (!working && !reversing) {
+                statusText.textContent = "Lancez-vous dans une session de travail";
+            } else if (working) {
+                statusText.textContent = "💼 Travail en cours";
+            } else if (reversing) {
+                statusText.textContent = "☕ Pause en cours";
+            }
+        }
+
 
 
 
@@ -489,6 +520,7 @@ function flowmodoro_shortcode() {
                 reversing = false;
                 milliseconds = 0;
                 updatePauseExpected();
+                updateStatusText();
                 status.textContent = "";
                 toggleBtn.textContent = "⏹️ Arrêter";
 
@@ -506,6 +538,7 @@ function flowmodoro_shortcode() {
                     milliseconds += delta;
                     update();
                     updatePauseExpected();
+                    updateStatusText();
                 }, 50);
 
             } else if (working) {
