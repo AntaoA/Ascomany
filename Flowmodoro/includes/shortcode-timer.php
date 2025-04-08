@@ -33,7 +33,7 @@ function flowmodoro_shortcode() {
             </div>
 
             <div id="pause-expected-box" class="side-info-box" style="visibility: hidden;">
-                🕒 Pause attendue : <span id="pause-expected-time">00:00</span>
+                🕒 Pause attendue :  <span id="pause-expected-time">00:00</span>
             </div>
         </div>
 
@@ -123,10 +123,15 @@ function flowmodoro_shortcode() {
             background: #f9fbfd;
             border: 2px solid #dce6f2;
             border-radius: 20px;
-            padding: 50px 80px; /* un peu plus large */
+            padding: 50px 100px; /* plus large horizontalement */
             box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
             text-align: center;
-            min-width: 400px;
+            min-width: 500px; /* augmentation claire */
+            max-width: 600px;
+        }
+
+        #flowmodoro-timer {
+            white-space: nowrap; /* empêche le texte de sauter à la ligne */
         }
 
         #flowmodoro-timer {
