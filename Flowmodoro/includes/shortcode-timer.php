@@ -33,7 +33,7 @@ function flowmodoro_shortcode() {
             </div>
 
             <div id="pause-expected-box" class="side-info-box" style="visibility: hidden;">
-                🕒 Pause attendue : <span id="pause-expected-time">00:00</span>
+                🕒 Pause attendue :&nbsp;<span id="pause-expected-time">00:00</span>
             </div>
         </div>
 
