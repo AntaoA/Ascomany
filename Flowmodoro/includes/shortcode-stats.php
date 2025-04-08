@@ -947,17 +947,18 @@ function flowmodoro_stats_shortcode() {
         function applyFilter() {
             const range = document.getElementById("date-range-picker").value;
             const [start, end] = range.split(" - ");
-            const grouping = document.getElementById("grouping-select").value || "day";
-            const grouped = groupDataByTemporalUnit(fillMissingDates(start, end, stats.byDate), grouping);
 
             if (!start || !end || start > end) {
                 alert("Veuillez sélectionner une période valide.");
                 return;
             }
-             currentStart = new Date(start);
+            currentStart = new Date(start);
             currentEnd = new Date(end);
-              currentRange = { start, end }; // <-- stocke la période
-             const stats = getStatsBetween(start, end);
+            currentRange = { start, end }; // <-- stocke la période
+            const stats = getStatsBetween(start, end);
+            const grouping = document.getElementById("grouping-select").value || "day";
+            const grouped = groupDataByTemporalUnit(fillMissingDates(start, end, stats.byDate), grouping);
+
             renderStats(stats);
             renderChart(grouped);
             renderLineChart(grouped);
