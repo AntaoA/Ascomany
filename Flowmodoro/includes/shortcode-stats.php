@@ -325,38 +325,6 @@ function flowmodoro_stats_shortcode() {
 
 
 
-        function renderContinuationChart(data) {
-            const container = document.getElementById("stats-summary");
-            const canvas = document.createElement("canvas");
-            canvas.id = "continuation-chart";
-            canvas.height = 180;
-            canvas.style.marginTop = "20px";
-            canvas.style.background = "#fff";
-            canvas.style.border = "1px solid #ccc";
-            canvas.style.borderRadius = "6px";
-            canvas.style.padding = "10px";
-
-            container.appendChild(canvas);
-
-            new Chart(canvas.getContext("2d"), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Reprise après pause', 'Abandon après pause'],
-                    datasets: [{
-                        data: [data.continued, data.totalPauses - data.continued],
-                        backgroundColor: ['#2ecc71', '#e74c3c']
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-        }
-
 
 
         function format(ms) {
@@ -385,7 +353,6 @@ function flowmodoro_stats_shortcode() {
                     <li><strong>🔁 Taux de continuation :</strong> ${cont.percentage}% (${cont.continued} / ${cont.totalPauses} pauses)</li>
                 </ul>
             `;
-            renderContinuationChart(cont);
         }
  
         let lineChartInstance = null;
