@@ -703,7 +703,7 @@ function flowmodoro_stats_shortcode() {
                 sectionTitle.style.marginTop = "25px";
                 container.appendChild(sectionTitle);
 
-                (showAll ? section.items : section.items.slice(0, 5)).forEach(item => {
+                (showAll ? section.items : section.items.slice(0, 3)).forEach(item => {
                     const { label, value, url } = section.render(item);
                     const card = document.createElement("div");
                     card.style = cardStyle;
