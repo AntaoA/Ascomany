@@ -32,8 +32,8 @@
                  </div>
                  <input type="hidden" id="date-range-picker">
              </div>
+             <div id="selected-dates" style="margin-top: 10px; font-size: 14px; color: #333;"></div>
          </div>
- 
          <div id="stats-summary" style="margin-bottom: 40px;"></div>
  
          <canvas id="stats-chart" height="200" style="background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
@@ -520,6 +520,13 @@
              });
          });
  
+
+         function updateSelectedDatesDisplay(start, end) {
+            const el = document.getElementById("selected-dates");
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            el.textContent = `Période sélectionnée : du ${startDate.toLocaleDateString()} au ${endDate.toLocaleDateString()}`;
+        }
  
          function applyFilter(start = null, end = null) {
             if (!start || !end) {
