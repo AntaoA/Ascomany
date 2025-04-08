@@ -537,15 +537,31 @@ function flowmodoro_stats_shortcode() {
                     const month = today.getMonth();
                     const year = today.getFullYear();
 
-                    const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
-                    const isAlreadyThisMonth = currentStartDate && currentStartDate.getMonth() === month && currentStartDate.getFullYear() === year;
-
-                    if (currentPeriodType === "month" && isAlreadyThisMonth) {
-                        return;
-                    }
-
                     start = new Date(year, month, 1);
                     end = new Date(year, month + 1, 0);
+
+                    const startStr = start.toISOString().split("T")[0];
+                    const endStr = end.toISOString().split("T")[0];
+
+                    // Check si on est déjà sur ce mois pour éviter le double affichage
+                    const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
+                    const isAlreadyThisMonth = currentPeriodType === "month"
+                        && currentStartDate
+                        && currentStartDate.getFullYear() === year
+                        && currentStartDate.getMonth() === month;
+
+                    if (isAlreadyThisMonth) return;
+
+                    currentRange = { start: startStr, end: endStr };
+                    currentPeriodType = period;
+
+                    document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+                    applyFilter(startStr, endStr);
+                    updatePeriodLabel(period, startStr, endStr);
+
+                    document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+                    btn.classList.add("selected");
+                    return;
                 } else if (period === "year") {
                     const today = new Date();
                     const thisYear = today.getFullYear();
