@@ -229,50 +229,54 @@ function flowmodoro_stats_shortcode() {
         }
 
 
-        function computeConsistencyIndex(dataByDate) {
+        function computeConsistencyStreaks(dataByDate) {
             const dates = Object.keys(dataByDate).sort();
-            let maxStreak = 0;
-            let currentStreak = 0;
-
-            let longestStart = null;
-            let longestEnd = null;
+            let maxStreak = 0, currentStreak = 0;
+            let maxStart = null, maxEnd = null;
             let currentStart = null;
 
+            const today = new Date().toISOString().split("T")[0];
+            let ongoingStreak = 0, ongoingStart = null;
+
             for (let i = 0; i < dates.length; i++) {
-                const d1 = new Date(dates[i]);
-                const d2 = new Date(d1);
-                d2.setDate(d2.getDate() + 1);
+                const d = dates[i];
+                const hasWork = dataByDate[d]?.travail > 0;
 
-                const nextDate = dates[i + 1];
-
-                if (dataByDate[dates[i]]?.travail > 0) {
-                    if (currentStreak === 0) {
-                        currentStart = dates[i];
-                    }
+                if (hasWork) {
+                    if (currentStreak === 0) currentStart = d;
                     currentStreak++;
                 } else {
                     currentStreak = 0;
                     currentStart = null;
                 }
 
-                const isEndOfStreak = !nextDate || new Date(nextDate).getTime() !== d2.getTime();
-
-                if (isEndOfStreak && currentStreak > maxStreak) {
+                // maj max streak
+                if (currentStreak > maxStreak) {
                     maxStreak = currentStreak;
-                    longestStart = currentStart;
-                    longestEnd = dates[i];
+                    maxStart = currentStart;
+                    maxEnd = d;
                 }
+            }
 
-                if (isEndOfStreak) {
-                    currentStreak = 0;
-                    currentStart = null;
+            // Streak en cours : on part d’aujourd’hui et on remonte
+            let cursor = new Date(today);
+            ongoingStreak = 0;
+            ongoingStart = null;
+
+            while (true) {
+                const iso = cursor.toISOString().split("T")[0];
+                if (dataByDate[iso]?.travail > 0) {
+                    ongoingStreak++;
+                    ongoingStart = iso;
+                    cursor.setDate(cursor.getDate() - 1);
+                } else {
+                    break;
                 }
             }
 
             return {
-                streak: maxStreak,
-                start: longestStart,
-                end: longestEnd
+                max: { streak: maxStreak, start: maxStart, end: maxEnd },
+                current: { streak: ongoingStreak, start: ongoingStart }
             };
         }
 
@@ -287,7 +291,7 @@ function flowmodoro_stats_shortcode() {
  
         function renderStats(stats) {
             const el = document.getElementById("stats-summary");
-            const consistency = computeConsistencyIndex(stats.byDate);
+            const streaks = computeConsistencyStreaks(stats.byDate);
             el.innerHTML = `
                 <ul style="list-style: none; padding: 0; font-size: 16px;">
                     <li><strong>Total travail :</strong> ${format(stats.work)}</li>
@@ -295,9 +299,8 @@ function flowmodoro_stats_shortcode() {
                     <li><strong>Pause réelle cumulée :</strong> ${format(stats.pauseReal)}</li>
                     <li><strong>Nombre de sessions :</strong> ${stats.sessionCount}</li>
                     <li><strong>Jours actifs :</strong> ${stats.daysActive}</li>
-                    <li><strong>Indice de constance :</strong> ${consistency.streak} jour(s)</li>
-                    ${consistency.streak > 0 ? `<li><strong>Période :</strong> ${consistency.start} → ${consistency.end}</li>` : ''}
-                    <li><strong>Durée moyenne par session :</strong> ${format(stats.work / Math.max(stats.sessionCount, 1))}</li>
+                    <li><strong>🔥 Streak en cours :</strong> ${streaks.current.streak} jour(s) ${streaks.current.streak > 0 ? `depuis ${streaks.current.start}` : ''}</li>
+                    <li><strong>🏅 Streak maximum :</strong> ${streaks.max.streak} jour(s) ${streaks.max.streak > 0 ? `(${streaks.max.start} → ${streaks.max.end})` : ''}</li>                    <li><strong>Durée moyenne par session :</strong> ${format(stats.work / Math.max(stats.sessionCount, 1))}</li>
                     <li><strong>Première entrée :</strong> ${stats.first ? new Date(stats.first).toLocaleString() : "—"}</li>
                     <li><strong>Dernière entrée :</strong> ${stats.last ? new Date(stats.last).toLocaleString() : "—"}</li>
                 </ul>
