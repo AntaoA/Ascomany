@@ -664,46 +664,29 @@ function flowmodoro_stats_shortcode() {
         }
 
         function shiftDateRange(amount, unit) {
-            const start = cloneDate(new Date(currentRange.start));
-            const end = cloneDate(new Date(currentRange.end));
+            const start = new Date(currentRange.start);
+            const end = new Date(currentRange.end);
 
-            let newStart, newEnd;
-
-            if (unit === "manual") {
-                const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
-                newStart = new Date(start);
-                newEnd = new Date(end);
-                newStart.setDate(newStart.getDate() + days * amount);
-                newEnd.setDate(newEnd.getDate() + days * amount);
-            } else if (unit === "week") {
-                newStart = new Date(start);
-                newEnd = new Date(end);
-                newStart.setDate(newStart.getDate() + 7 * amount);
-                newEnd.setDate(newEnd.getDate() + 7 * amount);
+            if (unit === "week") {
+                start.setDate(start.getDate() + amount * 7);
+                end.setDate(end.getDate() + amount * 7);
             } else if (unit === "month") {
-                const base = new Date(start.getFullYear(), start.getMonth() + amount, 1);
-                newStart = new Date(base.getFullYear(), base.getMonth(), 1);
-                newEnd = new Date(base.getFullYear(), base.getMonth() + 1, 0); // dernier jour du mois
+                start.setMonth(start.getMonth() + amount);
+                end.setMonth(end.getMonth() + amount);
             } else if (unit === "year") {
-                const year = start.getFullYear() + amount;
-                newStart = new Date(year, 0, 1);
-                newEnd = new Date(year, 11, 31);
+                start.setFullYear(start.getFullYear() + amount);
+                end.setFullYear(end.getFullYear() + amount);
+            } else {
+                start.setDate(start.getDate() + amount);
+                end.setDate(end.getDate() + amount);
             }
 
-            const startStr = newStart.toISOString().split("T")[0];
-            const endStr = newEnd.toISOString().split("T")[0];
+            const startStr = start.toISOString().split("T")[0];
+            const endStr = end.toISOString().split("T")[0];
 
             currentRange = { start: startStr, end: endStr };
-
             document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
             applyFilter(startStr, endStr);
-            updatePeriodLabel(currentPeriodType, startStr, endStr);
-
-            if (unit === "manual") {
-                currentPeriodType = "manual";
-                document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
-                document.getElementById("manual-picker-btn").classList.add("selected");
-            }
         }
 
 
