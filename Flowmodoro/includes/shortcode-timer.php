@@ -27,9 +27,9 @@ function flowmodoro_shortcode() {
             <div id="flowmodoro-total" style="margin-top: 10px; font-weight: bold;"></div>
         </div>
 
-        <div id="flowmodoro-history-buttons" style="position: absolute; top: 120px; right: 40px; text-align: left;">
-            <button id="show-history" style="margin-top: 20px; font-size: 18px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer;">📜 Voir l’historique</button><br>
-            <button id="show-stats" style="margin-top: 10px; font-size: 18px; padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 6px; cursor: pointer;">📊 Voir les statistiques</button>
+        <div id="flowmodoro-history-buttons" style="position: absolute; top: 120px; right: 40px; text-align: left; width: 200px;">
+            <button id="show-history" class="flowmodoro-main-btn" style="margin-top: 20px;">📜 Voir l’historique</button><br>
+            <button id="show-stats" class="flowmodoro-main-btn" style="margin-top: 10px;">📊 Voir les statistiques</button>
         </div>
     </div>
 
@@ -198,8 +198,20 @@ function flowmodoro_shortcode() {
             background: #2980b9;
         }
 
-        #show-history:hover,
-        #show-stats:hover {
+        .flowmodoro-main-btn {
+            font-size: 18px;
+            padding: 10px 20px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            box-sizing: border-box;
+            transition: background 0.2s ease;
+        }
+
+        .flowmodoro-main-btn:hover {
             background: #2980b9;
         }
 
