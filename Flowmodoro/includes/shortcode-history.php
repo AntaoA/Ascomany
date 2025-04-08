@@ -667,6 +667,13 @@ document.addEventListener('DOMContentLoaded', function () {
                     Pause : ${formatTime(pause)}<br>
                     Phases : ${session.length}
                 `;
+                sessionDetail.innerHTML += `
+                    <div style="margin-top: 10px;">
+                        <a href="/historique?focus=session:${session[0].timestamp}" class="view-session-btn">
+                            👁 Voir la session complète
+                        </a>
+                    </div>
+                `;
                 sessionDetail.style.display = "block";
             });
 
@@ -909,44 +916,48 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 
+    // Auto-focus à l'ouverture via URL (focus=...)
     const focusParam = new URLSearchParams(window.location.search).get("focus");
-        if (focusParam) {
-            const [level, target] = focusParam.split(":");
 
-            const tryFocus = () => {
-                const blocks = document.querySelectorAll(".session-block");
-                for (const block of blocks) {
-                    const header = block.querySelector("h5, h4");
-                    const label = header?.textContent || "";
+    if (focusParam) {
+        const [level, target] = focusParam.split(":");
 
-                    if (
-                        (level === "day" && label && new Date(label).toLocaleDateString('fr-CA') === target)
-                        (level === "month" && label.toLowerCase().includes(target.toLowerCase())) ||
-                        (level === "year" && label.includes(target)) ||
-                        (level === "session" && block.innerHTML.includes(target)) // un peu plus vague
-                    ) {
-                        block.scrollIntoView({ behavior: "smooth", block: "center" });
-                        block.click();
-                        break;
-                    }
-                }
-            };
-
-            // Si pas encore affiché, on attend un peu que render() ait fini
-            setTimeout(() => {
-                const opt = document.querySelector(`#grouping-options li[data-mode="${level}"]`);
-                if (opt) {
-                    opt.click();
-                    setTimeout(() => {
-                        // attends que les blocs soient générés
-                        tryFocus();
-                    }, 500);
-                } else {
-                    tryFocus();
-                }
-            }, 100);
-
+        if (level === "session") {
+            const ts = parseInt(target);
+            const sessions = groupSessions(allHistory);
+            const session = sessions.find(s => s.some(e => e.timestamp === ts));
+            if (session) {
+                renderSingleSession(session);
+                setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 200);
+            }
+            return;
         }
+
+        const normalized = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const switchToLevel = (mode) => {
+            const li = document.querySelector(`#grouping-options li[data-mode="${mode}"]`);
+            if (li) li.click();
+        };
+
+        const tryOpenBlock = () => {
+            const blocks = document.querySelectorAll(".session-block");
+            for (const block of blocks) {
+                const h = block.querySelector("h5, h4");
+                if (!h) continue;
+                const txt = normalized(h.textContent);
+                if (txt.includes(normalized(target))) {
+                    block.scrollIntoView({ behavior: "smooth", block: "center" });
+                    block.click();
+                    break;
+                }
+            }
+        };
+
+        // switch à la bonne vue (jour, mois, etc.)
+        switchToLevel(level);
+        setTimeout(tryOpenBlock, 500);
+    }
+
 
 
 
