@@ -568,7 +568,7 @@ function flowmodoro_stats_shortcode() {
             });
 
             // Convertir en minutes
-            const minutes = hours.map(ms => Math.round(ms / 60000));
+            const minutes = hours.map(ms => parseFloat((ms / 60000).toFixed(2)));
  
             const ctx = document.getElementById("hour-chart").getContext("2d");
             if (hourChartInstance) hourChartInstance.destroy();
