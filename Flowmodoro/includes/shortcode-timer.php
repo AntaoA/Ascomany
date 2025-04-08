@@ -10,11 +10,13 @@ function flowmodoro_shortcode() {
     <div id="flowmodoro-container" style="text-align: center; padding: 40px;">
         <h2>Flowmodoro</h2>
         <div id="flowmodoro-status" style="font-size: 24px; color: #888; margin-bottom: 10px;"></div>
-        <div id="flowmodoro-timer-wrapper">
-            <div id="flowmodoro-timer">00:00:00</div>
-        </div>
-        <div id="pause-expected-box" class="info-box">
-            Temps de pause attendu : <span id="pause-expected-time">00:00</span>
+        <div id="flowmodoro-timer-row">
+            <div id="flowmodoro-timer-wrapper">
+                <div id="flowmodoro-timer">00:00:00</div>
+            </div>
+            <div id="pause-expected-box" class="info-box" style="display: none;">
+                Temps de pause attendu : <span id="pause-expected-time">00:00</span>
+            </div>
         </div>
         <div class="flowmodoro-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
             <button id="flowmodoro-toggle" class="flowmodoro-main-btn">▶️ Démarrer</button>
@@ -228,14 +230,22 @@ function flowmodoro_shortcode() {
             gap: 10px;
         }
 
-        #flowmodoro-timer-wrapper {
-            max-width: 400px;
+        #flowmodoro-timer-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
             margin: 30px auto;
+        }
+
+        #flowmodoro-timer-wrapper {
             background: #f9fbfd;
             border: 2px solid #dce6f2;
             border-radius: 16px;
             padding: 30px 20px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            min-width: 280px;
         }
 
         #flowmodoro-timer {
@@ -269,14 +279,13 @@ function flowmodoro_shortcode() {
         }
 
         .info-box {
-            margin-top: 10px;
             font-size: 16px;
             color: #555;
-            background: #eef6fb;
-            border: 1px solid #cce3f4;
+            background: #f9fbfb;
+            border: 1px solid #dce6f2;
             padding: 10px 15px;
             border-radius: 8px;
-            display: inline-block;
+            white-space: nowrap;
         }
 
 
@@ -414,12 +423,21 @@ function flowmodoro_shortcode() {
         }
 
         function updatePauseExpected() {
-            const pauseMs = Math.floor(milliseconds / pauseFactor);
-            const min = Math.floor(pauseMs / 60000);
-            const sec = Math.floor((pauseMs % 60000) / 1000);
-            document.getElementById("pause-expected-time").textContent =
-                `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+            const pauseBox = document.getElementById("pause-expected-box");
+
+            // Afficher uniquement si travail en cours
+            if (working && !reversing) {
+                const pauseMs = Math.floor(milliseconds / pauseFactor);
+                const min = Math.floor(pauseMs / 60000);
+                const sec = Math.floor((pauseMs % 60000) / 1000);
+                document.getElementById("pause-expected-time").textContent =
+                    `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+                pauseBox.style.display = "inline-block";
+            } else {
+                pauseBox.style.display = "none";
+            }
         }
+
 
         function renderLiveEntry() {
             clearInterval(liveEntryInterval);
