@@ -644,39 +644,92 @@ function flowmodoro_stats_shortcode() {
             container.innerHTML = "";
 
             const formatDuration = d => (d / 60000).toFixed(2) + " min";
+            const formatDate = ts => new Date(ts).toLocaleString('fr-FR', {
+                weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            });
+
+            const cardStyle = `
+                background: #fff;
+                border: 1px solid #ccc;
+                border-radius: 10px;
+                padding: 12px 18px;
+                margin-bottom: 12px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+            `;
 
             const sections = [
                 {
-                    title: "Top phases de travail",
+                    title: "🧱 Phases les plus longues",
                     items: rankings.byPhase,
-                    render: e => `${new Date(e.timestamp).toLocaleString()} — ${formatDuration(e.duration)}`
+                    render: e => ({
+                        label: `${formatDate(e.timestamp)}`,
+                        value: formatDuration(e.duration),
+                        url: `/historique?session=${encodeURIComponent(JSON.stringify([e]))}`
+                    })
                 },
                 {
-                    title: "Top sessions",
+                    title: "📚 Sessions les plus longues",
                     items: rankings.sessionDurations,
-                    render: s => `${new Date(s.start).toLocaleString()} — ${formatDuration(s.duration)}`
+                    render: s => ({
+                        label: `${formatDate(s.start)} → ${formatDate(s.end)}`,
+                        value: formatDuration(s.duration),
+                        url: `/historique?session=${encodeURIComponent(JSON.stringify([{ timestamp: s.start }]))}`
+                    })
                 },
                 {
-                    title: "Top journées",
+                    title: "📅 Journées les plus productives",
                     items: rankings.topDays,
-                    render: d => `${d.date} — ${formatDuration(d.duration)}`
+                    render: d => ({
+                        label: d.date,
+                        value: formatDuration(d.duration),
+                        url: `/historique?session=${encodeURIComponent(JSON.stringify([{ timestamp: new Date(d.date).getTime() }]))}`
+                    })
                 }
             ];
 
             sections.forEach(section => {
-                const div = document.createElement("div");
-                div.innerHTML = `<h4 style="margin-top: 20px;">${section.title}</h4>`;
-                const ul = document.createElement("ul");
-                ul.style.paddingLeft = "20px";
+                const sectionTitle = document.createElement("h4");
+                sectionTitle.textContent = section.title;
+                sectionTitle.style.marginTop = "25px";
+                container.appendChild(sectionTitle);
+
                 (showAll ? section.items : section.items.slice(0, 5)).forEach(item => {
-                    const li = document.createElement("li");
-                    li.textContent = section.render(item);
-                    ul.appendChild(li);
+                    const { label, value, url } = section.render(item);
+                    const card = document.createElement("div");
+                    card.style = cardStyle;
+
+                    const left = document.createElement("div");
+                    left.innerHTML = `<strong>${label}</strong><br><small>${value}</small>`;
+
+                    const right = document.createElement("div");
+                    const btn = document.createElement("a");
+                    btn.href = url;
+                    btn.textContent = "👁 Voir";
+                    btn.style = `
+                        font-size: 14px;
+                        padding: 6px 10px;
+                        background: #f0f0f0;
+                        border-radius: 6px;
+                        text-decoration: none;
+                        color: #111;
+                        border: 1px solid #ccc;
+                    `;
+                    btn.onmouseover = () => btn.style.background = "#ddd";
+                    btn.onmouseout = () => btn.style.background = "#f0f0f0";
+
+                    right.appendChild(btn);
+                    card.appendChild(left);
+                    card.appendChild(right);
+                    container.appendChild(card);
                 });
-                div.appendChild(ul);
-                container.appendChild(div);
             });
         }
+
 
  
  
