@@ -610,16 +610,22 @@ function flowmodoro_stats_shortcode() {
             const label = document.getElementById("period-label");
             if (!label) return;
 
+            console.log("updatePeriodLabel →", { period, start, end });
+
             if (period === "full") {
                 label.textContent = "Depuis le début";
             } else if (period === "week") {
                 const weekStart = new Date(start);
                 const weekNumber = getWeekNumber(weekStart);
+                console.log("Week number:", weekNumber);
                 label.textContent = `Semaine ${weekNumber} (${start} → ${end})`;
             } else if (period === "month") {
                 const monthStart = new Date(start);
+                console.log("Month date used:", monthStart.toISOString());
+                console.log("Month start.getMonth():", monthStart.getMonth());
                 const monthName = monthStart.toLocaleString('fr-FR', { month: 'long' });
                 const year = monthStart.getFullYear();
+                console.log("Resolved label:", `Mois de ${monthName} ${year}`);
                 label.textContent = `Mois de ${monthName} ${year}`;
             } else if (period === "year") {
                 const year = start.split("-")[0];
@@ -628,6 +634,7 @@ function flowmodoro_stats_shortcode() {
                 label.textContent = `${start} → ${end}`;
             }
         }
+
 
 
 
@@ -687,6 +694,23 @@ function flowmodoro_stats_shortcode() {
             currentRange = { start: startStr, end: endStr };
             document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
             applyFilter(startStr, endStr);
+            console.log("shiftDateRange →", {
+                unit,
+                startStr,
+                endStr,
+                startMonth: new Date(startStr).getMonth(),
+                startISO: new Date(startStr).toISOString()
+            });
+
+            // ✅ correction ici : forcer mise à jour avec bon `period`
+            updatePeriodLabel(unit, startStr, endStr);
+
+            if (unit === "manual") {
+                currentPeriodType = "manual";
+                document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+                document.getElementById("manual-picker-btn").classList.add("selected");
+            }
+
         }
 
 
