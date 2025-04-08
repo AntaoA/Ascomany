@@ -508,15 +508,24 @@ function flowmodoro_stats_shortcode() {
                     }
                 }
  
- 
                 if (start && end) {
                     const startStr = typeof start === "string" ? start : start.toISOString().split("T")[0];
                     const endStr = typeof end === "string" ? end : end.toISOString().split("T")[0];
+
+                    console.log(">>> Bouton cliqué :", period);
+                    console.log("Start (raw):", start);
+                    console.log("End (raw):", end);
+                    console.log("StartStr:", startStr);
+                    console.log("EndStr:", endStr);
+
                     document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-                    applyFilter(startStr, endStr); // <-- PASSER LES DATES ICI !
+                    console.log("Date picker value mis à jour :", document.getElementById("date-range-picker").value);
+
+                    applyFilter(startStr, endStr);
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
                 }
+
 
             });
         });
@@ -534,6 +543,8 @@ function flowmodoro_stats_shortcode() {
                 const range = document.getElementById("date-range-picker").value;
                 [start, end] = range.split(" - ");
             }
+
+            console.log(">>> applyFilter appelé avec :", start, end);
 
             if (!start || !end || start > end) {
                 alert("Veuillez sélectionner une période valide.");
