@@ -538,7 +538,10 @@ function flowmodoro_stats_shortcode() {
                     const month = today.getMonth(); // 0-indexed
 
                     start = new Date(year, month, 1);
+                    console.log("start ici", start);
                     end = new Date(year, month + 1, 0);
+                    console.log("end ici", end);
+                    console.log("currentRange ici", currentRange);
 
                     const startStr = start.toISOString().split("T")[0];
                     const endStr = end.toISOString().split("T")[0];
