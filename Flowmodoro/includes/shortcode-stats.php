@@ -533,36 +533,36 @@ function flowmodoro_stats_shortcode() {
                         return; // déjà sur cette semaine
                     }
                 } else if (period === "month") {
-                    const today = new Date();
-                    const month = today.getMonth();
-                    const year = today.getFullYear();
+                        const today = new Date();
+                        const year = today.getFullYear();
+                        const month = today.getMonth(); // 0-indexed
 
-                    start = new Date(year, month, 1);
-                    end = new Date(year, month + 1, 0);
+                        const start = new Date(year, month, 1);
+                        const end = new Date(year, month + 1, 0);
 
-                    const startStr = start.toISOString().split("T")[0];
-                    const endStr = end.toISOString().split("T")[0];
+                        const startStr = start.toISOString().split("T")[0];
+                        const endStr = end.toISOString().split("T")[0];
 
-                    // Check si on est déjà sur ce mois pour éviter le double affichage
-                    const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
-                    const isAlreadyThisMonth = currentPeriodType === "month"
-                        && currentStartDate
-                        && currentStartDate.getFullYear() === year
-                        && currentStartDate.getMonth() === month;
+                        const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
+                        const isAlreadyThisMonth =
+                            currentPeriodType === "month" &&
+                            currentStartDate &&
+                            currentStartDate.getFullYear() === year &&
+                            currentStartDate.getMonth() === month;
 
-                    if (isAlreadyThisMonth) return;
+                        if (isAlreadyThisMonth) return;
 
-                    currentRange = { start: startStr, end: endStr };
-                    currentPeriodType = period;
+                        currentRange = { start: startStr, end: endStr };
+                        currentPeriodType = period;
 
-                    document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-                    applyFilter(startStr, endStr);
-                    updatePeriodLabel(period, startStr, endStr);
+                        document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+                        applyFilter(startStr, endStr);
+                        updatePeriodLabel(period, startStr, endStr);
 
-                    document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
-                    btn.classList.add("selected");
-                    return;
-                } else if (period === "year") {
+                        document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+                        btn.classList.add("selected");
+                        return;
+                    } else if (period === "year") {
                     const today = new Date();
                     const thisYear = today.getFullYear();
 
@@ -622,7 +622,6 @@ function flowmodoro_stats_shortcode() {
 
 
         function updatePeriodLabel(period = currentPeriodType, start = currentRange.start, end = currentRange.end) {
-            currentPeriodType = period;
             const label = document.getElementById("period-label");
             if (!label) return;
 
@@ -722,8 +721,9 @@ function flowmodoro_stats_shortcode() {
                 startISO: new Date(startStr).toISOString()
             });
 
-            // ✅ correction ici : forcer mise à jour avec bon `period`
+            currentPeriodType = unit;
             updatePeriodLabel(unit, startStr, endStr);
+
 
             if (unit === "manual") {
                 currentPeriodType = "manual";
