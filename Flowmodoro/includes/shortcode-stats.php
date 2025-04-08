@@ -674,7 +674,6 @@ function flowmodoro_stats_shortcode() {
                 start.setMonth(start.getMonth() + amount);
                 end.setTime(start.getTime());
                 end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
-            }
             } else if (unit === "year") {
                 start.setFullYear(start.getFullYear() + amount);
                 end.setFullYear(end.getFullYear() + amount);
