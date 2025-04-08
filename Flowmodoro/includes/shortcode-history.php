@@ -924,38 +924,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (level === "session") {
             const ts = parseInt(target);
-            const sessions = groupSessions(allHistory);
-            const session = sessions.find(s => s.some(e => e.timestamp === ts));
-            if (session) {
-                renderSingleSession(session);
-                setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 200);
-            }
-            return;
-        }
 
-        const normalized = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-        const switchToLevel = (mode) => {
-            const li = document.querySelector(`#grouping-options li[data-mode="${mode}"]`);
+            // 1. Bascule en regroupement "Session"
+            const li = document.querySelector(`#grouping-options li[data-mode="session"]`);
             if (li) li.click();
-        };
 
-        const tryOpenBlock = () => {
-            const blocks = document.querySelectorAll(".session-block");
-            for (const block of blocks) {
-                const h = block.querySelector("h5, h4");
-                if (!h) continue;
-                const txt = normalized(h.textContent);
-                if (txt.includes(normalized(target))) {
-                    block.scrollIntoView({ behavior: "smooth", block: "center" });
-                    block.click();
-                    break;
+            // 2. Une fois rendu, simule un clic sur la bonne session
+            setTimeout(() => {
+                const blocks = document.querySelectorAll(".session-block");
+                for (const block of blocks) {
+                    const btn = block.querySelector(".delete-session-btn");
+                    if (!btn) continue;
+
+                    const blockTs = parseInt(btn.dataset.ts);
+                    if (blockTs === ts) {
+                        block.scrollIntoView({ behavior: "smooth", block: "center" });
+                        block.click(); // déplie
+                        break;
+                    }
                 }
-            }
-        };
-
-        // switch à la bonne vue (jour, mois, etc.)
-        switchToLevel(level);
-        setTimeout(tryOpenBlock, 500);
+            }, 500);
+        }
     }
 
 
