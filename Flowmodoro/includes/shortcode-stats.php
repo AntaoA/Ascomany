@@ -520,8 +520,9 @@ function flowmodoro_stats_shortcode() {
                     end = new Date(start);
                     end.setDate(end.getDate() + 6);
                 } else if (period === "month") {
-                    start = new Date(now.getFullYear(), now.getMonth(), 1);
-                    end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+                    start = new Date(currentRange.start || now);
+                    start = new Date(start.getFullYear(), start.getMonth(), 1);
+                    end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
                 } else if (period === "year") {
                     start = new Date(now.getFullYear(), 0, 1);
                     end = new Date(now.getFullYear(), 11, 31);
@@ -655,8 +656,10 @@ function flowmodoro_stats_shortcode() {
             endStr = end.toISOString().split("T")[0];
             currentRange = { start: startStr, end: endStr };
 
-            applyFilter(startStr, endStr);
+            document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+            applyFilter();
             updatePeriodLabel(currentPeriodType, startStr, endStr);
+
 
             if (unit === "manual") {
                 currentPeriodType = "manual";
