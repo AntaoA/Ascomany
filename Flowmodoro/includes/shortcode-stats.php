@@ -440,10 +440,12 @@ function flowmodoro_stats_shortcode() {
                         x: {
                             type: 'category',
                             ticks: {
-                                autoSkip: false, // ✅ force une colonne par jour
-                                maxRotation: 90,
-                                minRotation: 45
+                                autoSkip: true,
+                                maxTicksLimit: 31,
+                                maxRotation: 45,
+                                minRotation: 0
                             }
+
                         },
                         y: {
                             beginAtZero: true,
@@ -665,8 +667,14 @@ function flowmodoro_stats_shortcode() {
                     const startStr = start;
                     const endStr = end;
                     document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+
+                    // 👇 force groupement par jour
+                    document.getElementById("grouping-select").value = "day";
+
                     applyFilter(startStr, endStr);
-                    updatePeriodLabel("full", startStr, endStr); // 👈 ajout
+                    updatePeriodLabel("full", startStr, endStr);
+                    updateGroupingVisibility(); // 👈 important ici aussi
+
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
                 } else if (period === "week") {
