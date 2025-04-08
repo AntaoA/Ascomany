@@ -649,6 +649,11 @@ function flowmodoro_stats_shortcode() {
                 hour: '2-digit', minute: '2-digit'
             });
 
+            const getDateStr = (ts) => {
+                const d = new Date(ts);
+                return d.toLocaleDateString('fr-CA'); // YYYY-MM-DD
+            };
+
             const cardStyle = `
                 background: #fff;
                 border: 1px solid #ccc;
@@ -669,7 +674,7 @@ function flowmodoro_stats_shortcode() {
                     render: e => ({
                         label: `${formatDate(e.timestamp)}`,
                         value: formatDuration(e.duration),
-                        url: `/historique?session=${encodeURIComponent(JSON.stringify([e]))}`
+                        url: `/historique?focus=phase:${e.timestamp}`
                     })
                 },
                 {
@@ -678,7 +683,7 @@ function flowmodoro_stats_shortcode() {
                     render: s => ({
                         label: `${formatDate(s.start)} → ${formatDate(s.end)}`,
                         value: formatDuration(s.duration),
-                        url: `/historique?session=${encodeURIComponent(JSON.stringify([{ timestamp: s.start }]))}`
+                        url: `/historique?focus=session:${s.start}`
                     })
                 },
                 {
@@ -687,7 +692,7 @@ function flowmodoro_stats_shortcode() {
                     render: d => ({
                         label: d.date,
                         value: formatDuration(d.duration),
-                        url: `/historique?session=${encodeURIComponent(JSON.stringify([{ timestamp: new Date(d.date).getTime() }]))}`
+                        url: `/historique?focus=day:${d.date}`
                     })
                 }
             ];
@@ -729,6 +734,7 @@ function flowmodoro_stats_shortcode() {
                 });
             });
         }
+
 
 
  

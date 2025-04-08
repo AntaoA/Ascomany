@@ -907,6 +907,38 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 
+    const focusParam = new URLSearchParams(window.location.search).get("focus");
+        if (focusParam) {
+            const [level, target] = focusParam.split(":");
+
+            const tryFocus = () => {
+                const blocks = document.querySelectorAll(".session-block");
+                for (const block of blocks) {
+                    const header = block.querySelector("h5, h4");
+                    const label = header?.textContent || "";
+
+                    if (
+                        (level === "day" && label.includes(target)) ||
+                        (level === "month" && label.toLowerCase().includes(target.toLowerCase())) ||
+                        (level === "year" && label.includes(target)) ||
+                        (level === "session" && block.innerHTML.includes(target)) // un peu plus vague
+                    ) {
+                        block.scrollIntoView({ behavior: "smooth", block: "center" });
+                        block.click();
+                        break;
+                    }
+                }
+            };
+
+            // Si pas encore affiché, on attend un peu que render() ait fini
+            setTimeout(() => {
+                document.querySelector(`#grouping-options li[data-mode="${level}"]`)?.click();
+                setTimeout(tryFocus, 400); // déplier après render
+            }, 100);
+        }
+
+
+
 }); // fin du IIFE
 </script>
 <?php
