@@ -506,8 +506,11 @@ function flowmodoro_stats_shortcode() {
 
                 if (period === "full") {
                     [start, end] = getMinMaxDates(rawEntries);
-                    document.getElementById("date-range-picker").value = `${start} - ${end}`;
-                    applyFilter(start, end);
+                    const startStr = start;
+                    const endStr = end;
+                    document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+                    applyFilter(startStr, endStr);
+                    updatePeriodLabel("full", startStr, endStr); // 👈 ajout
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
                 } else if (period === "week") {
@@ -580,7 +583,10 @@ function flowmodoro_stats_shortcode() {
             } else if (period === "month") {
                 const [year, month] = start.split("-");
                 const date = new Date(year, parseInt(month, 10) - 1, 1);
-                label.textContent = date.toLocaleString("fr-FR", { month: "long", year: "numeric" });
+                label.textContent = date.toLocaleDateString("fr-FR", {
+                    month: "long",
+                    year: "numeric"
+                });
             } else if (period === "year") {
                 const year = start.split("-")[0];
                 label.textContent = `Année ${year}`;
@@ -627,7 +633,13 @@ function flowmodoro_stats_shortcode() {
             const start = new Date(currentRange.start);
             const end = new Date(currentRange.end);
 
-            if (unit === "week") {
+            let startStr, endStr;
+
+            if (unit === "manual") {
+                const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                start.setDate(start.getDate() + days * amount);
+                end.setDate(end.getDate() + days * amount);
+            } else if (unit === "week") {
                 start.setDate(start.getDate() + 7 * amount);
                 end.setDate(end.getDate() + 7 * amount);
             } else if (unit === "month") {
@@ -636,13 +648,22 @@ function flowmodoro_stats_shortcode() {
             } else if (unit === "year") {
                 start.setFullYear(start.getFullYear() + amount);
                 end.setFullYear(end.getFullYear() + amount);
-            } else return;
+            }
 
-            const startStr = start.toISOString().split("T")[0];
-            const endStr = end.toISOString().split("T")[0];
-            document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-            applyFilter();
+            startStr = start.toISOString().split("T")[0];
+            endStr = end.toISOString().split("T")[0];
+            currentRange = { start: startStr, end: endStr };
+
+            applyFilter(startStr, endStr);
+            updatePeriodLabel(currentPeriodType, startStr, endStr);
+
+            if (unit === "manual") {
+                currentPeriodType = "manuel";
+                document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+                document.getElementById("manual-picker-btn").classList.add("selected");
+            }
         }
+
 
 
 
@@ -656,6 +677,17 @@ function flowmodoro_stats_shortcode() {
             if (["week", "month", "year"].includes(currentPeriodType)) {
                 shiftDateRange(1, currentPeriodType);
             }
+        });
+
+
+        document.getElementById("prev-period").addEventListener("click", () => {
+            const type = ["week", "month", "year"].includes(currentPeriodType) ? currentPeriodType : "manual";
+            shiftDateRange(-1, type);
+        });
+
+        document.getElementById("next-period").addEventListener("click", () => {
+            const type = ["week", "month", "year"].includes(currentPeriodType) ? currentPeriodType : "manual";
+            shiftDateRange(1, type);
         });
 
 
@@ -677,33 +709,7 @@ function flowmodoro_stats_shortcode() {
     });
 
 
-    document.getElementById("prev-period").addEventListener("click", () => {
-        if (!currentStart || !currentEnd) return;
-        const days = Math.ceil((currentEnd - currentStart) / (1000 * 60 * 60 * 24)) + 1;
-        const newStart = new Date(currentStart);
-        newStart.setDate(newStart.getDate() - days);
-        const newEnd = new Date(currentEnd);
-        newEnd.setDate(newEnd.getDate() - days);
 
-        const startStr = newStart.toISOString().split("T")[0];
-        const endStr = newEnd.toISOString().split("T")[0];
-        document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-        applyFilter(startStr, endStr);
-    });
-
-    document.getElementById("next-period").addEventListener("click", () => {
-        if (!currentStart || !currentEnd) return;
-        const days = Math.ceil((currentEnd - currentStart) / (1000 * 60 * 60 * 24)) + 1;
-        const newStart = new Date(currentStart);
-        newStart.setDate(newStart.getDate() + days);
-        const newEnd = new Date(currentEnd);
-        newEnd.setDate(newEnd.getDate() + days);
-
-        const startStr = newStart.toISOString().split("T")[0];
-        const endStr = newEnd.toISOString().split("T")[0];
-        document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-        applyFilter(startStr, endStr);
-    });
 
     
     </script>
