@@ -617,12 +617,9 @@ function flowmodoro_stats_shortcode() {
                 const weekNumber = getWeekNumber(weekStart);
                 label.textContent = `Semaine ${weekNumber} (${start} → ${end})`;
             } else if (period === "month") {
-                const [year, month, day] = start.split("-").map(Number);
-                const date = new Date(year, month - 1, day);  // Mois JS = 0 pour janvier
-                label.textContent = date.toLocaleDateString("fr-FR", {
-                    month: "long",
-                    year: "numeric"
-                });
+                const monthStart = new Date(start);
+                const monthName = monthStart.toLocaleString('fr-FR', { month: 'long' });
+                label.textContent = `Mois de ${monthName} ${monthStart.getFullYear()}`;
             } else if (period === "year") {
                 const year = start.split("-")[0];
                 label.textContent = `Année ${year}`;
@@ -679,8 +676,8 @@ function flowmodoro_stats_shortcode() {
                 start.setDate(start.getDate() + 7 * amount);
                 end.setDate(end.getDate() + 7 * amount);
             } else if (unit === "month") {
-                start = new Date(start.getFullYear(), start.getMonth() + amount, 1);
-                end = new Date(start.getFullYear(), start.getMonth() + 1, 0);
+                start.setMonth(start.getMonth() + amount);
+                end.setMonth(end.getMonth() + amount);
             } else if (unit === "year") {
                 start.setFullYear(start.getFullYear() + amount);
                 end.setFullYear(end.getFullYear() + amount);
