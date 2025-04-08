@@ -112,20 +112,21 @@ function flowmodoro_shortcode() {
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 60px; /* était à 40px */
-            margin: 60px auto;  /* un peu plus d'espace vertical */
-            max-width: 1200px;  /* élargissement de la zone */
+            gap: 80px; /* plus d’espace entre les blocs */
+            margin: 60px auto;
+            max-width: 1400px; /* plus large */
             position: relative;
+            flex-wrap: nowrap; /* important pour forcer tout sur une ligne */
         }
 
         #flowmodoro-timer-wrapper {
             background: #f9fbfd;
             border: 2px solid #dce6f2;
             border-radius: 20px;
-            padding: 50px 60px; /* plus d'air */
+            padding: 50px 80px; /* un peu plus large */
             box-shadow: 0 4px 25px rgba(0, 0, 0, 0.06);
             text-align: center;
-            min-width: 360px;
+            min-width: 400px;
         }
 
         #flowmodoro-timer {
@@ -140,10 +141,10 @@ function flowmodoro_shortcode() {
             background: #f0f4fa;
             border: 1px solid #dce6f2;
             border-radius: 14px;
-            padding: 25px 28px;
+            padding: 20px 20px;
             min-width: 260px;
             max-width: 260px;
-            font-size: 18px;
+            font-size: 17px;
             color: #333;
             text-align: center;
             min-height: 110px;
