@@ -9,7 +9,6 @@ function flowmodoro_shortcode() {
     ?>
     <div id="flowmodoro-container" style="text-align: center; padding: 40px;">
         <h2>Flowmodoro</h2>
-        <div id="flowmodoro-status" style="font-size: 24px; color: #888; margin-bottom: 10px;"></div>
         <div id="flowmodoro-layout-wrapper">
             <div id="flowmodoro-left-text" class="side-info-box">
                 Lancez-vous dans une session de travail
@@ -521,7 +520,6 @@ function flowmodoro_shortcode() {
                 milliseconds = 0;
                 updatePauseExpected();
                 updateStatusText();
-                status.textContent = "";
                 toggleBtn.textContent = "⏹️ Arrêter";
 
                 currentLiveEntry = {
@@ -546,9 +544,10 @@ function flowmodoro_shortcode() {
                 clearInterval(timer);
                 working = false;
                 reversing = true;
+                updatePauseExpected();
+                updateStatusText();
                 toggleBtn.disabled = true;
                 toggleBtn.textContent = "⏳ En pause...";
-                status.textContent = "Pause";
 
                 const pauseDuration = Math.floor(milliseconds / pauseFactor);
                 logHistory("Travail", milliseconds);
@@ -575,12 +574,13 @@ function flowmodoro_shortcode() {
                     if (pauseRemaining <= 0) {
                         clearInterval(timer);
                         logHistory("Pause", pauseDuration);
-                        status.textContent = "";
                         toggleBtn.textContent = "▶️ Démarrer";
                         toggleBtn.disabled = false;
                         milliseconds = 0;
                         update();
                         reversing = false;
+                        updatePauseExpected();
+                        updateStatusText();
                     }
                 }, 100);
             }
