@@ -229,6 +229,33 @@ function flowmodoro_stats_shortcode() {
         }
 
 
+        function computeContinuationRate(entries) {
+            let continued = 0;
+            let totalPauses = 0;
+
+            for (let i = 0; i < entries.length; i++) {
+                const e = entries[i];
+                if (e.type === "Pause") {
+                    totalPauses++;
+                    const pauseEnd = e.timestamp + (e.duration || 0);
+
+                    const next = entries[i + 1];
+                    if (next && next.type === "Travail" && (next.timestamp - pauseEnd) <= 10 * 60 * 1000) {
+                        continued++;
+                    }
+                }
+            }
+
+            const percentage = totalPauses === 0 ? 0 : (continued / totalPauses) * 100;
+
+            return {
+                continued,
+                totalPauses,
+                percentage: percentage.toFixed(1)
+            };
+        }
+
+
         function computeConsistencyStreaks(dataByDate) {
             const dates = Object.keys(dataByDate).sort();
             const today = new Date().toISOString().split("T")[0];
@@ -298,6 +325,37 @@ function flowmodoro_stats_shortcode() {
 
 
 
+        function renderContinuationChart(data) {
+            const container = document.getElementById("stats-summary");
+            const canvas = document.createElement("canvas");
+            canvas.id = "continuation-chart";
+            canvas.height = 180;
+            canvas.style.marginTop = "20px";
+            canvas.style.background = "#fff";
+            canvas.style.border = "1px solid #ccc";
+            canvas.style.borderRadius = "6px";
+            canvas.style.padding = "10px";
+
+            container.appendChild(canvas);
+
+            new Chart(canvas.getContext("2d"), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Reprise après pause', 'Abandon après pause'],
+                    datasets: [{
+                        data: [data.continued, data.totalPauses - data.continued],
+                        backgroundColor: ['#2ecc71', '#e74c3c']
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
 
 
 
@@ -312,6 +370,7 @@ function flowmodoro_stats_shortcode() {
         function renderStats(stats) {
             const el = document.getElementById("stats-summary");
             const streaks = computeConsistencyStreaks(stats.byDate);
+            const cont = computeContinuationRate(stats.filtered);
             el.innerHTML = `
                 <ul style="list-style: none; padding: 0; font-size: 16px;">
                     <li><strong>Total travail :</strong> ${format(stats.work)}</li>
@@ -323,8 +382,10 @@ function flowmodoro_stats_shortcode() {
                     <li><strong>🏅 Streak maximum :</strong> ${streaks.max.streak} jour(s) ${streaks.max.streak > 0 ? `(${streaks.max.start} → ${streaks.max.end})` : ''}</li>
                     <li><strong>Première entrée :</strong> ${stats.first ? new Date(stats.first).toLocaleString() : "—"}</li>
                     <li><strong>Dernière entrée :</strong> ${stats.last ? new Date(stats.last).toLocaleString() : "—"}</li>
+                    <li><strong>🔁 Taux de continuation :</strong> ${cont.percentage}% (${cont.continued} / ${cont.totalPauses} pauses)</li>
                 </ul>
-             `;
+            `;
+            renderContinuationChart(cont);
         }
  
         let lineChartInstance = null;
