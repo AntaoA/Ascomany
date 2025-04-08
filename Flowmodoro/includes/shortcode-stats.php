@@ -532,25 +532,15 @@ function flowmodoro_stats_shortcode() {
                     if (currentPeriodType === "week" && currentRange.start === startStr && currentRange.end === endStr) {
                         return; // déjà sur cette semaine
                     }
-                } else if (period === "month") {
-                        const today = new Date();
+                    const today = new Date();
                         const year = today.getFullYear();
                         const month = today.getMonth(); // 0-indexed
 
                         const start = new Date(year, month, 1);
-                        const end = new Date(year, month + 1, 0);
+                        const end = new Date(year, month + 1, 0); // dernier jour du mois
 
                         const startStr = start.toISOString().split("T")[0];
                         const endStr = end.toISOString().split("T")[0];
-
-                        const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
-                        const isAlreadyThisMonth =
-                            currentPeriodType === "month" &&
-                            currentStartDate &&
-                            currentStartDate.getFullYear() === year &&
-                            currentStartDate.getMonth() === month;
-
-                        if (isAlreadyThisMonth) return;
 
                         currentRange = { start: startStr, end: endStr };
                         currentPeriodType = period;
@@ -635,26 +625,17 @@ function flowmodoro_stats_shortcode() {
                 console.log("Week number:", weekNumber);
                 label.textContent = `Semaine ${weekNumber} (${start} → ${end})`;
             } else if (period === "month") {
-                const today = new Date();
-                const year = today.getFullYear();
-                const month = today.getMonth(); // 0-indexed
+                const firstDay = new Date(start);
+                firstDay.setDate(1); // ✅ forcer le 1er jour du mois
 
-                const start = new Date(year, month, 1);
-                const end = new Date(year, month + 1, 0); // dernier jour du mois
+                console.log("Month date used:", firstDay.toISOString());
+                console.log("Month start.getMonth():", firstDay.getMonth());
 
-                const startStr = start.toISOString().split("T")[0];
-                const endStr = end.toISOString().split("T")[0];
+                const monthName = firstDay.toLocaleString('fr-FR', { month: 'long' });
+                const year = firstDay.getFullYear();
+                label.textContent = `Mois de ${monthName} ${year}`;
 
-                currentRange = { start: startStr, end: endStr };
-                currentPeriodType = period;
-
-                document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-                applyFilter(startStr, endStr);
-                updatePeriodLabel(period, startStr, endStr);
-
-                document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
-                btn.classList.add("selected");
-                return;
+                console.log("Resolved label:", label.textContent);
             } else if (period === "year") {
                 const year = start.split("-")[0];
                 label.textContent = `Année ${year}`;
