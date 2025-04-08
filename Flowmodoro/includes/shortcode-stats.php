@@ -638,9 +638,10 @@ function flowmodoro_stats_shortcode() {
                         x: {
                             type: 'category',
                             ticks: {
-                                autoSkip: false,
-                                maxRotation: 90,
-                                minRotation: 45
+                                autoSkip: true,
+                                maxTicksLimit: 31,
+                                maxRotation: 45,
+                                minRotation: 0
                             }
                         },
                         y: {
