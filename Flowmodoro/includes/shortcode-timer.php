@@ -17,8 +17,8 @@ function flowmodoro_shortcode() {
 
             <div id="flowmodoro-log-wrapper" class="flowmodoro-history-log">
                 <h3>Historique (session)</h3>
-                <ul id="flowmodoro-log"></ul>
                 <div id="flowmodoro-total"></div>
+                <ul id="flowmodoro-log"></ul>
             </div>
         </div>
 
@@ -69,7 +69,7 @@ function flowmodoro_shortcode() {
         /* === BOUTONS HISTORIQUE + STATS EN HAUT À DROITE === */
         #flowmodoro-right-panel {
             position: fixed;
-            top: 140px;           /* ↓ un peu plus bas */
+            top: 130px;           /* ↓ un peu plus bas */
             right: 40px;         /* ← un peu plus à gauche */
             width: 300px;        /* ⬅️ plus large pour éviter retour à la ligne */
             text-align: left;
