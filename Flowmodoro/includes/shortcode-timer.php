@@ -11,8 +11,8 @@ function flowmodoro_shortcode() {
         <!-- BOUTONS EN HAUT À DROITE -->
         <div id="flowmodoro-right-panel">
             <div class="flowmodoro-history-actions">
-                <button id="show-history" class="flowmodoro-main-btn">📜 Voir l’historique</button>
-                <button id="show-stats" class="flowmodoro-main-btn">📊 Voir les statistiques</button>
+                <button id="show-history" class="flowmodoro-main-btn full-width-btn">📜 Voir l’historique</button>
+                <button id="show-stats" class="flowmodoro-main-btn full-width-btn">📊 Voir les statistiques</button>
             </div>
 
             <div id="flowmodoro-log-wrapper" class="flowmodoro-history-log">
@@ -97,6 +97,9 @@ function flowmodoro_shortcode() {
             cursor: pointer;
             box-sizing: border-box;
             transition: background 0.2s ease;
+        }
+
+        .full-width-btn {
             width: 100%;
         }
 
