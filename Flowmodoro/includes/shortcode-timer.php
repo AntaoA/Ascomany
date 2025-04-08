@@ -10,7 +10,9 @@ function flowmodoro_shortcode() {
     <div id="flowmodoro-container" style="text-align: center; padding: 40px;">
         <h2>Flowmodoro</h2>
         <div id="flowmodoro-status" style="font-size: 24px; color: #888; margin-bottom: 10px;"></div>
-        <div id="flowmodoro-timer" style="font-size: 60px; margin: 20px 0;">00:00:00</div>
+        <div id="flowmodoro-timer-wrapper">
+            <div id="flowmodoro-timer">00:00:00</div>
+        </div>
         <div class="flowmodoro-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
             <button id="flowmodoro-toggle" class="flowmodoro-main-btn">▶️ Démarrer</button>
             <button id="flowmodoro-settings" class="flowmodoro-main-btn">⚙️ Paramètres</button>
@@ -222,6 +224,33 @@ function flowmodoro_shortcode() {
             flex-wrap: wrap;
             gap: 10px;
         }
+
+        #flowmodoro-timer-wrapper {
+            max-width: 400px;
+            margin: 30px auto;
+            background: #f9fbfd;
+            border: 2px solid #dce6f2;
+            border-radius: 16px;
+            padding: 30px 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        #flowmodoro-timer {
+            font-size: 72px;
+            font-weight: bold;
+            color: #2c80c4;
+            font-family: 'Roboto', sans-serif;
+            text-align: center;
+            user-select: none;
+        }
+
+        #flowmodoro-container {
+            text-align: center;
+            padding: 40px;
+            max-width: 800px;
+            margin: auto;
+        }
+
 
 
 
