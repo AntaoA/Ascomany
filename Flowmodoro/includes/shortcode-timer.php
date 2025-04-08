@@ -11,9 +11,10 @@ function flowmodoro_shortcode() {
         <h2>Flowmodoro</h2>
         <div id="flowmodoro-status" style="font-size: 24px; color: #888; margin-bottom: 10px;"></div>
         <div id="flowmodoro-timer" style="font-size: 60px; margin: 20px 0;">00:00:00</div>
-        <button id="flowmodoro-start" class="flowmodoro-main-btn">Démarrer</button>
-        <button id="flowmodoro-stop" class="flowmodoro-main-btn" disabled>Arrêter</button>
-        <button id="flowmodoro-settings" class="flowmodoro-main-btn">Paramètres</button>
+        <div class="flowmodoro-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
+            <button id="flowmodoro-toggle" class="flowmodoro-main-btn">▶️ Démarrer</button>
+            <button id="flowmodoro-settings" class="flowmodoro-main-btn">⚙️ Paramètres</button>
+        </div>
 
         <div id="flowmodoro-settings-menu" style="display: none; margin-top: 20px; text-align: center;">
             <label for="pause-factor">Facteur de pause :</label>
@@ -200,20 +201,28 @@ function flowmodoro_shortcode() {
 
         .flowmodoro-main-btn {
             font-size: 18px;
-            padding: 10px 20px;
-            background: #3498db;
+            padding: 10px 24px;
+            background: #2c80c4;
             color: white;
             border: none;
             border-radius: 6px;
             cursor: pointer;
-            width: 100%;
             box-sizing: border-box;
             transition: background 0.2s ease;
         }
 
         .flowmodoro-main-btn:hover {
-            background: #2980b9;
+            background: #21679d;
         }
+
+        .flowmodoro-controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
 
 
 
@@ -262,8 +271,7 @@ function flowmodoro_shortcode() {
 
         const display = document.getElementById("flowmodoro-timer");
         const status = document.getElementById("flowmodoro-status");
-        const startBtn = document.getElementById("flowmodoro-start");
-        const stopBtn = document.getElementById("flowmodoro-stop");
+        const toggleBtn = document.getElementById("flowmodoro-toggle");
         const settingsBtn = document.getElementById("flowmodoro-settings");
         const settingsMenu = document.getElementById("flowmodoro-settings-menu");
         const pauseInput = document.getElementById("pause-factor");
@@ -395,70 +403,75 @@ function flowmodoro_shortcode() {
 
         let lastUpdateTimestamp = null;
 
-        startBtn.addEventListener("click", () => {
-            if (timer) clearInterval(timer);
-            startBtn.disabled = true;
-            stopBtn.disabled = false;
-            status.textContent = "";
-            working = true;
-            reversing = false;
-            milliseconds = 0;
+        toggleBtn.addEventListener("click", () => {
+            if (!working && !reversing) {
+                // Lancer le travail
+                working = true;
+                reversing = false;
+                milliseconds = 0;
+                status.textContent = "";
+                toggleBtn.textContent = "⏹️ Arrêter";
 
-            currentLiveEntry = {
-                type: "Travail",
-                start: Date.now()
-            };
-            renderLiveEntry();
+                currentLiveEntry = {
+                    type: "Travail",
+                    start: Date.now()
+                };
+                renderLiveEntry();
 
-            lastUpdateTimestamp = Date.now();
-            timer = setInterval(() => {
-                const now = Date.now();
-                const delta = now - lastUpdateTimestamp;
-                lastUpdateTimestamp = now;
-                milliseconds += delta;
-                update();
-            }, 50); // pas besoin de 10ms pour une précision utile
-        });
-
-        stopBtn.addEventListener("click", () => {
-            clearInterval(timer);
-            stopBtn.disabled = true;
-            status.textContent = "Pause";
-            working = false;
-            reversing = true;
-
-            const pauseDuration = Math.floor(milliseconds / pauseFactor);
-            logHistory("Travail", milliseconds);
-
-            currentLiveEntry = {
-                type: "Pause",
-                start: Date.now(),
-                duration: pauseDuration
-            };
-            renderLiveEntry();
-
-            let pauseRemaining = pauseDuration;
-            lastUpdateTimestamp = Date.now();
-
-            timer = setInterval(() => {
-                const now = Date.now();
-                const delta = now - lastUpdateTimestamp;
-                lastUpdateTimestamp = now;
-
-                pauseRemaining -= delta;
-                milliseconds = pauseRemaining;
-                update();
-
-                if (pauseRemaining <= 0) {
-                    clearInterval(timer);
-                    status.textContent = "";
-                    milliseconds = 0;
-                    logHistory("Pause", pauseDuration);
+                lastUpdateTimestamp = Date.now();
+                timer = setInterval(() => {
+                    const now = Date.now();
+                    const delta = now - lastUpdateTimestamp;
+                    lastUpdateTimestamp = now;
+                    milliseconds += delta;
                     update();
-                    startBtn.disabled = false;
-                }
-            }, 100);
+                }, 50);
+
+            } else if (working) {
+                // Passer en pause
+                clearInterval(timer);
+                working = false;
+                reversing = true;
+                toggleBtn.disabled = true;
+                toggleBtn.textContent = "⏳ En pause...";
+                status.textContent = "Pause";
+
+                const pauseDuration = Math.floor(milliseconds / pauseFactor);
+                logHistory("Travail", milliseconds);
+
+                currentLiveEntry = {
+                    type: "Pause",
+                    start: Date.now(),
+                    duration: pauseDuration
+                };
+                renderLiveEntry();
+
+                let pauseRemaining = pauseDuration;
+                lastUpdateTimestamp = Date.now();
+
+                timer = setInterval(() => {
+                    const now = Date.now();
+                    const delta = now - lastUpdateTimestamp;
+                    lastUpdateTimestamp = now;
+
+                    pauseRemaining -= delta;
+                    milliseconds = pauseRemaining;
+                    update();
+
+                    if (pauseRemaining <= 0) {
+                        clearInterval(timer);
+                        logHistory("Pause", pauseDuration);
+                        status.textContent = "";
+                        toggleBtn.textContent = "▶️ Démarrer";
+                        toggleBtn.disabled = false;
+                        milliseconds = 0;
+                        update();
+                        reversing = false;
+                    }
+                }, 100);
+            }
         });
+
         
         update();
 
