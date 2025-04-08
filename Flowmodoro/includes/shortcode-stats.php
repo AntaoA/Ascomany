@@ -538,7 +538,7 @@ function flowmodoro_stats_shortcode() {
                     const year = today.getFullYear();
 
                     const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
-                    const isAlreadyThisMonth = currentStartDate && currentStartDate.getFullYear() === year && currentStartDate.getMonth() === month;
+                    const isAlreadyThisMonth = currentStartDate && currentStartDate.getMonth() === month && currentStartDate.getFullYear() === year;
 
                     if (currentPeriodType === "month" && isAlreadyThisMonth) {
                         return;
@@ -619,7 +619,8 @@ function flowmodoro_stats_shortcode() {
             } else if (period === "month") {
                 const monthStart = new Date(start);
                 const monthName = monthStart.toLocaleString('fr-FR', { month: 'long' });
-                label.textContent = `Mois de ${monthName} ${monthStart.getFullYear()}`;
+                const year = monthStart.getFullYear();
+                label.textContent = `Mois de ${monthName} ${year}`;
             } else if (period === "year") {
                 const year = start.split("-")[0];
                 label.textContent = `Année ${year}`;
