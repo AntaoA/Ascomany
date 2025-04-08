@@ -13,6 +13,9 @@ function flowmodoro_shortcode() {
         <div id="flowmodoro-timer-wrapper">
             <div id="flowmodoro-timer">00:00:00</div>
         </div>
+        <div id="pause-expected-box" class="info-box">
+            Temps de pause attendu : <span id="pause-expected-time">00:00</span>
+        </div>
         <div class="flowmodoro-controls" style="display: flex; justify-content: center; gap: 10px; margin-top: 20px;">
             <button id="flowmodoro-toggle" class="flowmodoro-main-btn">▶️ Démarrer</button>
             <button id="flowmodoro-settings" class="flowmodoro-main-btn">⚙️ Paramètres</button>
@@ -265,6 +268,17 @@ function flowmodoro_shortcode() {
             flex-wrap: wrap;
         }
 
+        .info-box {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+            background: #eef6fb;
+            border: 1px solid #cce3f4;
+            padding: 10px 15px;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
 
 
 
@@ -399,6 +413,14 @@ function flowmodoro_shortcode() {
             `;
         }
 
+        function updatePauseExpected() {
+            const pauseMs = Math.floor(milliseconds / pauseFactor);
+            const min = Math.floor(pauseMs / 60000);
+            const sec = Math.floor((pauseMs % 60000) / 1000);
+            document.getElementById("pause-expected-time").textContent =
+                `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+        }
+
         function renderLiveEntry() {
             clearInterval(liveEntryInterval);
             if (!log || !currentLiveEntry) return;
@@ -452,6 +474,7 @@ function flowmodoro_shortcode() {
                 working = true;
                 reversing = false;
                 milliseconds = 0;
+                updatePauseExpected();
                 status.textContent = "";
                 toggleBtn.textContent = "⏹️ Arrêter";
 
@@ -468,6 +491,7 @@ function flowmodoro_shortcode() {
                     lastUpdateTimestamp = now;
                     milliseconds += delta;
                     update();
+                    updatePauseExpected();
                 }, 50);
 
             } else if (working) {
