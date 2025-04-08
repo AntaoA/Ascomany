@@ -661,51 +661,55 @@ function flowmodoro_stats_shortcode() {
         }
  
         function shiftDateRange(amount, unit) {
-            const start = new Date(currentRange.start);
-            const end = new Date(currentRange.end);
-
             let newStart, newEnd;
 
             if (unit === "manual") {
+                const start = new Date(currentRange.start);
+                const end = new Date(currentRange.end);
                 const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
                 newStart = new Date(start);
                 newEnd = new Date(end);
                 newStart.setDate(newStart.getDate() + days * amount);
                 newEnd.setDate(newEnd.getDate() + days * amount);
+                currentPeriodType = "manual";
             } else if (unit === "week") {
-                newStart = new Date(start);
-                newEnd = new Date(end);
-                newStart.setDate(newStart.getDate() + 7 * amount);
-                newEnd.setDate(newEnd.getDate() + 7 * amount);
+                const start = new Date(currentRange.start);
+                const day = (start.getDay() + 6) % 7; // lundi = 0
+                const monday = new Date(start);
+                monday.setDate(start.getDate() - day + amount * 7);
+                newStart = monday;
+                newEnd = new Date(monday);
+                newEnd.setDate(monday.getDate() + 6);
+                currentPeriodType = "week";
             } else if (unit === "month") {
+                const start = new Date(currentRange.start);
                 const base = new Date(start.getFullYear(), start.getMonth() + amount, 1);
                 newStart = new Date(base.getFullYear(), base.getMonth(), 1);
-                newEnd = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+                newEnd = new Date(base.getFullYear(), base.getMonth() + 1, 0); // dernier jour du mois
+                currentPeriodType = "month";
             } else if (unit === "year") {
+                const start = new Date(currentRange.start);
                 const year = start.getFullYear() + amount;
                 newStart = new Date(year, 0, 1);
                 newEnd = new Date(year, 11, 31);
-            } else {
-                newStart = new Date(start);
-                newEnd = new Date(end);
-                newStart.setDate(newStart.getDate() + amount);
-                newEnd.setDate(newEnd.getDate() + amount);
+                currentPeriodType = "year";
             }
 
             const startStr = newStart.getFullYear() + "-" + String(newStart.getMonth() + 1).padStart(2, '0') + "-" + String(newStart.getDate()).padStart(2, '0');
             const endStr = newEnd.getFullYear() + "-" + String(newEnd.getMonth() + 1).padStart(2, '0') + "-" + String(newEnd.getDate()).padStart(2, '0');
 
             currentRange = { start: startStr, end: endStr };
+
             document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
             applyFilter(startStr, endStr);
             updatePeriodLabel(currentPeriodType, startStr, endStr);
 
-            if (unit === "manual") {
-               currentPeriodType = "manual";
-               document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
-               document.getElementById("manual-picker-btn").classList.add("selected");
-           }
-       }
+            // mettre à jour visuellement les boutons
+            document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+            const currentBtn = document.querySelector(`.period-btn[data-period="${currentPeriodType}"]`);
+            if (currentBtn) currentBtn.classList.add("selected");
+        }
+
 
  
  
