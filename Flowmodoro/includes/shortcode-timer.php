@@ -28,7 +28,8 @@ function flowmodoro_shortcode() {
         </div>
 
         <div id="flowmodoro-history" style="position: absolute; top: 120px; right: 40px; text-align: left;">
-            <button id="show-history" style="margin-top: 20px;">📜 Voir l’historique</button>
+            <button id="show-history" style="margin-top: 20px;">📜 Voir l’historique</button><br>
+            <button id="show-stats" style="margin-top: 10px;">📊 Voir les statistiques</button>
         </div>
     </div>
 
@@ -448,6 +449,11 @@ function flowmodoro_shortcode() {
             const encoded = encodeURIComponent(JSON.stringify(sessionHistory));
             window.open("/historique-flowmodoro?session=" + encoded, "_blank");
         });
+
+        document.getElementById("show-stats").addEventListener("click", () => {
+            window.open("/statistiques-flowmodoro", "_blank");
+        });
+
 
     })();
     </script>
