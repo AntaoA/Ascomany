@@ -533,9 +533,19 @@ function flowmodoro_stats_shortcode() {
                         return; // déjà sur cette semaine
                     }
                 } else if (period === "month") {
-                    const reference = new Date();
-                    start = new Date(reference.getFullYear(), reference.getMonth(), 1);
-                    end = new Date(reference.getFullYear(), reference.getMonth() + 1, 0);
+                    const today = new Date();
+                    const month = today.getMonth();
+                    const year = today.getFullYear();
+
+                    const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
+                    const isAlreadyThisMonth = currentStartDate && currentStartDate.getFullYear() === year && currentStartDate.getMonth() === month;
+
+                    if (currentPeriodType === "month" && isAlreadyThisMonth) {
+                        return;
+                    }
+
+                    start = new Date(year, month, 1);
+                    end = new Date(year, month + 1, 0);
                 } else if (period === "year") {
                     const today = new Date();
                     const thisYear = today.getFullYear();
