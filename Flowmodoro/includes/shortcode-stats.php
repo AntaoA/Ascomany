@@ -231,47 +231,52 @@ function flowmodoro_stats_shortcode() {
 
         function computeConsistencyStreaks(dataByDate) {
             const dates = Object.keys(dataByDate).sort();
-            let maxStreak = 0, currentStreak = 0;
-            let maxStart = null, maxEnd = null;
-            let currentStart = null;
-
             const today = new Date().toISOString().split("T")[0];
-            let ongoingStreak = 0, ongoingStart = null;
+
+            let maxStreak = 0, maxStart = null, maxEnd = null;
+            let currentStreak = 0, currentStart = null;
+
+            let previousDate = null;
             let todayIncluded = false;
 
             for (let i = 0; i < dates.length; i++) {
                 const d = dates[i];
                 const hasWork = dataByDate[d]?.travail > 0;
 
-                if (hasWork) {
-                    if (currentStreak === 0) currentStart = d;
-                    currentStreak++;
-
-                    if (d === today) todayIncluded = true;
-
-                    // vérifie aussi en fin de tableau
-                    const isLast = i === dates.length - 1;
-                    const nextDate = new Date(dates[i]);
-                    nextDate.setDate(nextDate.getDate() + 1);
-                    const expectedNext = nextDate.toISOString().split("T")[0];
-
-                    const endsHere = isLast || dates[i + 1] !== expectedNext;
-
-                    if (endsHere && currentStreak > maxStreak) {
-                        maxStreak = currentStreak;
-                        maxStart = currentStart;
-                        maxEnd = d;
-                    }
-                } else {
+                if (!hasWork) {
                     currentStreak = 0;
                     currentStart = null;
+                    previousDate = null;
+                    continue;
                 }
+
+                if (d === today) {
+                    todayIncluded = true;
+                }
+
+                if (
+                    previousDate &&
+                    new Date(d).getTime() - new Date(previousDate).getTime() === 86400000
+                ) {
+                    currentStreak++;
+                } else {
+                    currentStreak = 1;
+                    currentStart = d;
+                }
+
+                if (currentStreak > maxStreak) {
+                    maxStreak = currentStreak;
+                    maxStart = currentStart;
+                    maxEnd = d;
+                }
+
+                previousDate = d;
             }
 
-            // Streak en cours : part de today et recule
+            // streak en cours (à partir d’aujourd’hui en reculant)
+            let ongoingStreak = 0;
+            let ongoingStart = null;
             let cursor = new Date(today);
-            ongoingStreak = 0;
-            ongoingStart = null;
 
             while (true) {
                 const iso = cursor.toISOString().split("T")[0];
@@ -290,6 +295,7 @@ function flowmodoro_stats_shortcode() {
                 todayIncluded
             };
         }
+
 
 
 
