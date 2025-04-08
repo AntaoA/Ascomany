@@ -667,31 +667,37 @@ function flowmodoro_stats_shortcode() {
             const start = cloneDate(new Date(currentRange.start));
             const end = cloneDate(new Date(currentRange.end));
 
-            let startStr, endStr;
+            let newStart, newEnd;
 
             if (unit === "manual") {
                 const days = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
-                start.setDate(start.getDate() + days * amount);
-                end.setDate(end.getDate() + days * amount);
+                newStart = new Date(start);
+                newEnd = new Date(end);
+                newStart.setDate(newStart.getDate() + days * amount);
+                newEnd.setDate(newEnd.getDate() + days * amount);
             } else if (unit === "week") {
-                start.setDate(start.getDate() + 7 * amount);
-                end.setDate(end.getDate() + 7 * amount);
+                newStart = new Date(start);
+                newEnd = new Date(end);
+                newStart.setDate(newStart.getDate() + 7 * amount);
+                newEnd.setDate(newEnd.getDate() + 7 * amount);
             } else if (unit === "month") {
-                start.setMonth(start.getMonth() + amount);
-                end.setMonth(end.getMonth() + amount);
+                const base = new Date(start.getFullYear(), start.getMonth() + amount, 1);
+                newStart = new Date(base.getFullYear(), base.getMonth(), 1);
+                newEnd = new Date(base.getFullYear(), base.getMonth() + 1, 0); // dernier jour du mois
             } else if (unit === "year") {
-                start.setFullYear(start.getFullYear() + amount);
-                end.setFullYear(end.getFullYear() + amount);
+                const year = start.getFullYear() + amount;
+                newStart = new Date(year, 0, 1);
+                newEnd = new Date(year, 11, 31);
             }
 
-            startStr = start.toISOString().split("T")[0];
-            endStr = end.toISOString().split("T")[0];
+            const startStr = newStart.toISOString().split("T")[0];
+            const endStr = newEnd.toISOString().split("T")[0];
+
             currentRange = { start: startStr, end: endStr };
 
             document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-            applyFilter();
+            applyFilter(startStr, endStr);
             updatePeriodLabel(currentPeriodType, startStr, endStr);
-
 
             if (unit === "manual") {
                 currentPeriodType = "manual";
@@ -699,6 +705,7 @@ function flowmodoro_stats_shortcode() {
                 document.getElementById("manual-picker-btn").classList.add("selected");
             }
         }
+
 
 
 
