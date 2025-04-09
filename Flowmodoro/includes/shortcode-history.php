@@ -92,21 +92,23 @@ function flowmodoro_history_shortcode() {
         }
 
         .entry-line {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            width: 100%;
             font-family: monospace;
             margin: 5px 0;
             color: #222;
-            width: 100%;
         }
-
         .entry-travail {
             color: #e74c3c;
         }
 
         .entry-pause {
             color: #3498db;
-            background-color: #f6f6f6; /* gris très léger */
+            background-color: #f6f6f6;
             border-radius: 4px;
-            padding: 2px 4px;
+            padding: 4px 6px;
         }
 
         .entry-phase {
@@ -182,14 +184,21 @@ function flowmodoro_history_shortcode() {
         }
 
         .delete-phase-btn {
-            flex-shrink: 0;
             min-width: 24px;
             text-align: center;
+            margin-left: 10px;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 14px;
         }
+
 
         .delete-phase-btn:hover {
             color: #e74c3c;
             background: #f5f5f5;
+            border-radius: 4px;
         }
 
         .grouping-select {
