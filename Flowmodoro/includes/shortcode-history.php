@@ -531,10 +531,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 const line = document.createElement("div");
                 line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
                 line.innerHTML = `
-                    <div class="entry-phase">
-                        <div class="entry-text">${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</div>
-                        <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+                    <div class="entry-text">
+                        ${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}
                     </div>
+                    <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
                 `;
                 details.appendChild(line);
             });
@@ -643,14 +643,11 @@ document.addEventListener('DOMContentLoaded', function () {
             div.style.borderLeft = `6px solid ${color}`;
             div.style.cursor = "pointer";
 
-            div.innerHTML = `
-                <div class="entry-phase" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="color: ${color}; font-weight: bold;">${icon} ${e.type}</div>
-                    <div>${formatTime(e.duration)} — ${formatDate(e.timestamp)}</div>
-                    <div>
-                        <button class="delete-phase-btn" data-ts="${e.timestamp}">🗑</button>
-                    </div>
-                </div>
+            const line = document.createElement("div");
+            line.className = "entry-line " + (isTravail ? "entry-travail" : "entry-pause");
+            line.innerHTML = `
+                <div class="entry-text">${icon} ${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</div>
+                <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
             `;
 
             const sessionDetail = document.createElement("div");
@@ -660,6 +657,8 @@ document.addEventListener('DOMContentLoaded', function () {
             sessionDetail.style.borderTop = "1px solid #ddd";
             sessionDetail.style.marginTop = "10px";
             sessionDetail.style.fontSize = "14px";
+
+            div.appendChild(line);
             div.appendChild(sessionDetail);
 
             div.addEventListener("click", (ev) => {
@@ -685,8 +684,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     Travail : ${formatTime(travail)}<br>
                     Pause : ${formatTime(pause)}<br>
                     Phases : ${session.length}
-                `;
-                sessionDetail.innerHTML += `
                     <div style="margin-top: 10px;">
                         <a href="/historique?focus=session:${session[0].timestamp}" class="view-session-btn">
                             👁 Voir la session complète
@@ -696,47 +693,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 sessionDetail.style.display = "block";
             });
 
-            div.querySelector(".delete-phase-btn").onclick = (ev) => {
-                ev.stopPropagation();
-                // garde ta logique actuelle
-            };
-
-
-            output.querySelectorAll(".delete-phase-btn").forEach(btn => {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const ts = parseInt(btn.dataset.ts);
-
-                    confirmCustom("Supprimer cette phase ?", (ok) => {
-                        if (!ok) return;
-
-                        for (let i = allHistory.length - 1; i >= 0; i--) {
-                            if (allHistory[i].timestamp === ts) {
-                                allHistory.splice(i, 1);
-                                break;
-                            }
-                        }
-
-                        sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
-                        sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
-
-                        if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
-                            fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                                body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
-                            });
-                        }
-
-                        render(); // on re-render la vue complète
-                    });
-                };
-            });
-
-            attachDeletePhaseHandlers();
             container.appendChild(div);
         });
+
+        attachDeletePhaseHandlers();
     }
+
 
 
 
