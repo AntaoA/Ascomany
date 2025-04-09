@@ -110,15 +110,20 @@ function flowmodoro_history_shortcode() {
         }
 
         .entry-phase {
-            display: grid;
-            grid-template-columns: 1fr auto;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
+            width: 100%;
         }
 
-        .entry-text {
-            white-space: nowrap;
-            overflow-wrap: break-word;
+        .phase-left {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .phase-right {
+            margin-left: 12px;
+            flex-shrink: 0;
         }
 
 
@@ -527,8 +532,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
                 line.innerHTML = `
                     <div class="entry-phase">
-                        <div class="entry-text">${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</div>
-                        <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+                        <div class="phase-left">
+                            ${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}
+                        </div>
+                        <div class="phase-right">
+                            <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+                        </div>
                     </div>
                 `;
                 details.appendChild(line);
