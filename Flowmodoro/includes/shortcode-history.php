@@ -604,6 +604,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             };
         });
+        attachDeletePhaseHandlers();
     }
 
 
@@ -714,13 +715,46 @@ document.addEventListener('DOMContentLoaded', function () {
                 };
             });
 
-
+            attachDeletePhaseHandlers();
             container.appendChild(div);
         });
     }
 
 
 
+
+    function attachDeletePhaseHandlers() {
+        document.querySelectorAll(".delete-phase-btn").forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const ts = parseInt(btn.dataset.ts);
+
+                confirmCustom("Supprimer cette phase ?", (ok) => {
+                    if (!ok) return;
+
+                    for (let i = allHistory.length - 1; i >= 0; i--) {
+                        if (allHistory[i].timestamp === ts) {
+                            allHistory.splice(i, 1);
+                            break;
+                        }
+                    }
+
+                    sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
+                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                    if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                        });
+                    }
+
+                    render(); // relance un rendu global
+                };
+            };
+        });
+    }
 
 
 
