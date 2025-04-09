@@ -552,7 +552,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 line.innerHTML = `
                     <div class="entry-phase">
                         <div class="${phaseLeftClass}">
-                            ${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}
+                            ${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp - (e.duration || 0))}
                         </div>
                         <div class="phase-right">
                             <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
