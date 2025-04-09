@@ -110,12 +110,18 @@ function flowmodoro_history_shortcode() {
         }
 
         .entry-phase {
-            display: grid;
-            grid-template-columns: 1fr auto;
+            display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: space-between;
         }
 
+        .entry-text {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding-right: 10px; /* évite chevauchement avec bouton */
+        }
 
         .view-session-btn {
             font-size: 0.8em;
@@ -176,13 +182,7 @@ function flowmodoro_history_shortcode() {
         }
 
         .delete-phase-btn {
-            background: none;
-            border: none;
-            font-size: 14px;
-            cursor: pointer;
-            color: #888;
-            padding: 2px 6px;
-            border-radius: 4px;
+            flex-shrink: 0;
             min-width: 24px;
             text-align: center;
         }
@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
                 line.innerHTML = `
                     <div class="entry-phase">
-                        <span>${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
+                        <div class="entry-text">${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</div>
                         <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
                     </div>
                 `;
