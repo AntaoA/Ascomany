@@ -102,13 +102,6 @@ function flowmodoro_history_shortcode() {
             color: #e74c3c;
         }
 
-        .entry-pause {
-            color: #3498db;
-            background-color: #f6f6f6; /* gris très léger */
-            border-radius: 4px;
-            padding: 2px 4px;
-        }
-
         .entry-phase {
             display: flex;
             justify-content: space-between;
@@ -127,6 +120,19 @@ function flowmodoro_history_shortcode() {
         }
 
 
+        .phase-left.pause {
+            background-color: #f6f6f6;
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+
+        .phase-left.travail {
+            color: #e74c3c;
+        }
+
+        .phase-left.pause {
+            color: #3498db;
+        }
 
         .view-session-btn {
             font-size: 0.8em;
@@ -529,10 +535,11 @@ document.addEventListener('DOMContentLoaded', function () {
             details.className = "session-details";
             session.forEach(e => {
                 const line = document.createElement("div");
-                line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
+                line.className = "entry-line";
+                const phaseLeftClass = e.type === "Travail" ? "phase-left travail" : "phase-left pause";
                 line.innerHTML = `
                     <div class="entry-phase">
-                        <div class="phase-left">
+                        <div class="${phaseLeftClass}">
                             ${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}
                         </div>
                         <div class="phase-right">
