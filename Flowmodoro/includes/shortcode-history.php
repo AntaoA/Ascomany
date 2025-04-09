@@ -92,38 +92,30 @@ function flowmodoro_history_shortcode() {
         }
 
         .entry-line {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            align-items: center;
-            width: 100%;
             font-family: monospace;
             margin: 5px 0;
             color: #222;
+            width: 100%;
         }
+
         .entry-travail {
             color: #e74c3c;
         }
 
         .entry-pause {
             color: #3498db;
-            background-color: #f6f6f6;
+            background-color: #f6f6f6; /* gris très léger */
             border-radius: 4px;
-            padding: 4px 6px;
+            padding: 2px 4px;
         }
 
         .entry-phase {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr auto;
             align-items: center;
-            justify-content: space-between;
+            gap: 8px;
         }
 
-        .entry-text {
-            flex-grow: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding-right: 10px; /* évite chevauchement avec bouton */
-        }
 
         .view-session-btn {
             font-size: 0.8em;
@@ -184,21 +176,18 @@ function flowmodoro_history_shortcode() {
         }
 
         .delete-phase-btn {
-            min-width: 24px;
-            text-align: center;
-            margin-left: 10px;
             background: none;
             border: none;
-            color: #888;
-            cursor: pointer;
             font-size: 14px;
+            cursor: pointer;
+            color: #888;
+            padding: 2px 6px;
+            border-radius: 4px;
         }
-
 
         .delete-phase-btn:hover {
             color: #e74c3c;
             background: #f5f5f5;
-            border-radius: 4px;
         }
 
         .grouping-select {
@@ -531,10 +520,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 const line = document.createElement("div");
                 line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
                 line.innerHTML = `
-                    <div class="entry-text">
-                        ${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}
+                    <div class="entry-phase" style="justify-content: space-between;">
+                        <span>${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
+                        <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
                     </div>
-                    <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
                 `;
                 details.appendChild(line);
             });
@@ -643,11 +632,14 @@ document.addEventListener('DOMContentLoaded', function () {
             div.style.borderLeft = `6px solid ${color}`;
             div.style.cursor = "pointer";
 
-            const line = document.createElement("div");
-            line.className = "entry-line " + (isTravail ? "entry-travail" : "entry-pause");
-            line.innerHTML = `
-                <div class="entry-text">${icon} ${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</div>
-                <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
+            div.innerHTML = `
+                <div class="entry-phase" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div style="color: ${color}; font-weight: bold;">${icon} ${e.type}</div>
+                    <div>${formatTime(e.duration)} — ${formatDate(e.timestamp)}</div>
+                    <div>
+                        <button class="delete-phase-btn" data-ts="${e.timestamp}">🗑</button>
+                    </div>
+                </div>
             `;
 
             const sessionDetail = document.createElement("div");
@@ -657,8 +649,6 @@ document.addEventListener('DOMContentLoaded', function () {
             sessionDetail.style.borderTop = "1px solid #ddd";
             sessionDetail.style.marginTop = "10px";
             sessionDetail.style.fontSize = "14px";
-
-            div.appendChild(line);
             div.appendChild(sessionDetail);
 
             div.addEventListener("click", (ev) => {
@@ -684,6 +674,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     Travail : ${formatTime(travail)}<br>
                     Pause : ${formatTime(pause)}<br>
                     Phases : ${session.length}
+                `;
+                sessionDetail.innerHTML += `
                     <div style="margin-top: 10px;">
                         <a href="/historique?focus=session:${session[0].timestamp}" class="view-session-btn">
                             👁 Voir la session complète
@@ -693,12 +685,47 @@ document.addEventListener('DOMContentLoaded', function () {
                 sessionDetail.style.display = "block";
             });
 
+            div.querySelector(".delete-phase-btn").onclick = (ev) => {
+                ev.stopPropagation();
+                // garde ta logique actuelle
+            };
+
+
+            output.querySelectorAll(".delete-phase-btn").forEach(btn => {
+                btn.onclick = (e) => {
+                    e.stopPropagation();
+                    const ts = parseInt(btn.dataset.ts);
+
+                    confirmCustom("Supprimer cette phase ?", (ok) => {
+                        if (!ok) return;
+
+                        for (let i = allHistory.length - 1; i >= 0; i--) {
+                            if (allHistory[i].timestamp === ts) {
+                                allHistory.splice(i, 1);
+                                break;
+                            }
+                        }
+
+                        sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
+                        sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                        if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                            fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                                body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                            });
+                        }
+
+                        render(); // on re-render la vue complète
+                    });
+                };
+            });
+
+            attachDeletePhaseHandlers();
             container.appendChild(div);
         });
-
-        attachDeletePhaseHandlers();
     }
-
 
 
 
