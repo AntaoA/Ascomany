@@ -732,6 +732,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 confirmCustom("Supprimer cette phase ?", (ok) => {
                     if (!ok) return;
 
+                    // Supprimer de allHistory
                     for (let i = allHistory.length - 1; i >= 0; i--) {
                         if (allHistory[i].timestamp === ts) {
                             allHistory.splice(i, 1);
@@ -739,9 +740,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         }
                     }
 
+                    // Supprimer de sessionHistory (localStorage)
                     sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
                     sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
 
+                    // Sauvegarde WordPress
                     if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
                         fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
                             method: "POST",
@@ -750,11 +753,33 @@ document.addEventListener('DOMContentLoaded', function () {
                         });
                     }
 
-                    render(); // relance un rendu global
-                }); // ✅ parenthèse de fermeture ici
+                    // Supprimer visuellement la ligne
+                    const line = btn.closest(".entry-line");
+                    const detailBlock = btn.closest(".session-details");
+                    if (line) line.remove();
+
+                    // Si la session n’a plus de phases, supprimer récursivement
+                    let current = detailBlock;
+                    while (
+                        current &&
+                        current.classList.contains("session-details") &&
+                        current.childElementCount === 0
+                    ) {
+                        const sessionBlock = current.closest(".session-block");
+                        current.remove();
+
+                        if (sessionBlock && sessionBlock.parentElement?.classList.contains("session-details")) {
+                            current = sessionBlock.parentElement;
+                            sessionBlock.remove();
+                        } else {
+                            break;
+                        }
+                    }
+                });
             };
         });
     }
+
 
 
 
