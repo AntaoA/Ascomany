@@ -563,7 +563,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const sessionNum = sessionNumbers.get(session);
-            const startTime = new Date(session[0].timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+            const startTs = session[0].timestamp - (session[0].duration || 0);
+            const startTime = new Date(startTs).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -660,6 +661,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const isTravail = e.type === "Travail";
             const icon = isTravail ? "💼" : "☕";
             const color = isTravail ? "#e74c3c" : "#3498db";
+            const startTs = e.timestamp - (e.duration || 0);
 
             const div = document.createElement("div");
             div.className = "session-block";
@@ -669,7 +671,7 @@ document.addEventListener('DOMContentLoaded', function () {
             div.innerHTML = `
                 <div class="entry-phase" style="display: flex; justify-content: space-between; align-items: center;">
                     <div style="color: ${color}; font-weight: bold;">${icon} ${e.type}</div>
-                    <div>${formatTime(e.duration)} — ${formatDate(e.timestamp)}</div>
+                    <div>${formatTime(e.duration)} — ${formatDate(startTs)}</div>
                     <div>
                         <button class="delete-phase-btn" data-ts="${e.timestamp}">🗑</button>
                     </div>
@@ -688,7 +690,6 @@ document.addEventListener('DOMContentLoaded', function () {
             div.addEventListener("click", (ev) => {
                 if (ev.target.closest(".delete-phase-btn")) return;
 
-                // afficher ou masquer
                 if (sessionDetail.innerHTML !== "") {
                     sessionDetail.style.display = sessionDetail.style.display === "none" ? "block" : "none";
                     return;
@@ -700,7 +701,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const travail = session.filter(p => p.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
                 const pause = session.filter(p => p.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
-                const start = new Date(session[0].timestamp).toLocaleString();
+                const start = new Date(session[0].timestamp - (session[0].duration || 0)).toLocaleString();
 
                 sessionDetail.innerHTML = `
                     <strong>Session contenant cette phase :</strong><br>
@@ -723,7 +724,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 ev.stopPropagation();
                 // garde ta logique actuelle
             };
-
 
             output.querySelectorAll(".delete-phase-btn").forEach(btn => {
                 btn.onclick = (e) => {
@@ -760,6 +760,7 @@ document.addEventListener('DOMContentLoaded', function () {
             container.appendChild(div);
         });
     }
+
 
 
 
