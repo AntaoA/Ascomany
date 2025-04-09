@@ -103,6 +103,9 @@ function flowmodoro_history_shortcode() {
 
         .entry-pause {
             color: #3498db;
+            background-color: #f6f6f6; /* gris très léger */
+            border-radius: 4px;
+            padding: 2px 4px;
         }
 
         .entry-phase {
