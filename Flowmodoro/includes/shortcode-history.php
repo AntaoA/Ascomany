@@ -102,6 +102,11 @@ function flowmodoro_history_shortcode() {
             color: #e74c3c;
         }
 
+        .entry-line.pause {
+            background-color: #f6f6f6;
+            border-radius: 4px;
+        }
+
         .entry-phase {
             display: flex;
             justify-content: space-between;
@@ -117,6 +122,13 @@ function flowmodoro_history_shortcode() {
         .phase-right {
             margin-left: 12px;
             flex-shrink: 0;
+        }
+
+        .phase-left.travail {
+            color: #e74c3c;
+        }
+        .phase-left.pause {
+            color: #3498db;
         }
 
 
@@ -535,8 +547,8 @@ document.addEventListener('DOMContentLoaded', function () {
             details.className = "session-details";
             session.forEach(e => {
                 const line = document.createElement("div");
-                line.className = "entry-line";
-                const phaseLeftClass = e.type === "Travail" ? "phase-left travail" : "phase-left pause";
+                line.className = "entry-line " + (e.type === "Pause" ? "pause" : "");
+                const phaseLeftClass = "phase-left " + (e.type === "Pause" ? "pause" : "travail");
                 line.innerHTML = `
                     <div class="entry-phase">
                         <div class="${phaseLeftClass}">
