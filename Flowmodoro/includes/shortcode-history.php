@@ -723,7 +723,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
-
     function attachDeletePhaseHandlers() {
         document.querySelectorAll(".delete-phase-btn").forEach(btn => {
             btn.onclick = (e) => {
@@ -752,10 +751,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
 
                     render(); // relance un rendu global
-                };
+                }); // ✅ parenthèse de fermeture ici
             };
         });
     }
+
 
 
 
