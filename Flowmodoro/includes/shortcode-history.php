@@ -758,6 +758,51 @@ document.addEventListener('DOMContentLoaded', function () {
                     const detailBlock = btn.closest(".session-details");
                     if (line) line.remove();
 
+                    if (!detailBlock) return;
+
+                    // Si la session n’a plus de phases, on supprime le bloc parent
+                    if (detailBlock.childElementCount === 0) {
+                        const parentBlock = detailBlock.closest(".session-block");
+                        const outerDetail = parentBlock?.parentElement;
+
+                        parentBlock?.remove();
+
+                        // Si le parent est une vue session imbriquée, on recalcule les sessions restantes dans ce bloc
+                        if (outerDetail && outerDetail.classList.contains("session-details")) {
+                            const remainingEntries = [];
+
+                            outerDetail.querySelectorAll(".delete-phase-btn").forEach(btn => {
+                                const ts = parseInt(btn.dataset.ts);
+                                const item = allHistory.find(e => e.timestamp === ts);
+                                if (item) remainingEntries.push(item);
+                            });
+
+                            outerDetail.innerHTML = "";
+                            if (remainingEntries.length > 0) {
+                                const sessions = groupSessions(remainingEntries);
+                                renderSessions(sessions, outerDetail); // 🔁 avec renumérotation
+                            } else {
+                                // suppression récursive
+                                let current = outerDetail;
+                                while (
+                                    current &&
+                                    current.classList.contains("session-details") &&
+                                    current.childElementCount === 0
+                                ) {
+                                    const sessionBlock = current.closest(".session-block");
+                                    current.remove();
+
+                                    if (sessionBlock && sessionBlock.parentElement?.classList.contains("session-details")) {
+                                        current = sessionBlock.parentElement;
+                                        sessionBlock.remove();
+                                    } else {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     // Si la session n’a plus de phases, supprimer récursivement
                     let current = detailBlock;
                     while (
