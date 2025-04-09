@@ -95,6 +95,7 @@ function flowmodoro_history_shortcode() {
             font-family: monospace;
             margin: 5px 0;
             color: #222;
+            width: 100%;
         }
 
         .entry-travail {
@@ -109,10 +110,12 @@ function flowmodoro_history_shortcode() {
         }
 
         .entry-phase {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr auto;
             align-items: center;
-            justify-content: space-between;
+            gap: 8px;
         }
+
 
         .view-session-btn {
             font-size: 0.8em;
@@ -180,6 +183,8 @@ function flowmodoro_history_shortcode() {
             color: #888;
             padding: 2px 6px;
             border-radius: 4px;
+            min-width: 24px;
+            text-align: center;
         }
 
         .delete-phase-btn:hover {
