@@ -522,7 +522,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const line = document.createElement("div");
                 line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
                 line.innerHTML = `
-                    <div class="entry-phase" style="justify-content: space-between;">
+                    <div class="entry-phase">
                         <span>${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
                         <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
                     </div>
