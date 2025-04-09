@@ -113,8 +113,14 @@ function flowmodoro_history_shortcode() {
             display: grid;
             grid-template-columns: 1fr auto;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
+
+        .entry-text {
+            white-space: nowrap;
+            overflow-wrap: break-word;
+        }
+
 
 
         .view-session-btn {
@@ -520,8 +526,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const line = document.createElement("div");
                 line.className = "entry-line " + (e.type === "Travail" ? "entry-travail" : "entry-pause");
                 line.innerHTML = `
-                    <div class="entry-phase" style="justify-content: space-between;">
-                        <span>${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</span>
+                    <div class="entry-phase">
+                        <div class="entry-text">${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp)}</div>
                         <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
                     </div>
                 `;
