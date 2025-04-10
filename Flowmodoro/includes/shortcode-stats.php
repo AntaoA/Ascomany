@@ -30,9 +30,9 @@ function flowmodoro_stats_shortcode() {
                 <div id="manual-picker-wrapper" style="position: relative; display: inline-block;">
                     <button class="period-btn" id="manual-picker-btn" data-period="manual">Sélection manuelle</button>
                 </div>
-                <div id="nav-buttons"; gap: 10px; margin-top: 10px;">
-                    <button id="prev-period" class="period-btn">← Période précédente</button>
-                    <button id="next-period" class="period-btn">Période suivante →</button>
+                <div id="nav-buttons" style="gap: 10px; margin-top: 10px;">
+                    <button id="prev-period" class="nav-buttons">← Période précédente</button>
+                    <button id="next-period" class="nav-buttons">Période suivante →</button>
                 </div>
                 <div id="period-label" style="margin-top: 10px; font-weight: bold; font-size: 16px;"></div>
                 <input type="hidden" id="date-range-picker">
@@ -739,6 +739,7 @@ function flowmodoro_stats_shortcode() {
 
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
+                    updateNavButtonsVisibility();
                 } else if (period === "week") {
                     const today = new Date();
                     const day = (today.getDay() + 6) % 7; // lundi = 0
@@ -789,9 +790,13 @@ function flowmodoro_stats_shortcode() {
                 }
 
                 if (period === "year") {
-                    document.getElementById("grouping-select").value = "month";
+                    if (!["day", "week"].includes(currentPeriodType)) {
+                        document.getElementById("grouping-select").value = "month";
+                    }      
                 } else {
-                    document.getElementById("grouping-select").value = "day";
+                    if (!["week", "month", "year"].includes(currentPeriodType)) {
+                            document.getElementById("grouping-select").value = "day";
+                        }                
                 }
 
  
