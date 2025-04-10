@@ -613,7 +613,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     
 
-
+        function computeRealPause(session) {
+            // realPause = temps de la session - temps de travail
+            const travail = session.filter(e => e.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
+            const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
+            const heureDébut = session[0].timestamp - (session[0].duration || 0);
+            const heureFin = session[session.length - 1].timestamp;
+            const realPause = (heureFin - heureDébut) - travail;
+            // consolelog
+            console.log("realPause", realPause, "travail", travail, "pause", pause, "heureDébut", heureDébut, "heureFin", heureFin, "session", session);
+            return realPause > 0 ? realPause : 0;
+        }
 
 
         function computeRealPause(session) {
@@ -656,7 +666,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const realPause = computeRealPause(session);
             const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
-            const percentPause = pause / realPause * 100 || 0;
+            const percentPause = (pause === 0 && realPause === 0) ? 100 : (pause / realPause) * 100 || 0;
 
             const details = document.createElement("div");
             details.className = "session-details";
@@ -797,7 +807,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const travail = session.filter(p => p.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
                 const realPause = computeRealPause(session);
                 const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
-                const percentPause = pause / realPause * 100 || 0;
+                const percentPause = (pause === 0 && realPause === 0) ? 100 : (pause / realPause) * 100 || 0;
                 const start = new Date(session[0].timestamp - (session[0].duration || 0)).toLocaleString();
 
                 sessionDetail.innerHTML = `
