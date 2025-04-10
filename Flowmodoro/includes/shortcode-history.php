@@ -614,7 +614,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const globalPhasesOrdered = [...allHistory].sort((a, b) => a.timestamp - b.timestamp);
     const phaseNumbers = new Map();
     globalPhasesOrdered.forEach((e, i) => {
-        phaseNumbers.set(e.timestamp, i + 1);
+        phaseNumbers.set(`${e.timestamp}-${i}`, i + 1);
     });
 
 
@@ -665,7 +665,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const line = document.createElement("div");
                 line.className = "entry-line " + (e.type === "Pause" ? "pause" : "");
                 const phaseLeftClass = "phase-left " + (e.type === "Pause" ? "pause" : "travail");
-                const phaseNum = phaseNumbers.get(e.timestamp);
+                const key = `${e.timestamp}-${globalPhasesOrdered.findIndex(x => x.timestamp === e.timestamp && x.type === e.type)}`;
+                const phaseNum = phaseNumbers.get(key);
                 line.innerHTML = `
                     <div class="entry-phase">
                         <div class="${phaseLeftClass}">
@@ -741,7 +742,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const icon = isTravail ? "💼" : "☕";
             const color = isTravail ? "#e74c3c" : "#3498db";
             const startTs = e.timestamp - (e.duration || 0);
-            const phaseNum = phaseNumbers.get(e.timestamp);
+            const key = `${e.timestamp}-${globalPhasesOrdered.findIndex(x => x.timestamp === e.timestamp && x.type === e.type)}`;
+            const phaseNum = phaseNumbers.get(key);
 
             const div = document.createElement("div");
             div.className = "session-block";
