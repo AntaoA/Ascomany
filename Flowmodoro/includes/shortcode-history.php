@@ -442,25 +442,15 @@ document.addEventListener('DOMContentLoaded', function () {
             const totalTravail = group.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
             const totalPause = group.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
 
-            // Calcul du temps réel de pause
-            const sorted = [...group].sort((a, b) => a.timestamp - b.timestamp);
-            let realPause = 0;
-
-            for (let i = 0; i < sorted.length - 1; i++) {
-                const current = sorted[i];
-                const next = sorted[i + 1];
-
-                if (current.type === "Pause" && next.type === "Travail") {
-                    const pauseEnd = current.timestamp;
-                    const travailStart = next.timestamp - (next.duration || 0);
-                    if (travailStart > pauseEnd) {
-                        realPause += travailStart - pauseEnd;
-                    }
-                }
-            }
+            const realPause = (() => {
+                if (sorted.length === 0) return 0;
+                const start = sorted[0].timestamp - (sorted[0].duration || 0);
+                const end = sorted.at(-1).timestamp;
+                return Math.max(0, (end - start) - (totalTravail + totalPause));
+            })();
 
             const totalChrono = totalTravail + totalPause;
-            const percentPause = totalChrono > 0 ? ((realPause / totalChrono) * 100).toFixed(1) : "0.0";
+            const realPausePercent = totalChrono > 0 ? (realPause / totalChrono) * 100 : 0;
 
             block.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -700,7 +690,7 @@ document.addEventListener('DOMContentLoaded', function () {
             details.innerHTML += `
                 <div style="margin-top:8px;"><small>
                     ⏱ Temps réel de pause : ${formatTime(realPause)}<br>
-                    🧮 Pourcentage de pause comptabilisée : ${pauseComptabiliseePercent.toFixed(1)} %
+                    🧮 Pourcentage de pause comptabilisée : ${((totalPause / realPause) * 100).toFixed(1)} %
                 </small></div>
             `;
 
@@ -773,18 +763,21 @@ document.addEventListener('DOMContentLoaded', function () {
         const paginated = paginate(phases, currentPage, itemLimit);
         
         function computeRealPause(session) {
-            let realPause = 0;
-            for (let i = 1; i < session.length; i++) {
-                const prev = session[i - 1];
-                const curr = session[i];
-                const endPrev = prev.timestamp + (prev.duration || 0);
-                const startCurr = curr.timestamp - (curr.duration || 0);
-                const gap = startCurr - endPrev;
-                if (prev.type === "Travail" && curr.type === "Travail" && gap > 0) {
-                    realPause += gap;
-                }
-            }
-            return realPause;
+            if (session.length === 0) return 0;
+
+            const start = session[0].timestamp - (session[0].duration || 0);
+            const end = session.at(-1).timestamp;
+
+            const totalTravail = session
+                .filter(e => e.type === "Travail")
+                .reduce((sum, e) => sum + (e.duration || 0), 0);
+
+            const totalPause = session
+                .filter(e => e.type === "Pause")
+                .reduce((sum, e) => sum + (e.duration || 0), 0);
+
+            const realPause = (end - start) - (totalTravail + totalPause);
+            return Math.max(0, realPause);
         }
 
         paginated.forEach((e, i) => {
@@ -833,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const travail = session.filter(p => p.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
                 const pause = session.filter(p => p.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
                 const realPause = computeRealPause(session);
-                const totalChrono = totalTravail + totalPause;
+                const totalChrono = travail + pause;
                 const percentPause = totalChrono > 0 ? ((realPause / totalChrono) * 100).toFixed(1) : "0.0";
                 const start = new Date(session[0].timestamp - (session[0].duration || 0)).toLocaleString();
 
