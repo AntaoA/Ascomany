@@ -660,7 +660,7 @@ document.addEventListener('DOMContentLoaded', function () {
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h4 style="margin: 0;">SSession ${sessionNum} — #${((currentPage - 1) * itemLimit) + idx + 1} — ${formatDate(session[0].timestamp, false)} à ${startTime}</h4>
+                        <h4 style="margin: 0;">Session ${sessionNum} — ${formatDate(session[0].timestamp, false)} à ${startTime}</h4>
                         <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
                     </div>
                     <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
