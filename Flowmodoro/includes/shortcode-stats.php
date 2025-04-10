@@ -30,7 +30,7 @@ function flowmodoro_stats_shortcode() {
                 <div id="manual-picker-wrapper" style="position: relative; display: inline-block;">
                     <button class="period-btn" id="manual-picker-btn" data-period="manual">Sélection manuelle</button>
                 </div>
-                <div id="nav-buttons" style="display: flex; gap: 10px; margin-top: 10px;">
+                <div id="nav-buttons"; gap: 10px; margin-top: 10px;">
                     <button id="prev-period" class="period-btn">← Période précédente</button>
                     <button id="next-period" class="period-btn">Période suivante →</button>
                 </div>
@@ -110,6 +110,26 @@ function flowmodoro_stats_shortcode() {
             z-index: 10;
         }
 
+        #nav-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            margin-left: auto;
+            align-items: center;
+        }
+        #nav-buttons button {
+            font-size: 13px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: #f5f5f5;
+            border: 1px solid #ccc;
+            color: #333;
+            box-shadow: none;
+        }
+        #nav-buttons button:hover {
+            background: #ddd;
+        }
+
 
     </style>
  
@@ -160,6 +180,16 @@ function flowmodoro_stats_shortcode() {
         let currentStart = null;
         let currentEnd = null;
  
+
+        function updateNavButtonsVisibility() {
+            const nav = document.getElementById("nav-buttons");
+            if (["week", "month", "year", "manual"].includes(currentPeriodType)) {
+                nav.style.display = "flex";
+            } else {
+                nav.style.display = "none";
+            }
+        }
+
  
  
         function getMinMaxDates(entries) {
@@ -780,6 +810,7 @@ function flowmodoro_stats_shortcode() {
                     document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
                     applyFilter(startStr, endStr);
                     updateGroupingVisibility();
+                    updateNavButtonsVisibility();
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
                 }
@@ -1020,6 +1051,7 @@ function flowmodoro_stats_shortcode() {
 
             updatePeriodLabel();
             updateGroupingVisibility();
+            updateNavButtonsVisibility();
 
         }
 
@@ -1084,6 +1116,7 @@ function flowmodoro_stats_shortcode() {
             document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
             const currentBtn = document.querySelector(`.period-btn[data-period="${currentPeriodType}"]`);
             if (currentBtn) currentBtn.classList.add("selected");
+            updateNavButtonsVisibility();
         }
 
 
