@@ -747,7 +747,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function renderPhases(phases, container = output) {
         container.innerHTML = "";
-        phases.sort((a, b) => b.timestamp - a.timestamp);
+        phases.sort((a, b) => b.timestamp - a.timestamp); // plus récent en premier
 
         const paginated = paginate(phases, currentPage, itemLimit);
 
@@ -762,9 +762,11 @@ document.addEventListener('DOMContentLoaded', function () {
             div.style.borderLeft = `6px solid ${color}`;
             div.style.cursor = "pointer";
 
+            const phaseNum = phaseNumbers.get(e.timestamp); // <-- bonne numérotation chronologique ici
+
             div.innerHTML = `
                 <div class="entry-phase" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="color: ${color}; font-weight: bold;">${icon} Phase ${((currentPage - 1) * itemLimit) + i + 1} — ${e.type}</div>
+                    <div style="color: ${color}; font-weight: bold;">${icon} Phase ${phaseNum} — ${e.type}</div>
                     <div>${formatTime(e.duration)} — ${formatDate(startTs)}</div>
                     <div>
                         <button class="delete-phase-btn" data-ts="${e.timestamp}">🗑</button>
@@ -820,6 +822,7 @@ document.addEventListener('DOMContentLoaded', function () {
         attachDeletePhaseHandlers();
         renderPagination(phases.length, container);
     }
+
 
 
 
