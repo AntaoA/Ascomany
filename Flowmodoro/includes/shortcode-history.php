@@ -1159,7 +1159,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         else if (level === "day") {
-            const dateStr = new Date(target).toLocaleDateString("fr-FR");
+            const d = new Date(parseInt(target));
+            d.setHours(0, 0, 0, 0);
+            const dateStr = d.toLocaleDateString("fr-FR");
             switchToMode("day");
 
             setTimeout(() => {
