@@ -459,8 +459,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            const totalActif = totalTravail + realPause;
-            const realPausePercent = totalActif > 0 ? (realPause / totalActif) * 100 : 0;
+            const totalChrono = totalTravail + totalPause;
+            const percentPause = totalChrono > 0 ? ((realPause / totalChrono) * 100).toFixed(1) : "0.0";
 
             block.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -674,7 +674,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const realPause = computeRealPause(session);
-            const pauseComptabiliseePercent = realPause > 0 ? (totalPause / realPause) * 100 : 0;
+            const totalChrono = totalTravail + totalPause;
+            const percentPause = totalChrono > 0 ? ((realPause / totalChrono) * 100).toFixed(1) : "0.0";
 
             const details = document.createElement("div");
             details.className = "session-details";
@@ -832,8 +833,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const travail = session.filter(p => p.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
                 const pause = session.filter(p => p.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
                 const realPause = computeRealPause(session);
-                const totalReal = (session.at(-1)?.timestamp || 0) - (session[0]?.timestamp - (session[0]?.duration || 0));
-                const percentPause = totalReal > 0 ? ((realPause / totalReal) * 100).toFixed(1) : "0.0";
+                const totalChrono = totalTravail + totalPause;
+                const percentPause = totalChrono > 0 ? ((realPause / totalChrono) * 100).toFixed(1) : "0.0";
                 const start = new Date(session[0].timestamp - (session[0].duration || 0)).toLocaleString();
 
                 sessionDetail.innerHTML = `
