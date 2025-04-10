@@ -257,20 +257,20 @@ function flowmodoro_stats_shortcode() {
             });
             if (currentSession.length) sessions.push(currentSession);
 
-            // Calcul du temps réel de pause (uniquement intra-session)
+            // Pause réelle par session = (dernière pause) - (première pause)
             sessions.forEach(session => {
-                for (let i = 0; i < session.length - 1; i++) {
-                    const current = session[i];
-                    const next = session[i + 1];
+                const pauses = session.filter(e => e.type === "Pause");
+                if (pauses.length === 0) return;
 
-                    if (current.type === "Pause" && next.type === "Travail") {
-                        const pauseEnd = current.timestamp + (current.duration || 0);
-                        const interval = next.timestamp - pauseEnd;
+                const first = pauses[0];
+                const last = pauses[pauses.length - 1];
+                const start = first.timestamp;
+                const end = last.timestamp + (last.duration || 0);
+                const real = end - start;
 
-                        if (interval > 0) pauseReal += interval;
-                    }
-                }
+                if (real > 0) pauseReal += real;
             });
+
 
             const pauseExcess = pause - pauseReal;
             const pauseExcessPercentage = pauseReal > 0 
@@ -281,8 +281,6 @@ function flowmodoro_stats_shortcode() {
                 work,
                 pause,
                 pauseReal,
-                pauseExcess,
-                pauseExcessPercentage,
                 sessionCount: sessions.length,
                 daysActive: days.size,
                 first: filtered[0]?.timestamp,
@@ -418,8 +416,8 @@ function flowmodoro_stats_shortcode() {
                 <ul style="list-style: none; padding: 0; font-size: 16px;">
                     <li><strong>Total travail :</strong> ${format(stats.work)}</li>
                     <li><strong>Total pause :</strong> ${format(stats.pause)}</li>
-                    <li><strong>Pause réelle intra-session :</strong> ${format(stats.pauseReal)}</li>
-                    <li><strong>⏳ Pause en trop :</strong> ${format(stats.pauseExcess)} (${stats.pauseExcessPercentage}%)</li>
+                    <li><strong>🕓 Pause réelle :</strong> ${format(stats.pauseReal)}</li>
+                    <li><strong>📉 % de pause comptabilisée :</strong> ${stats.pauseReal > 0 ? ((stats.pause / stats.pauseReal) * 100).toFixed(1) : "100.0"}%</li>
                     <li><strong>Nombre de sessions :</strong> ${stats.sessionCount}</li>
                     <li><strong>Jours actifs :</strong> ${stats.daysActive}</li>
                     <li><strong>🔥 Streak en cours :</strong> ${streaks.current.streak} jour(s) ${streaks.current.streak > 0 ? `depuis ${streaks.current.start}` : ''} ${!streaks.todayIncluded ? `<span style="color:#e74c3c;">(⚠️ aujourd'hui non compté)</span>` : ''}</li>
