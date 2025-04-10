@@ -15,7 +15,9 @@ function flowmodoro_history_shortcode() {
         <h2>📜 Historique Flowmodoro</h2>
         <div class="history-controls">
             <div class="grouping-select">
-                <button id="grouping-toggle" class="toggle-button">📆 Regrouper par : <span id="grouping-label">Jour</span> ⏷</button>
+                <button id="grouping-toggle" class="toggle-button">
+                    📆 Regrouper par : <span id="grouping-label">Jour</span> ⏷
+                </button>
                 <ul id="grouping-options" class="dropdown hidden">
                     <li data-mode="year">Année</li>
                     <li data-mode="month">Mois</li>
@@ -24,6 +26,16 @@ function flowmodoro_history_shortcode() {
                     <li data-mode="session">Session</li>
                     <li data-mode="phase">Phase</li>
                 </ul>
+            </div>
+
+            <div class="limit-select">
+                <label for="limit">Limiter à : </label>
+                <select id="item-limit">
+                    <option value="10">10 éléments</option>
+                    <option value="20" selected>20 éléments</option>
+                    <option value="50">50 éléments</option>
+                    <option value="0">Tous</option>
+                </select>
             </div>
         </div>
         <div id="history-output"></div>
@@ -278,6 +290,60 @@ document.addEventListener('DOMContentLoaded', function () {
         echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     ?>;
     
+    let itemLimit = 20;
+    let currentPage = 1;
+
+    document.getElementById("item-limit").addEventListener("change", (e) => {
+        itemLimit = parseInt(e.target.value);
+        currentPage = 1;
+        render();
+    });
+
+    function paginate(items, page, limit) {
+        if (limit === 0) return items; // 0 = no limit
+        const start = (page - 1) * limit;
+        return items.slice(start, start + limit);
+    }
+
+    function renderPagination(totalItems, container) {
+        const totalPages = itemLimit === 0 ? 1 : Math.ceil(totalItems / itemLimit);
+        if (totalPages <= 1) return;
+
+        const nav = document.createElement("div");
+        nav.style.textAlign = "center";
+        nav.style.marginTop = "15px";
+
+        const prev = document.createElement("button");
+        prev.textContent = "← Précédent";
+        prev.disabled = currentPage === 1;
+        prev.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                render();
+            }
+        };
+
+        const next = document.createElement("button");
+        next.textContent = "Suivant →";
+        next.disabled = currentPage >= totalPages;
+        next.onclick = () => {
+            if (currentPage < totalPages) {
+                currentPage++;
+                render();
+            }
+        };
+
+        const label = document.createElement("span");
+        label.textContent = ` Page ${currentPage} / ${totalPages} `;
+        label.style.margin = "0 10px";
+
+        nav.appendChild(prev);
+        nav.appendChild(label);
+        nav.appendChild(next);
+        container.appendChild(nav);
+    }
+
+
 
     const sessionParam = new URLSearchParams(window.location.search).get("session");
     let sessionHistory = [];
@@ -532,6 +598,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Trie les sessions du plus récent au plus ancien pour l'affichage
         sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
 
+        const paginated = paginate(sessions, currentPage, itemLimit);
+
         // Numérotation globale sur toutes les sessions de l'historique complet
         const globalSessions = groupSessions(allHistory);
         globalSessions.sort((a, b) => a[0].timestamp - b[0].timestamp);
@@ -543,7 +611,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
 
-        sessions.forEach(session => {
+        paginated.forEach((session, idx) => {
             const div = document.createElement("div");
             div.className = "session-block";
             let totalTravail = 0, totalPause = 0;
@@ -592,7 +660,7 @@ document.addEventListener('DOMContentLoaded', function () {
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h4 style="margin: 0;">Session ${sessionNum} — ${formatDate(session[0].timestamp, false)} à ${startTime}</h4>
+                        <h4 style="margin: 0;">SSession ${sessionNum} — #${((currentPage - 1) * itemLimit) + idx + 1} — ${formatDate(session[0].timestamp, false)} à ${startTime}</h4>
                         <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
                     </div>
                     <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
@@ -670,25 +738,20 @@ document.addEventListener('DOMContentLoaded', function () {
             };
         });
         attachDeletePhaseHandlers();
+        renderPagination(sessions.length, container);
+
     }
 
 
 
 
-
-
     function renderPhases(phases, container = output) {
+        container.innerHTML = "";
         phases.sort((a, b) => b.timestamp - a.timestamp);
 
+        const paginated = paginate(phases, currentPage, itemLimit);
 
-        // Numérotation globale des phases
-        const globalPhases = [...allHistory].sort((a, b) => a.timestamp - b.timestamp);
-        const phaseNumbers = new Map();
-        globalPhases.forEach((e, i) => {
-            phaseNumbers.set(e.timestamp, i + 1);
-        });
-
-        phases.forEach(e => {
+        paginated.forEach((e, i) => {
             const isTravail = e.type === "Travail";
             const icon = isTravail ? "💼" : "☕";
             const color = isTravail ? "#e74c3c" : "#3498db";
@@ -699,10 +762,9 @@ document.addEventListener('DOMContentLoaded', function () {
             div.style.borderLeft = `6px solid ${color}`;
             div.style.cursor = "pointer";
 
-            const phaseNum = phaseNumbers.get(e.timestamp);
             div.innerHTML = `
                 <div class="entry-phase" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="color: ${color}; font-weight: bold;">${icon} Phase ${phaseNum} — ${e.type}</div>
+                    <div style="color: ${color}; font-weight: bold;">${icon} Phase ${((currentPage - 1) * itemLimit) + i + 1} — ${e.type}</div>
                     <div>${formatTime(e.duration)} — ${formatDate(startTs)}</div>
                     <div>
                         <button class="delete-phase-btn" data-ts="${e.timestamp}">🗑</button>
@@ -752,46 +814,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 sessionDetail.style.display = "block";
             });
 
-            div.querySelector(".delete-phase-btn").onclick = (ev) => {
-                ev.stopPropagation();
-                // garde ta logique actuelle
-            };
-
-            output.querySelectorAll(".delete-phase-btn").forEach(btn => {
-                btn.onclick = (e) => {
-                    e.stopPropagation();
-                    const ts = parseInt(btn.dataset.ts);
-
-                    confirmCustom("Supprimer cette phase ?", (ok) => {
-                        if (!ok) return;
-
-                        for (let i = allHistory.length - 1; i >= 0; i--) {
-                            if (allHistory[i].timestamp === ts) {
-                                allHistory.splice(i, 1);
-                                break;
-                            }
-                        }
-
-                        sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
-                        sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
-
-                        if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
-                            fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                                body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
-                            });
-                        }
-
-                        render(); // on re-render la vue complète
-                    });
-                };
-            });
-
-            attachDeletePhaseHandlers();
             container.appendChild(div);
         });
+
+        attachDeletePhaseHandlers();
+        renderPagination(phases.length, container);
     }
+
+
+
 
 
 
