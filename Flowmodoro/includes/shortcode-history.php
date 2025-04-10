@@ -526,11 +526,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Trie les sessions du plus récent au plus ancien pour l'affichage
         sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
 
-        // Pour la numérotation, on veut le plus ancien = session 1
-        const sessionsInChronoOrder = [...sessions].sort((a, b) => a[0].timestamp - b[0].timestamp);
+        // Numérotation globale sur toutes les sessions de l'historique complet
+        const globalSessions = groupSessions([...allHistory].sort((a, b) => a[0].timestamp - b[0].timestamp));
         const sessionNumbers = new Map();
-        sessionsInChronoOrder.forEach((s, i) => {
-            sessionNumbers.set(s, i + 1); // numérotation 1, 2, 3...
+        globalSessions.forEach((s, i) => {
+            const key = s.map(e => e.timestamp).join("-");
+            sessionNumbers.set(key, i + 1);
         });
 
         sessions.forEach(session => {
@@ -572,8 +573,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 details.appendChild(jumpButton);
 
 
-            const sessionNum = sessionNumbers.get(session);
-            const startTs = session[0].timestamp - (session[0].duration || 0);
+            const sessionKey = session.map(e => e.timestamp).join("-");
+            const sessionNum = sessionNumbers.get(sessionKey);            const startTs = session[0].timestamp - (session[0].duration || 0);
             const startTime = new Date(startTs).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
             div.innerHTML = `
