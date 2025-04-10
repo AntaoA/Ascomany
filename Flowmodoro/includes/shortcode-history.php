@@ -430,11 +430,36 @@ document.addEventListener('DOMContentLoaded', function () {
             const totalTravail = group.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
             const totalPause = group.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
 
+            // Calcul du temps réel de pause
+            const sorted = [...group].sort((a, b) => a.timestamp - b.timestamp);
+            let realPause = 0;
+
+            for (let i = 0; i < sorted.length - 1; i++) {
+                const current = sorted[i];
+                const next = sorted[i + 1];
+
+                if (current.type === "Pause" && next.type === "Travail") {
+                    const pauseEnd = current.timestamp;
+                    const travailStart = next.timestamp - (next.duration || 0);
+                    if (travailStart > pauseEnd) {
+                        realPause += travailStart - pauseEnd;
+                    }
+                }
+            }
+
+            const totalActif = totalTravail + realPause;
+            const realPausePercent = totalActif > 0 ? (realPause / totalActif) * 100 : 0;
+
             block.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h5 style="margin: 0;">${key}</h5>
                     <div>
-                        <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
+                        <small>
+                            Travail : ${formatTime(totalTravail)} |
+                            Pause : ${formatTime(totalPause)} |
+                            Pause réelle : ${formatTime(realPause)} |
+                            % Pause réelle : ${realPausePercent.toFixed(1)}%
+                        </small>
                         <button class="delete-group-btn" data-group="${key}" data-level="${mode}" title="Supprimer tout ce groupe">🗑</button>
                     </div>
                 </div>
@@ -489,12 +514,10 @@ document.addEventListener('DOMContentLoaded', function () {
                                     });
                                 }
 
-                                // Supprime le bloc visuellement
                                 const currentBlock = btn.closest(".session-block");
                                 const parentDetail = currentBlock?.parentElement;
                                 currentBlock?.remove();
 
-                                // Si le parent (session-details) devient vide, le supprimer aussi (récursivement)
                                 let detailBlock = parentDetail;
                                 while (
                                     detailBlock &&
@@ -515,8 +538,6 @@ document.addEventListener('DOMContentLoaded', function () {
                             });
                         };
                     });
-
-
                 }
 
                 detail.style.display = detail.style.display === "block" ? "none" : "block";
@@ -524,8 +545,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
             container.appendChild(block);
         });
-    attachDeletePhaseHandlers();
+
+        attachDeletePhaseHandlers();
     }
+
 
 
 
@@ -594,35 +617,50 @@ document.addEventListener('DOMContentLoaded', function () {
         phaseNumbers.set(e.timestamp, i + 1);
     });
 
-    function renderSessions(sessions, container = output) {
-        // Trie les sessions du plus récent au plus ancien pour l'affichage
-        sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
 
+    function computeRealPause(session) {
+        let realPause = 0;
+        for (let i = 1; i < session.length; i++) {
+            const prev = session[i - 1];
+            const curr = session[i];
+            const gap = curr.timestamp - (prev.timestamp + (prev.duration || 0));
+            if (prev.type === "Pause" && curr.type === "Travail" && gap > 0) {
+                realPause += gap;
+            }
+        }
+        return realPause;
+    }
+
+
+
+    function renderSessions(sessions, container = output) {
+        sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
         const paginated = paginate(sessions, currentPage, itemLimit);
 
-        // Numérotation globale sur toutes les sessions de l'historique complet
-        const globalSessions = groupSessions(allHistory);
-        globalSessions.sort((a, b) => a[0].timestamp - b[0].timestamp);
-
+        const globalSessions = groupSessions(allHistory).sort((a, b) => a[0].timestamp - b[0].timestamp);
         const sessionNumbers = new Map();
         globalSessions.forEach((s, i) => {
             const key = s.map(e => e.timestamp).join("-");
             sessionNumbers.set(key, i + 1);
         });
 
-
         paginated.forEach((session, idx) => {
             const div = document.createElement("div");
             div.className = "session-block";
-            let totalTravail = 0, totalPause = 0;
 
+            let totalTravail = 0, totalPause = 0;
             session.forEach(e => {
                 if (e.type === "Travail") totalTravail += e.duration || 0;
                 if (e.type === "Pause") totalPause += e.duration || 0;
             });
 
+            const realPause = computeRealPause(session);
+            const totalReal = (session.at(-1)?.timestamp || 0) - (session[0]?.timestamp - (session[0]?.duration || 0));
+            const percentPause = totalReal > 0 ? ((realPause / totalReal) * 100).toFixed(1) : "0.0";
+
             const details = document.createElement("div");
             details.className = "session-details";
+
             session.forEach(e => {
                 const line = document.createElement("div");
                 line.className = "entry-line " + (e.type === "Pause" ? "pause" : "");
@@ -641,21 +679,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 details.appendChild(line);
             });
 
-            const jumpButton = document.createElement("div");
-                jumpButton.style.marginTop = "10px";
-                jumpButton.innerHTML = `
-                    <a href="/historique?focus=day:${session[0].timestamp}" class="view-session-btn">
-                        📅 Voir le jour correspondant
-                    </a>
-                `;
-                details.appendChild(jumpButton);
+            details.innerHTML += `
+                <div style="margin-top:8px;"><small>
+                    ⏱ Temps réel de pause : ${formatTime(realPause)}<br>
+                    🧮 Pourcentage de pause réelle : ${percentPause} %
+                </small></div>
+            `;
 
-
-                const sessionKey = session.map(e => e.timestamp).join("-");
-                const sessionNum = sessionNumbers.get(sessionKey);
-                const firstPhase = session[0];
-                const startTs = firstPhase.timestamp - (firstPhase.duration || 0);
-                const startTime = new Date(startTs).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+            const sessionKey = session.map(e => e.timestamp).join("-");
+            const sessionNum = sessionNumbers.get(sessionKey);
+            const firstPhase = session[0];
+            const startTs = firstPhase.timestamp - (firstPhase.duration || 0);
+            const startTime = new Date(startTs).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -668,80 +703,17 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
             div.appendChild(details);
             div.addEventListener("click", (e) => {
-                if (e.target.closest(".delete-session-btn")) return;
-                if (e.target.closest(".delete-phase-btn")) return;
-                e.stopPropagation(); // 🔒 empêche la fermeture du bloc parent
+                if (e.target.closest(".delete-session-btn") || e.target.closest(".delete-phase-btn")) return;
+                e.stopPropagation();
                 details.style.display = details.style.display === "block" ? "none" : "block";
             });
 
             container.appendChild(div);
-
-            div.querySelector(".delete-session-btn").onclick = (e) => {
-                e.stopPropagation();
-                confirmCustom("Supprimer cette session ?", (ok) => {
-                    if (!ok) return;
-
-                    const timestampsToDelete = session.map(e => e.timestamp);
-                    for (let i = allHistory.length - 1; i >= 0; i--) {
-                        if (timestampsToDelete.includes(allHistory[i].timestamp)) {
-                            allHistory.splice(i, 1);
-                        }
-                    }
-
-                    sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
-                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
-
-                    if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
-                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
-                        });
-                    }
-
-                    // 🔁 Re-render uniquement ce container avec MAJ de la numérotation
-                    const parentDetail = div.parentElement;
-                    const remainingEntries = [];
-
-                    parentDetail.querySelectorAll(".entry-line").forEach(line => {
-                        const ts = parseInt(line.querySelector(".delete-phase-btn")?.dataset.ts);
-                        const found = allHistory.find(e => e.timestamp === ts);
-                        if (found) remainingEntries.push(found);
-                    });
-
-                    div.remove();
-                    parentDetail.innerHTML = "";
-                    if (remainingEntries.length > 0) {
-                        const reSessions = groupSessions(remainingEntries);
-                        renderSessions(reSessions, parentDetail);
-                    } else {
-                        // suppression récursive si vide
-                        let detailBlock = parentDetail;
-                        while (
-                            detailBlock &&
-                            detailBlock.classList.contains("session-details") &&
-                            detailBlock.childElementCount === 0
-                        ) {
-                            const parentBlock = detailBlock.closest(".session-block");
-                            detailBlock.remove();
-
-                            if (parentBlock && parentBlock.parentElement?.classList.contains("session-details")) {
-                                const outerDetail = parentBlock.parentElement;
-                                parentBlock.remove();
-                                detailBlock = outerDetail;
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                });
-            };
         });
+
         attachDeletePhaseHandlers();
         renderPagination(sessions.length, container);
-
     }
-
 
 
 
@@ -751,18 +723,30 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const paginated = paginate(phases, currentPage, itemLimit);
 
+        function computeRealPause(session) {
+            let realPause = 0;
+            for (let i = 1; i < session.length; i++) {
+                const prev = session[i - 1];
+                const curr = session[i];
+                const gap = curr.timestamp - (prev.timestamp + (prev.duration || 0));
+                if (prev.type === "Pause" && curr.type === "Travail" && gap > 0) {
+                    realPause += gap;
+                }
+            }
+            return realPause;
+        }
+
         paginated.forEach((e, i) => {
             const isTravail = e.type === "Travail";
             const icon = isTravail ? "💼" : "☕";
             const color = isTravail ? "#e74c3c" : "#3498db";
             const startTs = e.timestamp - (e.duration || 0);
+            const phaseNum = phaseNumbers.get(e.timestamp);
 
             const div = document.createElement("div");
             div.className = "session-block";
             div.style.borderLeft = `6px solid ${color}`;
             div.style.cursor = "pointer";
-
-            const phaseNum = phaseNumbers.get(e.timestamp); // <-- bonne numérotation chronologique ici
 
             div.innerHTML = `
                 <div class="entry-phase" style="display: flex; justify-content: space-between; align-items: center;">
@@ -797,6 +781,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const travail = session.filter(p => p.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
                 const pause = session.filter(p => p.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
+                const realPause = computeRealPause(session);
+                const totalReal = (session.at(-1)?.timestamp || 0) - (session[0]?.timestamp - (session[0]?.duration || 0));
+                const percentPause = totalReal > 0 ? ((realPause / totalReal) * 100).toFixed(1) : "0.0";
                 const start = new Date(session[0].timestamp - (session[0].duration || 0)).toLocaleString();
 
                 sessionDetail.innerHTML = `
@@ -804,9 +791,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     Début : ${start}<br>
                     Travail : ${formatTime(travail)}<br>
                     Pause : ${formatTime(pause)}<br>
+                    Temps réel de pause : ${formatTime(realPause)}<br>
+                    Pourcentage de pause réelle : ${percentPause} %<br>
                     Phases : ${session.length}
-                `;
-                sessionDetail.innerHTML += `
                     <div style="margin-top: 10px;">
                         <a href="/historique?focus=session:${session[0].timestamp}" class="view-session-btn">
                             👁 Voir la session complète
@@ -822,7 +809,6 @@ document.addEventListener('DOMContentLoaded', function () {
         attachDeletePhaseHandlers();
         renderPagination(phases.length, container);
     }
-
 
 
 
