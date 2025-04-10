@@ -399,6 +399,8 @@ document.addEventListener('DOMContentLoaded', function () {
         return sessions;
     }
 
+    const phaseNumbers = new Map();
+
     function updatePhaseNumbers() {
         phaseNumbers.clear();
         [...allHistory]
@@ -621,7 +623,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    const phaseNumbers = new Map();
     [...allHistory]
         .sort((a, b) => a.timestamp - b.timestamp || a.type.localeCompare(b.type))
         .forEach((e, i) => {
