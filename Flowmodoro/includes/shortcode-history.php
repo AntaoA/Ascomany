@@ -667,8 +667,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const realPause = computeRealPause(session);
-            const totalReal = (session.at(-1)?.timestamp || 0) - (session[0]?.timestamp - (session[0]?.duration || 0));
-            const percentPause = totalReal > 0 ? ((realPause / totalReal) * 100).toFixed(1) : "0.0";
+            const pauseComptabiliseePercent = realPause > 0 ? (totalPause / realPause) * 100 : 0;
 
             const details = document.createElement("div");
             details.className = "session-details";
@@ -690,13 +689,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 `;
                 details.appendChild(line);
             });
-
             details.innerHTML += `
                 <div style="margin-top:8px;"><small>
                     ⏱ Temps réel de pause : ${formatTime(realPause)}<br>
-                    🧮 Pourcentage de pause réelle : ${percentPause} %
+                    🧮 Pourcentage de pause comptabilisée : ${pauseComptabiliseePercent.toFixed(1)} %
                 </small></div>
             `;
+
 
             const sessionKey = session.map(e => e.timestamp).join("-");
             const sessionNum = sessionNumbers.get(sessionKey);
@@ -764,14 +763,16 @@ document.addEventListener('DOMContentLoaded', function () {
         phases.sort((a, b) => b.timestamp - a.timestamp); // plus récent en premier
 
         const paginated = paginate(phases, currentPage, itemLimit);
-
+        
         function computeRealPause(session) {
             let realPause = 0;
             for (let i = 1; i < session.length; i++) {
                 const prev = session[i - 1];
                 const curr = session[i];
-                const gap = curr.timestamp - (prev.timestamp + (prev.duration || 0));
-                if (prev.type === "Pause" && curr.type === "Travail" && gap > 0) {
+                const endPrev = prev.timestamp + (prev.duration || 0);
+                const startCurr = curr.timestamp - (curr.duration || 0);
+                const gap = startCurr - endPrev;
+                if (prev.type === "Travail" && curr.type === "Travail" && gap > 0) {
                     realPause += gap;
                 }
             }
