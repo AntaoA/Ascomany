@@ -443,9 +443,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const totalPause = group.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
 
             const realPause = computeRealPause(group);
-
-            const totalChrono = totalTravail + totalPause;
-            const realPausePercent = totalChrono > 0 ? (realPause / totalChrono) * 100 : 0;
+            const totalSessionTime = totalTravail + totalPause;
+            const realPausePercent = totalSessionTime > 0 ? (realPause / totalSessionTime) * 100 : 0;
 
             block.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -545,7 +544,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         attachDeletePhaseHandlers();
     }
-
 
 
 
@@ -694,10 +692,9 @@ document.addEventListener('DOMContentLoaded', function () {
             details.innerHTML += `
                 <div style="margin-top:8px;"><small>
                     ⏱ Temps réel de pause : ${formatTime(realPause)}<br>
-                    🧮 Pourcentage de pause comptabilisée : ${((totalPause / realPause) * 100).toFixed(1)} %
+                    🧮 Pourcentage de pause réelle : ${percentPause} %
                 </small></div>
             `;
-
 
             const sessionKey = session.map(e => e.timestamp).join("-");
             const sessionNum = sessionNumbers.get(sessionKey);
@@ -755,7 +752,6 @@ document.addEventListener('DOMContentLoaded', function () {
         attachDeletePhaseHandlers();
         renderPagination(sessions.length, container);
     }
-
 
 
 
