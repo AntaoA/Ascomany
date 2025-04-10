@@ -615,44 +615,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         function computeRealPause(session) {
-            // Trier la session par timestamp (du plus ancien au plus récent)
-            const sortedSession = [...session].sort((a, b) => a.timestamp - b.timestamp);
-
-            // Calcul du début de la session (timestamp de la première phase)
-            const start = sortedSession[0].timestamp;
-
-            // Calcul de la fin de la session (timestamp de la dernière phase + sa durée)
-            const end = sortedSession[sortedSession.length - 1].timestamp + (sortedSession[sortedSession.length - 1].duration || 0);
-
-            // Calcul du temps total de travail (somme des durées des phases de travail)
-            const travail = sortedSession.filter(e => e.type === "Travail")
-                .reduce((sum, e) => sum + (e.duration || 0), 0);
-
-            // Calcul du temps total de la session (fin - début)
-            const totalSessionTime = end - start;
-
-            // Si le temps total de la session est très faible ou égal à 0, éviter les calculs incorrects
-            if (totalSessionTime <= 0) {
-                return 0;
-            }
-
-            // Calcul du temps total de pause (somme des durées des phases de pause)
-            const pause = sortedSession.filter(e => e.type === "Pause")
-                .reduce((sum, e) => sum + (e.duration || 0), 0);
-
-            // Calcul de la pause réelle : Temps total de la session - Temps de travail
-            const realPause = totalSessionTime - travail;
-
-            // Calcul du pourcentage de pause réelle : 
-            // (On vérifie si le temps total de la session est supérieur à zéro pour éviter les divisions par zéro)
-            const realPausePercent = totalSessionTime > 0 ? (realPause / totalSessionTime) * 100 : 0;
-
-            // Retourner la pause réelle, avec un minimum de 0
-            return {
-                realPause: Math.max(0, realPause),
-                realPausePercent: isFinite(realPausePercent) ? realPausePercent : 0  // Garantir qu'on n'affiche pas Infinity
-            };
-        }
+        // realPause = temps de la session - temps de travail
+        const travail = session.filter(e => e.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
+        const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
+        const realPause = session.reduce((a, b) => a + (b.duration || 0), 0) - travail;
+        return realPause > 0 ? realPause : 0;
 
 
 
