@@ -427,10 +427,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function renderGroupedLevel(mode, entries, container) {
+        if (!Array.isArray(entries)) {
+            console.error("renderGroupedLevel expected an array but got:", entries);
+            return;
+        }
+
         const grouped = groupByMode(entries, mode);
         const keys = Object.keys(grouped).sort((a, b) => {
-            const aDate = new Date(grouped[a][0].timestamp);
-            const bDate = new Date(grouped[b][0].timestamp);
+            const aDate = new Date(deepFlatPhases(grouped[a])[0]?.timestamp || 0);
+            const bDate = new Date(deepFlatPhases(grouped[b])[0]?.timestamp || 0);
             return bDate - aDate;
         });
 
@@ -439,18 +444,12 @@ document.addEventListener('DOMContentLoaded', function () {
             block.className = "session-block";
 
             const group = grouped[key];
+            const flatGroup = deepFlatPhases(group);
 
-            // Calcul des totaux pour le groupe
-            let totalTravail = 0, totalPause = 0, totalRealPause = 0;
-
-            // Calculer les totaux pour chaque session dans le groupe
-            group.forEach(session => {
-                totalTravail += session.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
-                totalPause += session.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
-                totalRealPause += computeRealPause(session); // Additionner la pause réelle de chaque session
-            });
-
-            const percentPause = (totalRealPause === 0 || totalPause === 0) ? 100 : (totalPause / totalRealPause) * 100 || 0;
+            const totalTravail = flatGroup.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
+            const totalPause = flatGroup.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
+            const realPause = computeRealPause(flatGroup);
+            const percentPause = (realPause === 0 || totalPause === 0) ? 100 : (totalPause / realPause) * 100 || 0;
 
             block.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -459,7 +458,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <small>
                             Travail : ${formatTime(totalTravail)} |
                             Pause : ${formatTime(totalPause)} |
-                            Pause réelle : ${formatTime(totalRealPause)} |
+                            Pause réelle : ${formatTime(realPause)} |
                             % Pause comptabilisée : ${percentPause.toFixed(1)}%
                         </small>
                         <button class="delete-group-btn" data-group="${key}" data-level="${mode}" title="Supprimer tout ce groupe">🗑</button>
@@ -479,11 +478,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 const next = getNextLevel(mode);
                 if (detail.innerHTML === "" && next) {
                     if (next === "session") {
-                        renderSessions(groupSessions(group), detail);
+                        renderSessions(groupSessions(flatGroup), detail);
                     } else if (next === "phase") {
-                        renderPhases(group, detail);
+                        renderPhases(flatGroup, detail);
                     } else {
-                        renderGroupedLevel(next, group, detail);
+                        renderGroupedLevel(next, flatGroup, detail);
                     }
 
                     detail.querySelectorAll(".delete-group-btn").forEach(btn => {
@@ -498,7 +497,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                 const toDelete = Object.entries(groupByMode(allHistory, level))
                                     .find(([label]) => label === groupKey)?.[1] || [];
 
-                                const timestampsToDelete = toDelete.map(e => e.timestamp);
+                                const toDeleteFlat = deepFlatPhases(toDelete);
+                                const timestampsToDelete = toDeleteFlat.map(e => e.timestamp);
+
                                 for (let i = allHistory.length - 1; i >= 0; i--) {
                                     if (timestampsToDelete.includes(allHistory[i].timestamp)) {
                                         allHistory.splice(i, 1);
@@ -550,6 +551,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         attachDeletePhaseHandlers();
     }
+
 
 
 
@@ -612,6 +614,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
+    function deepFlatPhases(input) {
+        const result = [];
+
+        const flatten = (arr) => {
+            for (const item of arr) {
+                if (Array.isArray(item)) {
+                    flatten(item); // récursion
+                } else if (item && typeof item === 'object' && 'timestamp' in item && 'type' in item) {
+                    result.push(item); // on considère que c’est une phase valide
+                }
+            }
+        };
+
+        flatten(input);
+        return result;
+    }
+
 
     [...allHistory]
         .sort((a, b) => a.timestamp - b.timestamp || a.type.localeCompare(b.type))
@@ -620,21 +639,16 @@ document.addEventListener('DOMContentLoaded', function () {
             phaseNumbers.set(JSON.stringify(e), i + 1);
         });
     
-        function computeRealPause(session) {
-            // Trouver toutes les phases de pause dans une session
-            const pausePhases = session.filter(e => e.type === "Pause");
 
-            if (pausePhases.length === 0) {
-                return 0; // Si aucune pause, la pause réelle est de 0
-            }
+        function computeRealPause(input) {
+            const flat = deepFlatPhases(input);
+            const pausePhases = flat.filter(e => e.type === "Pause");
 
-            // Calculer le début et la fin des pauses en tenant compte de toutes les phases de pause
-            const pauseStart = pausePhases[0]?.timestamp;
-            const pauseEnd = pausePhases[pausePhases.length - 1]?.timestamp + (pausePhases[pausePhases.length - 1]?.duration || 0);
+            if (pausePhases.length === 0) return 0;
 
-            // Calculer le temps réel de pause
-            const realPause = pauseEnd - pauseStart;
-            return realPause > 0 ? realPause : 0;
+            const pauseStart = pausePhases[0].timestamp;
+            const pauseEnd = pausePhases[pausePhases.length - 1].timestamp + (pausePhases[pausePhases.length - 1].duration || 0);
+            return Math.max(0, pauseEnd - pauseStart);
         }
 
 
