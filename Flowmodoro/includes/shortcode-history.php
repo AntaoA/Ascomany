@@ -399,6 +399,16 @@ document.addEventListener('DOMContentLoaded', function () {
         return sessions;
     }
 
+    function updatePhaseNumbers() {
+        phaseNumbers.clear();
+        [...allHistory]
+            .sort((a, b) => a.timestamp - b.timestamp || a.type.localeCompare(b.type))
+            .forEach((e, i) => {
+                phaseNumbers.set(JSON.stringify(e), i + 1);
+            });
+    }
+    updatePhaseNumbers();
+
 
     function extractAvailableDates(history) {
         const days = new Set();
@@ -705,31 +715,31 @@ document.addEventListener('DOMContentLoaded', function () {
             `;
 
             div.querySelector(".delete-session-btn")?.addEventListener("click", (e) => {
-                e.stopPropagation();
-                confirmCustom("Supprimer cette session ?", (ok) => {
-                    if (!ok) return;
+            e.stopPropagation();
+            confirmCustom("Supprimer cette session ?", (ok) => {
+                if (!ok) return;
 
-                    const timestampsToDelete = session.map(e => e.timestamp);
-                    for (let i = allHistory.length - 1; i >= 0; i--) {
-                        if (timestampsToDelete.includes(allHistory[i].timestamp)) {
-                            allHistory.splice(i, 1);
-                        }
+                const timestampsToDelete = session.map(e => e.timestamp);
+                for (let i = allHistory.length - 1; i >= 0; i--) {
+                    if (timestampsToDelete.includes(allHistory[i].timestamp)) {
+                        allHistory.splice(i, 1);
                     }
+                }
 
-                    sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
-                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+                sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
+                sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
 
-                    if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
-                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
-                        });
-                    }
-
-                    render(); // 🔁 plus propre et suffisant ici
-                });
+                if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                    fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                    });
+                }
+                updatePhaseNumbers();
+                render(); // 🔁 plus propre et suffisant ici
             });
+        });
 
             div.appendChild(details);
             div.addEventListener("click", (e) => {
@@ -744,6 +754,8 @@ document.addEventListener('DOMContentLoaded', function () {
         attachDeletePhaseHandlers();
         renderPagination(sessions.length, container);
     }
+
+
 
 
 
@@ -866,6 +878,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     // Supprimer de sessionHistory (localStorage)
                     sessionHistory = sessionHistory.filter(e => e.timestamp !== ts);
                     sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                    updatePhaseNumbers();
 
                     // Sauvegarde WordPress
                     if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
