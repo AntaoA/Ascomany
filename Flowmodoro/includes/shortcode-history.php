@@ -616,31 +616,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     function computeRealPause(session) {
-        if (session.length === 0) return 0;
-
-        // Trier la session par timestamp (du plus ancien au plus récent)
-        const sortedSession = [...session].sort((a, b) => a.timestamp - b.timestamp);
-
-        // Calcul du début de la session (timestamp de la première phase)
-        const start = sortedSession[0].timestamp;
-
-        // Calcul de la fin de la session (timestamp de la dernière phase + sa durée)
-        const end = sortedSession[sortedSession.length - 1].timestamp + (sortedSession[sortedSession.length - 1].duration || 0);
-
-        // Calcul du temps total de travail (somme des durées des phases de travail)
-        const totalTravail = sortedSession.filter(e => e.type === "Travail")
-            .reduce((sum, e) => sum + (e.duration || 0), 0);
-
-        // Calcul du temps total de la session (fin - début)
-        const totalSessionTime = end - start;
-
-        // Calcul de la pause réelle : Temps total de la session - Temps de travail
-        const realPause = totalSessionTime - totalTravail;
-
-        // Retourner la pause réelle, avec un minimum de 0
-        return realPause; // S'assurer que la pause réelle ne soit jamais négative
-    }
-
+        // realPause = temps de session - temps de travail
+        const travail = session.filter(e => e.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
+        const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
+        const realPause = session.reduce((a, b) => a + (b.duration || 0), 0) - travail;
+        return realPause > 0 ? realPause : 0;
 
 
 
