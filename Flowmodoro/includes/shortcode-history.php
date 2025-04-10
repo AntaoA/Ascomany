@@ -614,6 +614,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // On utilise JSON.stringify comme clé unique fiable
             phaseNumbers.set(JSON.stringify(e), i + 1);
         });
+    
 
 
     function computeRealPause(session) {
@@ -635,13 +636,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Calcul du temps total de la session (fin - début)
         const totalSessionTime = end - start;
 
-        // Calcul de la pause réelle
+        // Calcul de la pause réelle : Temps total de la session - Temps de travail
         const realPause = totalSessionTime - totalTravail;
 
         // Retourner la pause réelle, avec un minimum de 0
         return Math.max(0, realPause); // S'assurer que la pause réelle ne soit jamais négative
     }
-
 
 
 
