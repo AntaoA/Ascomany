@@ -640,15 +640,22 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     
 
-        function computeRealPause(input) {
-            const flat = deepFlatPhases(input);
-            const pausePhases = flat.filter(e => e.type === "Pause");
+        function computeRealPause(phases) {
+            const sessions = groupSessions(deepFlatPhases(phases));
+            let totalRealPause = 0;
 
-            if (pausePhases.length === 0) return 0;
+            for (const session of sessions) {
+                const pausePhases = session.filter(e => e.type === "Pause");
+                if (pausePhases.length === 0) continue;
 
-            const pauseStart = pausePhases[0].timestamp;
-            const pauseEnd = pausePhases[pausePhases.length - 1].timestamp + (pausePhases[pausePhases.length - 1].duration || 0);
-            return Math.max(0, pauseEnd - pauseStart);
+                const pauseStart = pausePhases[0].timestamp;
+                const pauseEnd = pausePhases[pausePhases.length - 1].timestamp + (pausePhases[pausePhases.length - 1].duration || 0);
+                const sessionRealPause = Math.max(0, pauseEnd - pauseStart);
+
+                totalRealPause += sessionRealPause;
+            }
+
+            return totalRealPause;
         }
 
 
