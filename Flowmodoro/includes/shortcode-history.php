@@ -443,8 +443,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const totalPause = group.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
 
             const realPause = computeRealPause(group);
-            const totalSessionTime = totalTravail + totalPause;
-            const realPausePercent = totalSessionTime > 0 ? (realPause / totalSessionTime) * 100 : 0;
+            const percentPause = totalPause / realPause * 100 || 0;
 
             block.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -454,7 +453,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             Travail : ${formatTime(totalTravail)} |
                             Pause : ${formatTime(totalPause)} |
                             Pause réelle : ${formatTime(realPause)} |
-                            % Pause réelle : ${realPausePercent.toFixed(1)}%
+                            % Pause comptabilisée : ${percentPause.toFixed(1)}%
                         </small>
                         <button class="delete-group-btn" data-group="${key}" data-level="${mode}" title="Supprimer tout ce groupe">🗑</button>
                     </div>
