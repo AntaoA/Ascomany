@@ -618,7 +618,9 @@ document.addEventListener('DOMContentLoaded', function () {
             // realPause = temps de la session - temps de travail
             const travail = session.filter(e => e.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
             const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
-            const realPause = session.reduce((a, b) => a + (b.duration || 0), 0) - travail;
+            const heureDébut = session[0].timestamp - (session[0].duration || 0);
+            const heureFin = session[session.length - 1].timestamp;
+            const realPause = (heureFin - heureDébut) - travail;
             return realPause > 0 ? realPause : 0;
         }
 
