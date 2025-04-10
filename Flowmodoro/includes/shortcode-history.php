@@ -616,30 +616,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
 
-        function computeRealPause(session) {
-            if (session.length === 0) return 0;
+    function computeRealPause(session) {
+        if (session.length === 0) return 0;
 
-            // Trier la session par timestamp (du plus ancien au plus récent)
-            const sortedSession = [...session].sort((a, b) => a.timestamp - b.timestamp);
+        // Trier la session par timestamp (du plus ancien au plus récent)
+        const sortedSession = [...session].sort((a, b) => a.timestamp - b.timestamp);
 
-            // Calcul du début de la session (timestamp de la première phase - sa durée)
-            const start = sortedSession[0].timestamp - (sortedSession[0].duration || 0);
+        // Calcul du début de la session (timestamp de la première phase - sa durée)
+        const start = sortedSession[0].timestamp - (sortedSession[0].duration || 0);
 
-            // Calcul de la fin de la session (timestamp de la dernière phase + sa durée)
-            const end = sortedSession[sortedSession.length - 1].timestamp + (sortedSession[sortedSession.length - 1].duration || 0);
+        // Calcul de la fin de la session (timestamp de la dernière phase + sa durée)
+        const end = sortedSession[sortedSession.length - 1].timestamp + (sortedSession[sortedSession.length - 1].duration || 0);
 
-            // Calcul du temps total de travail (somme des durées des phases de travail)
-            const totalTravail = sortedSession.filter(e => e.type === "Travail")
-                .reduce((sum, e) => sum + (e.duration || 0), 0);
+        // Calcul du temps total de travail (somme des durées des phases de travail)
+        const totalTravail = sortedSession.filter(e => e.type === "Travail")
+            .reduce((sum, e) => sum + (e.duration || 0), 0);
 
-            // Calcul du temps total de la session (fin - début)
-            const totalSessionTime = end - start;
+        // Calcul du temps total de la session (fin - début)
+        const totalSessionTime = end - start;
 
-            // Calcul de la pause réelle
-            const realPause = totalSessionTime - totalTravail;
+        // Calcul de la pause réelle
+        const realPause = totalSessionTime - totalTravail;
 
-            return Math.max(0, realPause); // S'assurer que la pause réelle ne soit jamais négative
-            }
+        // Retourner la pause réelle, avec un minimum de 0
+        return Math.max(0, realPause); // S'assurer que la pause réelle ne soit jamais négative
+    }
+
 
 
 
