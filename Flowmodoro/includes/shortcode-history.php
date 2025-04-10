@@ -615,11 +615,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
         function computeRealPause(session) {
-        // realPause = temps de la session - temps de travail
-        const travail = session.filter(e => e.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
-        const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
-        const realPause = session.reduce((a, b) => a + (b.duration || 0), 0) - travail;
-        return realPause > 0 ? realPause : 0;
+            // realPause = temps de la session - temps de travail
+            const travail = session.filter(e => e.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
+            const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
+            const realPause = session.reduce((a, b) => a + (b.duration || 0), 0) - travail;
+            return realPause > 0 ? realPause : 0;
+        }
 
 
 
