@@ -787,7 +787,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!session) return;
 
                 const travail = session.filter(p => p.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
-                const pause = session.filter(p => p.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
                 const realPause = computeRealPause(session);
                 const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
                 const percentPause = pause / realPause * 100 || 0;
