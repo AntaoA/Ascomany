@@ -631,16 +631,29 @@ document.addEventListener('DOMContentLoaded', function () {
             // Calcul du temps total de la session (fin - début)
             const totalSessionTime = end - start;
 
-            // Vérification du cas où il n'y a pas de pause
+            // Si le temps total de la session est très faible ou égal à 0, éviter les calculs incorrects
+            if (totalSessionTime <= 0) {
+                return 0;
+            }
+
+            // Calcul du temps total de pause (somme des durées des phases de pause)
             const pause = sortedSession.filter(e => e.type === "Pause")
                 .reduce((sum, e) => sum + (e.duration || 0), 0);
 
-            // Si la pause est présente et a une durée supérieure à zéro, alors la pause réelle peut être calculée
+            // Calcul de la pause réelle : Temps total de la session - Temps de travail
             const realPause = totalSessionTime - travail;
 
+            // Calcul du pourcentage de pause réelle : 
+            // (On vérifie si le temps total de la session est supérieur à zéro pour éviter les divisions par zéro)
+            const realPausePercent = totalSessionTime > 0 ? (realPause / totalSessionTime) * 100 : 0;
+
             // Retourner la pause réelle, avec un minimum de 0
-            return realPause > 0 ? realPause : 0;
+            return {
+                realPause: Math.max(0, realPause),
+                realPausePercent: isFinite(realPausePercent) ? realPausePercent : 0  // Garantir qu'on n'affiche pas Infinity
+            };
         }
+
 
 
 
