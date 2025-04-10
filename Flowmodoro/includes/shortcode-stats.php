@@ -226,52 +226,72 @@ function flowmodoro_stats_shortcode() {
             const days = new Set();
             const sessions = [];
             let work = 0, pause = 0, pauseReal = 0;
-            let previousPauseEnd = null;
-
             const byDate = {};
 
-            for (let i = 0; i < filtered.length; i++) {
-                const e = filtered[i];
-                const d = parseDate(e.timestamp);
+            // Groupement des entrées en sessions
+            let currentSession = [];
+            let lastEnd = null;
+
+            filtered.forEach(e => {
+                const start = e.timestamp;
+                const end = start + (e.duration || 0);
+                const d = parseDate(start);
+
                 days.add(d);
                 if (!byDate[d]) byDate[d] = { travail: 0, pause: 0 };
+
+                if (!lastEnd || (start - lastEnd) > 10 * 60 * 1000) {
+                    if (currentSession.length) sessions.push(currentSession);
+                    currentSession = [];
+                }
+                currentSession.push(e);
+                lastEnd = end;
 
                 if (e.type === "Travail") {
                     work += e.duration || 0;
                     byDate[d].travail += e.duration || 0;
-
-                    if (previousPauseEnd !== null) {
-                        pauseReal += e.timestamp - previousPauseEnd;
-                        previousPauseEnd = null;
-                    }
                 } else if (e.type === "Pause") {
                     pause += e.duration || 0;
                     byDate[d].pause += e.duration || 0;
-                    previousPauseEnd = e.timestamp + (e.duration || 0);
                 }
-            }
+            });
+            if (currentSession.length) sessions.push(currentSession);
 
-            // sessions = succession de phases espacées de moins de 10 min
-            let lastEnd = null;
-            let sessionCount = 0;
-            filtered.forEach(e => {
-                const start = e.timestamp;
-                const end = start + (e.duration || 0);
-                if (!lastEnd || start - lastEnd > 10 * 60 * 1000) sessionCount++;
-                lastEnd = end;
+            // Calcul du temps réel de pause (uniquement intra-session)
+            sessions.forEach(session => {
+                for (let i = 0; i < session.length - 1; i++) {
+                    const current = session[i];
+                    const next = session[i + 1];
+
+                    if (current.type === "Pause" && next.type === "Travail") {
+                        const pauseEnd = current.timestamp + (current.duration || 0);
+                        const interval = next.timestamp - pauseEnd;
+
+                        if (interval > 0) pauseReal += interval;
+                    }
+                }
             });
 
+            const pauseExcess = pause - pauseReal;
+            const pauseExcessPercentage = pauseReal > 0 
+                ? ((pauseExcess / pauseReal) * 100).toFixed(1) 
+                : "0.0";
+
             return {
-                work, pause, pauseReal,
-                sessionCount,
+                work,
+                pause,
+                pauseReal,
+                pauseExcess,
+                pauseExcessPercentage,
+                sessionCount: sessions.length,
                 daysActive: days.size,
                 first: filtered[0]?.timestamp,
                 last: filtered.at(-1)?.timestamp,
                 byDate,
                 filtered
             };
-
         }
+
 
 
         function computeContinuationRate(entries) {
@@ -398,7 +418,8 @@ function flowmodoro_stats_shortcode() {
                 <ul style="list-style: none; padding: 0; font-size: 16px;">
                     <li><strong>Total travail :</strong> ${format(stats.work)}</li>
                     <li><strong>Total pause :</strong> ${format(stats.pause)}</li>
-                    <li><strong>Pause réelle cumulée :</strong> ${format(stats.pauseReal)}</li>
+                    <li><strong>Pause réelle intra-session :</strong> ${format(stats.pauseReal)}</li>
+                    <li><strong>⏳ Pause en trop :</strong> ${format(stats.pauseExcess)} (${stats.pauseExcessPercentage}%)</li>
                     <li><strong>Nombre de sessions :</strong> ${stats.sessionCount}</li>
                     <li><strong>Jours actifs :</strong> ${stats.daysActive}</li>
                     <li><strong>🔥 Streak en cours :</strong> ${streaks.current.streak} jour(s) ${streaks.current.streak > 0 ? `depuis ${streaks.current.start}` : ''} ${!streaks.todayIncluded ? `<span style="color:#e74c3c;">(⚠️ aujourd'hui non compté)</span>` : ''}</li>
@@ -409,6 +430,7 @@ function flowmodoro_stats_shortcode() {
                 </ul>
             `;
         }
+
  
         let lineChartInstance = null;
  
