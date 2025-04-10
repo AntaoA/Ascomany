@@ -522,6 +522,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
+    const globalPhasesOrdered = [...allHistory].sort((a, b) => a.timestamp - b.timestamp);
+    const phaseNumbers = new Map();
+    globalPhasesOrdered.forEach((e, i) => {
+        phaseNumbers.set(e.timestamp, i + 1);
+    });
+
     function renderSessions(sessions, container = output) {
         // Trie les sessions du plus récent au plus ancien pour l'affichage
         sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
@@ -553,10 +559,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 const line = document.createElement("div");
                 line.className = "entry-line " + (e.type === "Pause" ? "pause" : "");
                 const phaseLeftClass = "phase-left " + (e.type === "Pause" ? "pause" : "travail");
+                const phaseNum = phaseNumbers.get(e.timestamp);
                 line.innerHTML = `
                     <div class="entry-phase">
                         <div class="${phaseLeftClass}">
-                            ${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp - (e.duration || 0))}
+                            Phase ${phaseNum} — ${e.type} — ${formatTime(e.duration)} — ${formatDate(e.timestamp - (e.duration || 0))}
                         </div>
                         <div class="phase-right">
                             <button class="delete-phase-btn" data-ts="${e.timestamp}" title="Supprimer cette phase">🗑</button>
@@ -673,6 +680,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderPhases(phases, container = output) {
         phases.sort((a, b) => b.timestamp - a.timestamp);
 
+
+        // Numérotation globale des phases
+        const globalPhases = [...allHistory].sort((a, b) => a.timestamp - b.timestamp);
+        const phaseNumbers = new Map();
+        globalPhases.forEach((e, i) => {
+            phaseNumbers.set(e.timestamp, i + 1);
+        });
+
         phases.forEach(e => {
             const isTravail = e.type === "Travail";
             const icon = isTravail ? "💼" : "☕";
@@ -684,9 +699,10 @@ document.addEventListener('DOMContentLoaded', function () {
             div.style.borderLeft = `6px solid ${color}`;
             div.style.cursor = "pointer";
 
+            const phaseNum = phaseNumbers.get(e.timestamp);
             div.innerHTML = `
                 <div class="entry-phase" style="display: flex; justify-content: space-between; align-items: center;">
-                    <div style="color: ${color}; font-weight: bold;">${icon} ${e.type}</div>
+                    <div style="color: ${color}; font-weight: bold;">${icon} Phase ${phaseNum} — ${e.type}</div>
                     <div>${formatTime(e.duration)} — ${formatDate(startTs)}</div>
                     <div>
                         <button class="delete-phase-btn" data-ts="${e.timestamp}">🗑</button>
