@@ -703,6 +703,34 @@ document.addEventListener('DOMContentLoaded', function () {
                     <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
                 </div>
             `;
+
+            div.querySelector(".delete-session-btn")?.addEventListener("click", (e) => {
+                e.stopPropagation();
+                confirmCustom("Supprimer cette session ?", (ok) => {
+                    if (!ok) return;
+
+                    const timestampsToDelete = session.map(e => e.timestamp);
+                    for (let i = allHistory.length - 1; i >= 0; i--) {
+                        if (timestampsToDelete.includes(allHistory[i].timestamp)) {
+                            allHistory.splice(i, 1);
+                        }
+                    }
+
+                    sessionHistory = sessionHistory.filter(e => !timestampsToDelete.includes(e.timestamp));
+                    sessionStorage.setItem("flowmodoro_session", JSON.stringify(sessionHistory));
+
+                    if (typeof userIsLoggedIn !== "undefined" && userIsLoggedIn) {
+                        fetch("/wp-admin/admin-ajax.php?action=save_flowmodoro", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                            body: "history=" + encodeURIComponent(JSON.stringify(allHistory))
+                        });
+                    }
+
+                    render(); // 🔁 plus propre et suffisant ici
+                });
+            });
+
             div.appendChild(details);
             div.addEventListener("click", (e) => {
                 if (e.target.closest(".delete-session-btn") || e.target.closest(".delete-phase-btn")) return;
