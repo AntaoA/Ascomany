@@ -371,11 +371,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function formatDate(ts, withTime = true) {
         const d = new Date(ts);
-        const datePart = d.toLocaleDateString("fr-FR", { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        const timePart = d.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' });
-        return withTime ? `${datePart} à ${timePart}` : datePart;
+        return d.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }) +
+            (withTime ? ' à ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '');
     }
-    
+
     function groupSessions(history) {
         const sessions = [];
 
@@ -708,6 +707,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 details.appendChild(line);
             });
 
+
             const sessionKey = session.map(e => e.timestamp).join("-");
             const sessionNum = sessionNumbers.get(sessionKey);
             const firstPhase = session[0];
@@ -728,7 +728,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
                 </div>
             `;
-
+            
             div.querySelector(".delete-session-btn")?.addEventListener("click", (e) => {
             e.stopPropagation();
             confirmCustom("Supprimer cette session ?", (ok) => {
@@ -1030,7 +1030,12 @@ document.addEventListener('DOMContentLoaded', function () {
             let key = '';
 
             if (mode === 'day') {
-                key = date.toLocaleDateString('fr-FR');
+                key = date.toLocaleDateString('fr-FR', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                });
             } else if (mode === 'week') {
                 const year = date.getFullYear();
                 const week = getISOWeek(date);
