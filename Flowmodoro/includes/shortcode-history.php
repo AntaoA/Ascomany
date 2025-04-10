@@ -1036,142 +1036,127 @@ document.addEventListener('DOMContentLoaded', function () {
     const focusParam = new URLSearchParams(window.location.search).get("focus");
 
     if (focusParam) {
-        // Sauvegarde la limite actuelle
-        const previousLimit = itemLimit;
-        itemLimit = 0;
-        currentPage = 1;
+        const [level, target] = focusParam.split(":");
+        const normalized = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+        const switchToMode = (mode) => {
+            const li = document.querySelector(`#grouping-options li[data-mode="${mode}"]`);
+            if (li) li.click();
+        };
 
-        render();
+        const goToPageAndClick = (findFn) => {
+            // Récupère la liste complète selon le mode
+            let fullList = [];
+            if (groupingMode === "phase") fullList = [...allHistory].sort((a, b) => b.timestamp - a.timestamp);
+            else if (groupingMode === "session") fullList = groupSessions(allHistory).sort((a, b) => b[0].timestamp - a[0].timestamp);
+            else return;
 
-        setTimeout(() => {
-            const [level, target] = focusParam.split(":");
+            const index = fullList.findIndex(findFn);
+            if (index === -1) return;
 
-            const normalized = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-            const switchToMode = (mode) => {
-                const li = document.querySelector(`#grouping-options li[data-mode="${mode}"]`);
-                if (li) li.click();
-            };
+            // Calcule la page
+            currentPage = Math.floor(index / itemLimit) + 1;
+            render();
 
-            const restoreLimit = () => {
-                if (previousLimit !== 0) {
-                    itemLimit = previousLimit;
-                    currentPage = 1;
-                    render();
+            // Attend que render ait fini puis clique
+            setTimeout(() => {
+                const element = findFn(document.querySelectorAll(".session-block"));
+                if (element) {
+                    element.scrollIntoView({ behavior: "smooth", block: "center" });
+                    element.click();
                 }
-            };
+            }, 300);
+        };
 
-            if (level === "session") {
-                const ts = parseInt(target);
-                switchToMode("session");
+        // Choix du mode et ciblage
+        if (level === "session") {
+            const ts = parseInt(target);
+            switchToMode("session");
+            setTimeout(() => {
+                goToPageAndClick((s) => s.some(p => p.timestamp === ts));
+            }, 200);
+        }
 
-                setTimeout(() => {
-                    const blocks = document.querySelectorAll(".session-block");
-                    for (const block of blocks) {
-                        const btn = block.querySelector(".delete-session-btn");
-                        if (!btn) continue;
-                        const blockTs = parseInt(btn.dataset.ts);
-                        if (blockTs === ts) {
-                            block.scrollIntoView({ behavior: "smooth", block: "center" });
-                            block.click();
-                            break;
-                        }
-                    }
-                    restoreLimit();
-                }, 500);
-            }
+        else if (level === "phase") {
+            const ts = parseInt(target);
+            switchToMode("phase");
+            setTimeout(() => {
+                goToPageAndClick((e) => e.timestamp === ts);
+            }, 200);
+        }
 
-            else if (level === "phase") {
-                const ts = parseInt(target);
-                switchToMode("phase");
+        else if (level === "day") {
+            const d = new Date(parseInt(target));
+            d.setHours(0, 0, 0, 0);
+            const dateStr = d.toLocaleDateString("fr-FR");
+            switchToMode("day");
 
-                setTimeout(() => {
-                    const block = document.querySelector(`.delete-phase-btn[data-ts="${ts}"]`)?.closest(".session-block");
-                    if (block) {
+            setTimeout(() => {
+                const blocks = document.querySelectorAll(".session-block");
+                for (const block of blocks) {
+                    const h = block.querySelector("h5");
+                    if (h && normalized(h.textContent).includes(normalized(dateStr))) {
                         block.scrollIntoView({ behavior: "smooth", block: "center" });
                         block.click();
+                        break;
                     }
-                    restoreLimit();
-                }, 500);
-            }
+                }
+            }, 500);
+        }
 
-            else if (level === "day") {
-                const d = new Date(parseInt(target));
-                d.setHours(0, 0, 0, 0);
-                const dateStr = d.toLocaleDateString("fr-FR");
-                switchToMode("day");
+        else if (level === "month") {
+            const [y, m] = target.split("-");
+            const monthName = new Date(`${y}-${m}-01`).toLocaleString('fr-FR', { month: 'long' });
+            const label = `${monthName} ${y}`;
+            switchToMode("month");
 
-                setTimeout(() => {
-                    const blocks = document.querySelectorAll(".session-block");
-                    for (const block of blocks) {
-                        const h = block.querySelector("h5");
-                        if (h && normalized(h.textContent).includes(normalized(dateStr))) {
-                            block.scrollIntoView({ behavior: "smooth", block: "center" });
-                            block.click();
-                            break;
-                        }
+            setTimeout(() => {
+                const blocks = document.querySelectorAll(".session-block");
+                for (const block of blocks) {
+                    const h = block.querySelector("h5");
+                    if (h && normalized(h.textContent).includes(normalized(label))) {
+                        block.scrollIntoView({ behavior: "smooth", block: "center" });
+                        block.click();
+                        break;
                     }
-                    restoreLimit();
-                }, 500);
-            }
+                }
+            }, 500);
+        }
 
-            else if (level === "month") {
-                const [y, m] = target.split("-");
-                const monthName = new Date(`${y}-${m}-01`).toLocaleString('fr-FR', { month: 'long' });
-                const label = `${monthName} ${y}`;
-                switchToMode("month");
+        else if (level === "year") {
+            switchToMode("year");
 
-                setTimeout(() => {
-                    const blocks = document.querySelectorAll(".session-block");
-                    for (const block of blocks) {
-                        const h = block.querySelector("h5");
-                        if (h && normalized(h.textContent).includes(normalized(label))) {
-                            block.scrollIntoView({ behavior: "smooth", block: "center" });
-                            block.click();
-                            break;
-                        }
+            setTimeout(() => {
+                const blocks = document.querySelectorAll(".session-block");
+                for (const block of blocks) {
+                    const h = block.querySelector("h5");
+                    if (h && h.textContent.includes(target)) {
+                        block.scrollIntoView({ behavior: "smooth", block: "center" });
+                        block.click();
+                        break;
                     }
-                    restoreLimit();
-                }, 500);
-            }
+                }
+            }, 500);
+        }
 
-            else if (level === "year") {
-                switchToMode("year");
+        else if (level === "week") {
+            const [y, w] = target.split("-W");
+            const label = `${y} - Semaine ${parseInt(w)}`;
+            switchToMode("week");
 
-                setTimeout(() => {
-                    const blocks = document.querySelectorAll(".session-block");
-                    for (const block of blocks) {
-                        const h = block.querySelector("h5");
-                        if (h && h.textContent.includes(target)) {
-                            block.scrollIntoView({ behavior: "smooth", block: "center" });
-                            block.click();
-                            break;
-                        }
+            setTimeout(() => {
+                const blocks = document.querySelectorAll(".session-block");
+                for (const block of blocks) {
+                    const h = block.querySelector("h5");
+                    if (h && normalized(h.textContent).includes(normalized(label))) {
+                        block.scrollIntoView({ behavior: "smooth", block: "center" });
+                        block.click();
+                        break;
                     }
-                    restoreLimit();
-                }, 500);
-            }
-
-            else if (level === "week") {
-                const [y, w] = target.split("-W");
-                const label = `${y} - Semaine ${parseInt(w)}`;
-                switchToMode("week");
-
-                setTimeout(() => {
-                    const blocks = document.querySelectorAll(".session-block");
-                    for (const block of blocks) {
-                        const h = block.querySelector("h5");
-                        if (h && normalized(h.textContent).includes(normalized(label))) {
-                            block.scrollIntoView({ behavior: "smooth", block: "center" });
-                            block.click();
-                            break;
-                        }
-                    }
-                    restoreLimit();
-                }, 500);
-            }
-
-        }, 100); // attendre que le premier render() avec itemLimit=0 ait fini
+                }
+            }, 500);
+        }
     }
+
 
 
 
