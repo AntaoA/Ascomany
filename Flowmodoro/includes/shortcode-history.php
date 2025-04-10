@@ -611,11 +611,13 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
 
-    const globalPhasesOrdered = [...allHistory].sort((a, b) => a.timestamp - b.timestamp);
     const phaseNumbers = new Map();
-    globalPhasesOrdered.forEach((e, i) => {
-        phaseNumbers.set(`${e.timestamp}-${i}`, i + 1);
-    });
+    [...allHistory]
+        .sort((a, b) => a.timestamp - b.timestamp || a.type.localeCompare(b.type))
+        .forEach((e, i) => {
+            // On utilise JSON.stringify comme clé unique fiable
+            phaseNumbers.set(JSON.stringify(e), i + 1);
+        });
 
 
     function computeRealPause(session) {
@@ -666,7 +668,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 line.className = "entry-line " + (e.type === "Pause" ? "pause" : "");
                 const phaseLeftClass = "phase-left " + (e.type === "Pause" ? "pause" : "travail");
                 const key = `${e.timestamp}-${globalPhasesOrdered.findIndex(x => x.timestamp === e.timestamp && x.type === e.type)}`;
-                const phaseNum = phaseNumbers.get(key);
+                const phaseNum = phaseNumbers.get(JSON.stringify(e));
                 line.innerHTML = `
                     <div class="entry-phase">
                         <div class="${phaseLeftClass}">
@@ -743,7 +745,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const color = isTravail ? "#e74c3c" : "#3498db";
             const startTs = e.timestamp - (e.duration || 0);
             const key = `${e.timestamp}-${globalPhasesOrdered.findIndex(x => x.timestamp === e.timestamp && x.type === e.type)}`;
-            const phaseNum = phaseNumbers.get(key);
+            const phaseNum = phaseNumbers.get(JSON.stringify(e));
 
             const div = document.createElement("div");
             div.className = "session-block";
