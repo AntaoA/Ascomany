@@ -560,6 +560,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     </div>
                 `;
                 details.appendChild(line);
+                const jumpButton = document.createElement("div");
+                jumpButton.style.marginTop = "10px";
+                jumpButton.innerHTML = `
+                    <a href="/historique?focus=day:${session[0].timestamp}" class="view-session-btn">
+                        📅 Voir le jour correspondant
+                    </a>
+                `;
+                details.appendChild(jumpButton);
+
             });
 
             const sessionNum = sessionNumbers.get(session);
