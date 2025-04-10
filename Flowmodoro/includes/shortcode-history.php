@@ -1045,7 +1045,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const week = getISOWeek(date);
                 key = `${year} - Semaine ${week}`;
             } else if (mode === 'month') {
-                capitalize(key = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }));
+                key = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
             } else if (mode === 'year') {
                 key = date.getFullYear();
             }
