@@ -647,8 +647,8 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             const realPause = computeRealPause(session);
-            const totalChrono = totalTravail + realPause;
-            const percentPause = totalChrono > 0 ? ((realPause / totalChrono) * 100).toFixed(1) : "0.0";
+            const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
+            const percentPause = pause / realPause * 100 || 0;
 
             const details = document.createElement("div");
             details.className = "session-details";
@@ -789,8 +789,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const travail = session.filter(p => p.type === "Travail").reduce((a, b) => a + (b.duration || 0), 0);
                 const pause = session.filter(p => p.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
                 const realPause = computeRealPause(session);
-                const totalChrono = travail + realPause;
-                const percentPause = totalChrono > 0 ? ((realPause / totalChrono) * 100).toFixed(1) : "0.0";
+                const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
+                const percentPause = pause / realPause * 100 || 0;
                 const start = new Date(session[0].timestamp - (session[0].duration || 0)).toLocaleString();
 
                 sessionDetail.innerHTML = `
