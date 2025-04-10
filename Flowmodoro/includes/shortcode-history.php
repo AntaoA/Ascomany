@@ -621,6 +621,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
         const realPause = session.reduce((a, b) => a + (b.duration || 0), 0) - travail;
         return realPause > 0 ? realPause : 0;
+    }
 
 
 
