@@ -667,7 +667,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 const line = document.createElement("div");
                 line.className = "entry-line " + (e.type === "Pause" ? "pause" : "");
                 const phaseLeftClass = "phase-left " + (e.type === "Pause" ? "pause" : "travail");
-                const key = `${e.timestamp}-${globalPhasesOrdered.findIndex(x => x.timestamp === e.timestamp && x.type === e.type)}`;
                 const phaseNum = phaseNumbers.get(JSON.stringify(e));
                 line.innerHTML = `
                     <div class="entry-phase">
@@ -744,7 +743,6 @@ document.addEventListener('DOMContentLoaded', function () {
             const icon = isTravail ? "💼" : "☕";
             const color = isTravail ? "#e74c3c" : "#3498db";
             const startTs = e.timestamp - (e.duration || 0);
-            const key = `${e.timestamp}-${globalPhasesOrdered.findIndex(x => x.timestamp === e.timestamp && x.type === e.type)}`;
             const phaseNum = phaseNumbers.get(JSON.stringify(e));
 
             const div = document.createElement("div");
