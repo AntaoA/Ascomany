@@ -631,7 +631,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // Calcul du temps total de la session (fin - début)
             const totalSessionTime = end - start;
 
-            // Calcul de la pause réelle : Temps total de la session - Temps de travail
+            // Vérification du cas où il n'y a pas de pause
+            const pause = sortedSession.filter(e => e.type === "Pause")
+                .reduce((sum, e) => sum + (e.duration || 0), 0);
+
+            // Si la pause est présente et a une durée supérieure à zéro, alors la pause réelle peut être calculée
             const realPause = totalSessionTime - travail;
 
             // Retourner la pause réelle, avec un minimum de 0
