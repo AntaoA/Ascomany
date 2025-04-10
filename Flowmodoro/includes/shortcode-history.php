@@ -793,6 +793,7 @@ document.addEventListener('DOMContentLoaded', function () {
             sessionDetail.style.fontSize = "14px";
             div.appendChild(sessionDetail);
 
+            div.addEventListener("click", (ev) => {
                 if (ev.target.closest(".delete-phase-btn")) return;
 
                 if (sessionDetail.innerHTML !== "") {
