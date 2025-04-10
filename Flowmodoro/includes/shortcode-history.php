@@ -718,17 +718,22 @@ document.addEventListener('DOMContentLoaded', function () {
             const firstPhase = session[0];
             const startTs = firstPhase.timestamp - (firstPhase.duration || 0);
             const startTime = new Date(startTs).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-
+            
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <h4 style="margin: 0;">Session ${sessionNum} — ${formatDate(session[0].timestamp, false)} à ${startTime}</h4>
-                        <small>Travail : ${formatTime(totalTravail)} | Pause : ${formatTime(totalPause)}</small>
+                        <small>
+                            Travail : ${formatTime(totalTravail)} |
+                            Pause : ${formatTime(totalPause)} |
+                            Pause réelle : ${formatTime(realPause)} |
+                            % Pause comptabilisée : ${percentPause.toFixed(1)}%
+                        </small>
                     </div>
                     <button class="delete-session-btn" data-ts="${session[0].timestamp}" title="Supprimer cette session">🗑</button>
                 </div>
             `;
-
+            
             div.querySelector(".delete-session-btn")?.addEventListener("click", (e) => {
             e.stopPropagation();
             confirmCustom("Supprimer cette session ?", (ok) => {
