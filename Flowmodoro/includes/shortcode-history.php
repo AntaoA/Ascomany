@@ -622,7 +622,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const heureFin = session[session.length - 1].timestamp;
             const realPause = (heureFin - heureDébut) - travail;
             // consolelog
-            console.log("realPause", realPause, "travail", travail, "pause", pause, "heureDébut", heureDébut, "heureFin", heureFin);
+            console.log("realPause", realPause, "travail", travail, "pause", pause, "heureDébut", heureDébut, "heureFin", heureFin, "session", session);
             return realPause > 0 ? realPause : 0;
         }
 
