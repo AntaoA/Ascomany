@@ -638,7 +638,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const realPause = totalSessionTime - totalTravail;
 
         // Retourner la pause réelle, avec un minimum de 0
-        return Math.max(0, realPause); // S'assurer que la pause réelle ne soit jamais négative
+        return realPause; // S'assurer que la pause réelle ne soit jamais négative
     }
 
 
