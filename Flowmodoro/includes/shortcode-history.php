@@ -442,13 +442,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const totalTravail = group.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
             const totalPause = group.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
 
-            const realPause = (() => {
-                if (group.length === 0) return 0;
-                const sortedGroup = [...group].sort((a, b) => a.timestamp - b.timestamp);
-                const start = sortedGroup[0].timestamp - (sortedGroup[0].duration || 0);
-                const end = sortedGroup.at(-1).timestamp;
-                return Math.max(0, (end - start) - (totalTravail + totalPause));
-            })();
+            const realPause = computeRealPause(group);
 
             const totalChrono = totalTravail + totalPause;
             const realPausePercent = totalChrono > 0 ? (realPause / totalChrono) * 100 : 0;
@@ -625,20 +619,27 @@ document.addEventListener('DOMContentLoaded', function () {
         function computeRealPause(session) {
             if (session.length === 0) return 0;
 
-            const start = session[0].timestamp - (session[0].duration || 0);
-            const end = session.at(-1).timestamp;
+            // Trier la session par timestamp (du plus ancien au plus récent)
+            const sortedSession = [...session].sort((a, b) => a.timestamp - b.timestamp);
 
-            const totalTravail = session
-                .filter(e => e.type === "Travail")
+            // Calcul du début de la session (timestamp de la première phase - sa durée)
+            const start = sortedSession[0].timestamp - (sortedSession[0].duration || 0);
+
+            // Calcul de la fin de la session (timestamp de la dernière phase + sa durée)
+            const end = sortedSession[sortedSession.length - 1].timestamp + (sortedSession[sortedSession.length - 1].duration || 0);
+
+            // Calcul du temps total de travail (somme des durées des phases de travail)
+            const totalTravail = sortedSession.filter(e => e.type === "Travail")
                 .reduce((sum, e) => sum + (e.duration || 0), 0);
 
-            const totalPause = session
-                .filter(e => e.type === "Pause")
-                .reduce((sum, e) => sum + (e.duration || 0), 0);
+            // Calcul du temps total de la session (fin - début)
+            const totalSessionTime = end - start;
 
-            const realPause = (end - start) - (totalTravail + totalPause);
-            return Math.max(0, realPause);
-        }
+            // Calcul de la pause réelle
+            const realPause = totalSessionTime - totalTravail;
+
+            return Math.max(0, realPause); // S'assurer que la pause réelle ne soit jamais négative
+            }
 
 
 
@@ -763,24 +764,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const paginated = paginate(phases, currentPage, itemLimit);
         
-        function computeRealPause(session) {
-            if (session.length === 0) return 0;
-
-            const start = session[0].timestamp - (session[0].duration || 0);
-            const end = session.at(-1).timestamp;
-
-            const totalTravail = session
-                .filter(e => e.type === "Travail")
-                .reduce((sum, e) => sum + (e.duration || 0), 0);
-
-            const totalPause = session
-                .filter(e => e.type === "Pause")
-                .reduce((sum, e) => sum + (e.duration || 0), 0);
-
-            const realPause = (end - start) - (totalTravail + totalPause);
-            return Math.max(0, realPause);
-        }
-
         paginated.forEach((e, i) => {
             const isTravail = e.type === "Travail";
             const icon = isTravail ? "💼" : "☕";
