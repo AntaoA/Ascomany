@@ -1055,6 +1055,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const groupingLabel = document.getElementById("grouping-label");
     const groupingOptions = document.getElementById("grouping-options");
 
+    function getISOWeek(date) {
+        const temp = new Date(date.getTime());
+        temp.setHours(0, 0, 0, 0);
+        // Jeudi dans la semaine courante
+        temp.setDate(temp.getDate() + 3 - ((temp.getDay() + 6) % 7));
+        const week1 = new Date(temp.getFullYear(), 0, 4);
+        return 1 + Math.round(((temp.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+    }
+
     function groupByMode(history, mode) {
         const grouped = {};
 
@@ -1066,7 +1075,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 key = date.toLocaleDateString('fr-FR');
             } else if (mode === 'week') {
                 const year = date.getFullYear();
-                const week = Math.ceil(((date - new Date(year, 0, 1)) / 86400000 + new Date(year, 0, 1).getDay() + 1) / 7);
+                const week = getISOWeek(date);
                 key = `${year} - Semaine ${week}`;
             } else if (mode === 'month') {
                 key = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
@@ -1080,6 +1089,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         return grouped;
     }
+
 
     groupingToggle.addEventListener("click", () => {
         groupingOptions.classList.toggle("hidden");
