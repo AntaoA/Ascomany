@@ -443,9 +443,10 @@ document.addEventListener('DOMContentLoaded', function () {
             const totalPause = group.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
 
             const realPause = (() => {
-                if (sorted.length === 0) return 0;
-                const start = sorted[0].timestamp - (sorted[0].duration || 0);
-                const end = sorted.at(-1).timestamp;
+                if (group.length === 0) return 0;
+                const sortedGroup = [...group].sort((a, b) => a.timestamp - b.timestamp);
+                const start = sortedGroup[0].timestamp - (sortedGroup[0].duration || 0);
+                const end = sortedGroup.at(-1).timestamp;
                 return Math.max(0, (end - start) - (totalTravail + totalPause));
             })();
 
