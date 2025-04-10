@@ -578,6 +578,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 const sessionKey = session.map(e => e.timestamp).join("-");
                 const sessionNum = sessionNumbers.get(sessionKey);
+                const firstPhase = session[0];
+                const startTs = firstPhase.timestamp - (firstPhase.duration || 0);
                 const startTime = new Date(startTs).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
             div.innerHTML = `
