@@ -439,11 +439,18 @@ document.addEventListener('DOMContentLoaded', function () {
             block.className = "session-block";
 
             const group = grouped[key];
-            const totalTravail = group.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
-            const totalPause = group.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
 
-            const realPause = computeRealPause(group);
-            const percentPause = (realPause === 0 || totalPause === 0) ? 100 : (totalPause / realPause) * 100 || 0;
+            // Calcul des totaux pour le groupe
+            let totalTravail = 0, totalPause = 0, totalRealPause = 0;
+
+            // Calculer les totaux pour chaque session dans le groupe
+            group.forEach(session => {
+                totalTravail += session.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
+                totalPause += session.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
+                totalRealPause += computeRealPause(session); // Additionner la pause réelle de chaque session
+            });
+
+            const percentPause = (totalRealPause === 0 || totalPause === 0) ? 100 : (totalPause / totalRealPause) * 100 || 0;
 
             block.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -452,7 +459,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <small>
                             Travail : ${formatTime(totalTravail)} |
                             Pause : ${formatTime(totalPause)} |
-                            Pause réelle : ${formatTime(realPause)} |
+                            Pause réelle : ${formatTime(totalRealPause)} |
                             % Pause comptabilisée : ${percentPause.toFixed(1)}%
                         </small>
                         <button class="delete-group-btn" data-group="${key}" data-level="${mode}" title="Supprimer tout ce groupe">🗑</button>
@@ -613,16 +620,19 @@ document.addEventListener('DOMContentLoaded', function () {
             phaseNumbers.set(JSON.stringify(e), i + 1);
         });
     
-
         function computeRealPause(session) {
-            // Trouver les phases de pause
+            // Trouver toutes les phases de pause dans une session
             const pausePhases = session.filter(e => e.type === "Pause");
 
-            // Calculer le début et la fin des pauses
+            if (pausePhases.length === 0) {
+                return 0; // Si aucune pause, la pause réelle est de 0
+            }
+
+            // Calculer le début et la fin des pauses en tenant compte de toutes les phases de pause
             const pauseStart = pausePhases[0]?.timestamp;
             const pauseEnd = pausePhases[pausePhases.length - 1]?.timestamp + (pausePhases[pausePhases.length - 1]?.duration || 0);
 
-            // Si nous avons des phases de pause, on peut calculer le temps réel de pause
+            // Calculer le temps réel de pause
             const realPause = pauseEnd - pauseStart;
             return realPause > 0 ? realPause : 0;
         }
