@@ -631,18 +631,24 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
 
-    function computeRealPause(session) {
-        let realPause = 0;
-        for (let i = 1; i < session.length; i++) {
-            const prev = session[i - 1];
-            const curr = session[i];
-            const gap = curr.timestamp - (prev.timestamp + (prev.duration || 0));
-            if (prev.type === "Pause" && curr.type === "Travail" && gap > 0) {
-                realPause += gap;
-            }
+        function computeRealPause(session) {
+            if (session.length === 0) return 0;
+
+            const start = session[0].timestamp - (session[0].duration || 0);
+            const end = session.at(-1).timestamp;
+
+            const totalTravail = session
+                .filter(e => e.type === "Travail")
+                .reduce((sum, e) => sum + (e.duration || 0), 0);
+
+            const totalPause = session
+                .filter(e => e.type === "Pause")
+                .reduce((sum, e) => sum + (e.duration || 0), 0);
+
+            const realPause = (end - start) - (totalTravail + totalPause);
+            return Math.max(0, realPause);
         }
-        return realPause;
-    }
+
 
 
 
