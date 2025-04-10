@@ -1037,125 +1037,116 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (focusParam) {
         const [level, target] = focusParam.split(":");
+        const tsTarget = parseInt(target);
         const normalized = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-        const switchToMode = (mode) => {
+
+        const switchToMode = (mode, callback) => {
             const li = document.querySelector(`#grouping-options li[data-mode="${mode}"]`);
-            if (li) li.click();
+            if (li) {
+                li.click();
+                setTimeout(callback, 300);
+            } else {
+                callback();
+            }
         };
 
-        const goToPageAndClick = (findFn) => {
-            // Récupère la liste complète selon le mode
-            let fullList = [];
-            if (groupingMode === "phase") fullList = [...allHistory].sort((a, b) => b.timestamp - a.timestamp);
-            else if (groupingMode === "session") fullList = groupSessions(allHistory).sort((a, b) => b[0].timestamp - a[0].timestamp);
-            else return;
-
-            const index = fullList.findIndex(findFn);
-            if (index === -1) return;
-
-            // Calcule la page
-            currentPage = Math.floor(index / itemLimit) + 1;
-            render();
-
-            // Attend que render ait fini puis clique
-            setTimeout(() => {
-                const element = findFn(document.querySelectorAll(".session-block"));
-                if (element) {
-                    element.scrollIntoView({ behavior: "smooth", block: "center" });
-                    element.click();
+        const findElementAndClick = (selector, matchFn) => {
+            const blocks = document.querySelectorAll(selector);
+            for (const block of blocks) {
+                if (matchFn(block)) {
+                    block.scrollIntoView({ behavior: "smooth", block: "center" });
+                    block.click();
+                    break;
                 }
-            }, 300);
+            }
         };
 
-        // Choix du mode et ciblage
-        if (level === "session") {
-            const ts = parseInt(target);
-            switchToMode("session");
-            setTimeout(() => {
-                goToPageAndClick((s) => s.some(p => p.timestamp === ts));
-            }, 200);
-        }
+        if (["phase", "session"].includes(level)) {
+            const isPhase = level === "phase";
+            switchToMode(level, () => {
+                // Cherche l’index dans la liste complète
+                let fullList = isPhase
+                    ? [...allHistory].sort((a, b) => b.timestamp - a.timestamp)
+                    : groupSessions(allHistory).sort((a, b) => b[0].timestamp - a[0].timestamp);
 
-        else if (level === "phase") {
-            const ts = parseInt(target);
-            switchToMode("phase");
-            setTimeout(() => {
-                goToPageAndClick((e) => e.timestamp === ts);
-            }, 200);
+                const index = isPhase
+                    ? fullList.findIndex(p => p.timestamp === tsTarget)
+                    : fullList.findIndex(s => s.some(p => p.timestamp === tsTarget));
+
+                if (index === -1) return;
+
+                // Calcule la page, puis render, puis simule le clic
+                currentPage = Math.floor(index / itemLimit) + 1;
+                render();
+
+                setTimeout(() => {
+                    findElementAndClick(
+                        ".session-block",
+                        block => {
+                            const btn = block.querySelector(isPhase ? `.delete-phase-btn[data-ts="${tsTarget}"]` : `.delete-session-btn[data-ts="${tsTarget}"]`);
+                            return !!btn;
+                        }
+                    );
+                }, 300);
+            });
         }
 
         else if (level === "day") {
-            const d = new Date(parseInt(target));
+            const d = new Date(tsTarget);
             d.setHours(0, 0, 0, 0);
             const dateStr = d.toLocaleDateString("fr-FR");
-            switchToMode("day");
 
-            setTimeout(() => {
-                const blocks = document.querySelectorAll(".session-block");
-                for (const block of blocks) {
-                    const h = block.querySelector("h5");
-                    if (h && normalized(h.textContent).includes(normalized(dateStr))) {
-                        block.scrollIntoView({ behavior: "smooth", block: "center" });
-                        block.click();
-                        break;
-                    }
-                }
-            }, 500);
+            switchToMode("day", () => {
+                setTimeout(() => {
+                    findElementAndClick(".session-block", block => {
+                        const h = block.querySelector("h5");
+                        return h && normalized(h.textContent).includes(normalized(dateStr));
+                    });
+                }, 300);
+            });
         }
 
         else if (level === "month") {
             const [y, m] = target.split("-");
             const monthName = new Date(`${y}-${m}-01`).toLocaleString('fr-FR', { month: 'long' });
             const label = `${monthName} ${y}`;
-            switchToMode("month");
 
-            setTimeout(() => {
-                const blocks = document.querySelectorAll(".session-block");
-                for (const block of blocks) {
-                    const h = block.querySelector("h5");
-                    if (h && normalized(h.textContent).includes(normalized(label))) {
-                        block.scrollIntoView({ behavior: "smooth", block: "center" });
-                        block.click();
-                        break;
-                    }
-                }
-            }, 500);
+            switchToMode("month", () => {
+                setTimeout(() => {
+                    findElementAndClick(".session-block", block => {
+                        const h = block.querySelector("h5");
+                        return h && normalized(h.textContent).includes(normalized(label));
+                    });
+                }, 300);
+            });
         }
 
         else if (level === "year") {
-            switchToMode("year");
-
-            setTimeout(() => {
-                const blocks = document.querySelectorAll(".session-block");
-                for (const block of blocks) {
-                    const h = block.querySelector("h5");
-                    if (h && h.textContent.includes(target)) {
-                        block.scrollIntoView({ behavior: "smooth", block: "center" });
-                        block.click();
-                        break;
-                    }
-                }
-            }, 500);
+            switchToMode("year", () => {
+                setTimeout(() => {
+                    findElementAndClick(".session-block", block => {
+                        const h = block.querySelector("h5");
+                        return h && h.textContent.includes(target);
+                    });
+                }, 300);
+            });
         }
 
         else if (level === "week") {
             const [y, w] = target.split("-W");
             const label = `${y} - Semaine ${parseInt(w)}`;
-            switchToMode("week");
 
-            setTimeout(() => {
-                const blocks = document.querySelectorAll(".session-block");
-                for (const block of blocks) {
-                    const h = block.querySelector("h5");
-                    if (h && normalized(h.textContent).includes(normalized(label))) {
-                        block.scrollIntoView({ behavior: "smooth", block: "center" });
-                        block.click();
-                        break;
-                    }
-                }
-            }, 500);
+            switchToMode("week", () => {
+                setTimeout(() => {
+                    findElementAndClick(".session-block", block => {
+                        const h = block.querySelector("h5");
+                        return h && normalized(h.textContent).includes(normalized(label));
+                    });
+                }, 300);
+            });
         }
     }
+
 
 
 
