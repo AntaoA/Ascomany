@@ -1036,12 +1036,28 @@ document.addEventListener('DOMContentLoaded', function () {
     const focusParam = new URLSearchParams(window.location.search).get("focus");
 
     if (focusParam) {
+    // Sauvegarde la limite actuelle
+    const previousLimit = itemLimit;
+    itemLimit = 0;
+    currentPage = 1;
+
+    render();
+
+    setTimeout(() => {
         const [level, target] = focusParam.split(":");
 
         const normalized = str => str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
         const switchToMode = (mode) => {
             const li = document.querySelector(`#grouping-options li[data-mode="${mode}"]`);
             if (li) li.click();
+        };
+
+        const restoreLimit = () => {
+            if (previousLimit !== 0) {
+                itemLimit = previousLimit;
+                currentPage = 1;
+                render();
+            }
         };
 
         if (level === "session") {
@@ -1060,6 +1076,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         break;
                     }
                 }
+                restoreLimit();
             }, 500);
         }
 
@@ -1073,6 +1090,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     block.scrollIntoView({ behavior: "smooth", block: "center" });
                     block.click();
                 }
+                restoreLimit();
             }, 500);
         }
 
@@ -1092,6 +1110,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         break;
                     }
                 }
+                restoreLimit();
             }, 500);
         }
 
@@ -1111,6 +1130,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         break;
                     }
                 }
+                restoreLimit();
             }, 500);
         }
 
@@ -1127,11 +1147,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         break;
                     }
                 }
+                restoreLimit();
             }, 500);
         }
 
         else if (level === "week") {
-            // Format attendu : 2025-W14
             const [y, w] = target.split("-W");
             const label = `${y} - Semaine ${parseInt(w)}`;
             switchToMode("week");
@@ -1146,10 +1166,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         break;
                     }
                 }
+                restoreLimit();
             }, 500);
         }
-    }
 
+    }, 100); // attendre que le premier render() avec itemLimit=0 ait fini
+}
 
 
 
