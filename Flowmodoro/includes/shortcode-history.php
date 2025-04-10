@@ -623,8 +623,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Trier la session par timestamp (du plus ancien au plus récent)
         const sortedSession = [...session].sort((a, b) => a.timestamp - b.timestamp);
 
-        // Calcul du début de la session (timestamp de la première phase - sa durée)
-        const start = sortedSession[0].timestamp - (sortedSession[0].duration || 0);
+        // Calcul du début de la session (timestamp de la première phase)
+        const start = sortedSession[0].timestamp;
 
         // Calcul de la fin de la session (timestamp de la dernière phase + sa durée)
         const end = sortedSession[sortedSession.length - 1].timestamp + (sortedSession[sortedSession.length - 1].duration || 0);
