@@ -1022,6 +1022,10 @@ document.addEventListener('DOMContentLoaded', function () {
         return 1 + Math.round(((temp.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
     }
 
+    function capitalize(str) {
+        return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
     function groupByMode(history, mode) {
         const grouped = {};
 
@@ -1030,18 +1034,18 @@ document.addEventListener('DOMContentLoaded', function () {
             let key = '';
 
             if (mode === 'day') {
-                key = date.toLocaleDateString('fr-FR', {
+                key = capitalize(date.toLocaleDateString('fr-FR', {
                     weekday: 'long',
                     day: 'numeric',
                     month: 'long',
                     year: 'numeric'
-                });
+                }));
             } else if (mode === 'week') {
                 const year = date.getFullYear();
                 const week = getISOWeek(date);
                 key = `${year} - Semaine ${week}`;
             } else if (mode === 'month') {
-                key = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+                capitalize(key = date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }));
             } else if (mode === 'year') {
                 key = date.getFullYear();
             }
