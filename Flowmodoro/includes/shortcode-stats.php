@@ -721,7 +721,6 @@ function flowmodoro_stats_shortcode() {
         document.querySelectorAll(".period-btn").forEach(btn => {
             btn.addEventListener("click", () => {
                 const period = btn.dataset.period;
-                const now = currentRange.start ? new Date(currentRange.start) : new Date();
                 let start, end;
 
                 if (period === "full") {
@@ -729,23 +728,19 @@ function flowmodoro_stats_shortcode() {
                     const startStr = start;
                     const endStr = end;
                     document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-
-                    // Ne pas forcer le groupement si déjà choisi
-                    // document.getElementById("grouping-select").value = "day";
-
                     applyFilter(startStr, endStr);
                     updatePeriodLabel("full", startStr, endStr);
                     updateGroupingVisibility();
-                    updateNavButtonsVisibility(); // ✅ immédiatement
+                    updateNavButtonsVisibility();
 
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
-                    return; // stop ici, pas besoin d’aller plus loin
+                    return;
                 }
 
                 if (period === "week") {
                     const today = new Date();
-                    const day = (today.getDay() + 6) % 7; // lundi = 0
+                    const day = (today.getDay() + 6) % 7;
                     start = new Date(today);
                     start.setDate(today.getDate() - day);
                     end = new Date(start);
@@ -753,8 +748,8 @@ function flowmodoro_stats_shortcode() {
                     currentPeriodType = "week";
                 } else if (period === "month") {
                     const today = new Date();
-                    const month = today.getMonth();
                     const year = today.getFullYear();
+                    const month = today.getMonth();
                     start = new Date(year, month, 1);
                     end = new Date(year, month + 1, 0);
                     currentPeriodType = "month";
@@ -777,14 +772,18 @@ function flowmodoro_stats_shortcode() {
                 document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                 btn.classList.add("selected");
 
-                // Ne pas forcer le groupement sauf si vide (par sécurité)
+                // ⚠️ Forcer regroupement à "day" seulement si on passe en "month" (sinon 1 colonne)
                 const groupingSelect = document.getElementById("grouping-select");
-                if (!groupingSelect.value) {
-                    if (period === "year") groupingSelect.value = "month";
-                    else groupingSelect.value = "day";
+                if (period === "month") {
+                    groupingSelect.value = "day";
+                } else if (!groupingSelect.value || period === "week") {
+                    groupingSelect.value = "day";
+                } else if (period === "year" && !groupingSelect.value) {
+                    groupingSelect.value = "month";
                 }
             });
         });
+
 
  
 
