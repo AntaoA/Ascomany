@@ -566,30 +566,36 @@ function flowmodoro_stats_shortcode() {
  
         function renderHourChart(filteredEntries) {
             const hours = new Array(24).fill(0);
- 
+
             filteredEntries.forEach(e => {
                 if (e.type !== "Travail") return;
                 const start = new Date(e.timestamp);
                 const end = new Date(e.timestamp + e.duration);
- 
-                const startHour = start.getHours();
-                const endHour = end.getHours();
-                for (let h = startHour; h <= endHour; h++) {
-                    const sliceStart = new Date(start);
-                    sliceStart.setHours(h, 0, 0, 0);
-                    const sliceEnd = new Date(sliceStart);
-                    sliceEnd.setHours(h + 1, 0, 0, 0);
+
+                let hourCursor = new Date(start);
+                hourCursor.setMinutes(0, 0, 0);
+
+                while (hourCursor < end) {
+                    const h = hourCursor.getHours();
+                    const sliceStart = new Date(hourCursor);
+                    const sliceEnd = new Date(hourCursor);
+                    sliceEnd.setHours(h + 1);
+
                     const overlap = Math.min(end, sliceEnd) - Math.max(start, sliceStart);
                     if (overlap > 0) hours[h] += overlap;
+
+                    hourCursor.setHours(h + 1);
                 }
             });
 
-            // Convertir en minutes
-            const minutes = hours.map(ms => parseFloat((ms / 60000).toFixed(2)));
- 
+            const minutes = hours.map(ms => {
+                const min = ms / 60000;
+                return parseFloat((min < 0.1 && min > 0) ? 0.1 : min.toFixed(2));
+            });
+
             const ctx = document.getElementById("hour-chart").getContext("2d");
             if (hourChartInstance) hourChartInstance.destroy();
- 
+
             hourChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -601,6 +607,7 @@ function flowmodoro_stats_shortcode() {
                     }]
                 },
                 options: {
+                    responsive: true,
                     plugins: {
                         tooltip: {
                             callbacks: {
@@ -610,7 +617,6 @@ function flowmodoro_stats_shortcode() {
                             }
                         }
                     },
-                    responsive: true,
                     scales: {
                         y: {
                             beginAtZero: true,
@@ -620,6 +626,7 @@ function flowmodoro_stats_shortcode() {
                 }
             });
         }
+
  
  
         function cloneDate(date) {
