@@ -751,10 +751,11 @@ function flowmodoro_stats_shortcode() {
                     const startStr = start.toISOString().split("T")[0];
                     const endStr = end.toISOString().split("T")[0];
 
-
                     if (currentPeriodType === "week" && currentRange.start === startStr && currentRange.end === endStr) {
                         return; // déjà sur cette semaine
                     }
+
+                    document.getElementById("grouping-select").value = "day";
 
                     currentPeriodType = "week";
 
@@ -770,6 +771,7 @@ function flowmodoro_stats_shortcode() {
                         return;
                     }
 
+                    document.getElementById("grouping-select").value = "day";
                     start = new Date(year, month, 1);
                     end = new Date(year, month + 1, 0);
                     currentPeriodType = "month";
@@ -783,20 +785,15 @@ function flowmodoro_stats_shortcode() {
                     if (currentPeriodType === "year" && isAlreadyThisYear) {
                         return;
                     }
- 
+                    document.getElementById("grouping-select").value = "month";
                     start = new Date(thisYear, 0, 1);
                     end = new Date(thisYear, 11, 31);
                     currentPeriodType = "year";
-                }
-
-                if (period === "year") {
-                    if (!["day", "week"].includes(currentPeriodType)) {
-                        document.getElementById("grouping-select").value = "month";
-                    }      
+                }   
                 } else {
                     if (!["week", "month", "year"].includes(currentPeriodType)) {
                             document.getElementById("grouping-select").value = "day";
-                        }                
+                        }
                 }
 
  
