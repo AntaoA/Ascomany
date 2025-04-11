@@ -593,23 +593,31 @@ function flowmodoro_stats_shortcode() {
             const chartType = document.getElementById("hour-chart-type").value;
             const selectedPhase = document.getElementById("hour-chart-phase").value;
 
+            const now = new Date();
+            console.log("🕓 Current time:", now.toString());
+
             filteredEntries.forEach(e => {
                 if (e.type !== selectedPhase) return;
-                const start = new Date(e.timestamp);
-                const end = new Date(e.timestamp + e.duration);
 
-                // Corrige les anciennes entrées si l'heure est > 2h dans le futur (signe de mauvais fuseau)
-                const now = new Date();
+                let start = new Date(e.timestamp);
+                let end = new Date(e.timestamp + e.duration);
+
+                console.log("➡️ Raw phase:", {
+                    timestamp: e.timestamp,
+                    duration: e.duration,
+                    start: start.toString(),
+                    end: end.toString(),
+                });
+
+                // tentative correction UTC → heure locale pour anciennes entrées
                 if (start > now && start.getHours() > now.getHours() + 1) {
+                    console.log("⚠️ Correction appliquée à l'entrée (avant)", start.toString());
                     start.setHours(start.getHours() - 2);
-                }
-                // Idem : corriger si incohérent
-                if (end > now && end.getHours() > now.getHours() + 1) {
                     end.setHours(end.getHours() - 2);
+                    console.log("✅ Correction appliquée (après)", start.toString());
                 }
 
-
-                // Avancer par tranches horaires de 1h
+                // Découpage par tranches horaires
                 let cursor = new Date(start.getTime());
                 cursor.setMinutes(0, 0, 0);
 
@@ -622,14 +630,15 @@ function flowmodoro_stats_shortcode() {
                     const overlap = overlapEnd - overlapStart;
 
                     if (overlap > 0) {
-                        const h = cursor.getHours(); // ou getUTCHours() si nécessaire
+                        const h = cursor.getHours();
                         hours[h] += overlap;
+                        console.log(`📊 Ajout ${overlap / 60000} min à ${h}h`);
                     }
+
                     cursor = next;
                 }
-
             });
-            
+
             const rawMinutes = hours.map(ms => ms / 60000);
             const total = rawMinutes.reduce((a, b) => a + b, 0);
             const minutes = rawMinutes.map(min => parseFloat((min < 0.1 && min > 0) ? 0.1 : min.toFixed(2)));
