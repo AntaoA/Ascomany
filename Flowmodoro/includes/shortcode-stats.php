@@ -730,95 +730,62 @@ function flowmodoro_stats_shortcode() {
                     const endStr = end;
                     document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
 
-                    // 👇 force groupement par jour
-                    document.getElementById("grouping-select").value = "day";
+                    // Ne pas forcer le groupement si déjà choisi
+                    // document.getElementById("grouping-select").value = "day";
 
                     applyFilter(startStr, endStr);
                     updatePeriodLabel("full", startStr, endStr);
-                    updateGroupingVisibility(); // 👈 important ici aussi
+                    updateGroupingVisibility();
+                    updateNavButtonsVisibility(); // ✅ immédiatement
 
                     document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                     btn.classList.add("selected");
-                    updateNavButtonsVisibility();
-                } else if (period === "week") {
+                    return; // stop ici, pas besoin d’aller plus loin
+                }
+
+                if (period === "week") {
                     const today = new Date();
                     const day = (today.getDay() + 6) % 7; // lundi = 0
                     start = new Date(today);
                     start.setDate(today.getDate() - day);
                     end = new Date(start);
                     end.setDate(start.getDate() + 6);
-
-                    const startStr = start.toISOString().split("T")[0];
-                    const endStr = end.toISOString().split("T")[0];
-
-                    if (currentPeriodType === "week" && currentRange.start === startStr && currentRange.end === endStr) {
-                        return; // déjà sur cette semaine
-                    }
-
-                    document.getElementById("grouping-select").value = "day";
-
                     currentPeriodType = "week";
-
                 } else if (period === "month") {
                     const today = new Date();
                     const month = today.getMonth();
                     const year = today.getFullYear();
-
-                    const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
-                    const isAlreadyThisMonth = currentStartDate && currentStartDate.getMonth() === month && currentStartDate.getFullYear() === year;
-
-                    if (currentPeriodType === "month" && isAlreadyThisMonth) {
-                        return;
-                    }
-
-                    document.getElementById("grouping-select").value = "day";
                     start = new Date(year, month, 1);
                     end = new Date(year, month + 1, 0);
                     currentPeriodType = "month";
                 } else if (period === "year") {
-                    const today = new Date();
-                    const thisYear = today.getFullYear();
-
-                    const currentStartDate = currentRange.start ? new Date(currentRange.start) : null;
-                    const isAlreadyThisYear = currentStartDate && currentStartDate.getFullYear() === thisYear;
-
-                    if (currentPeriodType === "year" && isAlreadyThisYear) {
-                        return;
-                    }
-                    document.getElementById("grouping-select").value = "month";
+                    const thisYear = new Date().getFullYear();
                     start = new Date(thisYear, 0, 1);
                     end = new Date(thisYear, 11, 31);
                     currentPeriodType = "year";
-                }   
-                } else {
-                    if (!["week", "month", "year"].includes(currentPeriodType)) {
-                            document.getElementById("grouping-select").value = "day";
-                        }
                 }
 
- 
- 
-                if (start && end) {
-                    console.log(">>> Bouton cliqué :", period);
-                    console.log("Start (raw):", start);
-                    console.log("End (raw):", end);
+                const startStr = start.getFullYear() + "-" + String(start.getMonth() + 1).padStart(2, '0') + "-" + String(start.getDate()).padStart(2, '0');
+                const endStr = end.getFullYear() + "-" + String(end.getMonth() + 1).padStart(2, '0') + "-" + String(end.getDate()).padStart(2, '0');
 
-                    const startStr = start.getFullYear() + "-" + String(start.getMonth() + 1).padStart(2, '0') + "-" + String(start.getDate()).padStart(2, '0');
-                    const endStr = end.getFullYear() + "-" + String(end.getMonth() + 1).padStart(2, '0') + "-" + String(end.getDate()).padStart(2, '0');
+                document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+                applyFilter(startStr, endStr);
+                updatePeriodLabel(period, startStr, endStr);
+                updateGroupingVisibility();
+                updateNavButtonsVisibility();
 
-                    console.log("StartStr:", startStr);
-                    console.log("EndStr:", endStr);
+                document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
 
-                    document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-                    applyFilter(startStr, endStr);
-                    updateGroupingVisibility();
-                    updateNavButtonsVisibility();
-                    document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
-                    btn.classList.add("selected");
+                // Ne pas forcer le groupement sauf si vide (par sécurité)
+                const groupingSelect = document.getElementById("grouping-select");
+                if (!groupingSelect.value) {
+                    if (period === "year") groupingSelect.value = "month";
+                    else groupingSelect.value = "day";
                 }
-
             });
         });
+
  
 
         function getTopRankings(filteredEntries, limit = 5) {
