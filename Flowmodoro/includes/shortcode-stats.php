@@ -596,7 +596,7 @@ function flowmodoro_stats_shortcode() {
                 hourCursor.setMinutes(0, 0, 0);
 
                 while (hourCursor < end) {
-                    const h = hourCursor.getHours();
+                    const h = hourCursor.getUTCHours();
                     const sliceStart = new Date(hourCursor);
                     const sliceEnd = new Date(hourCursor);
                     sliceEnd.setHours(h + 1);
