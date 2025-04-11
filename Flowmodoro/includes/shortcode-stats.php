@@ -595,8 +595,8 @@ function flowmodoro_stats_shortcode() {
 
             filteredEntries.forEach(e => {
                 if (e.type !== selectedPhase) return;
-                const start = new Date(e.timestamp - (new Date().getTimezoneOffset() * 60000));
-                const end = new Date(e.timestamp + e.duration - (new Date().getTimezoneOffset() * 60000));
+                const start = new Date(e.timestamp);duration);
+                const end = new Date(e.timestamp + e.duration);
 
                 // Avancer par tranches horaires de 1h
                 let cursor = new Date(start.getTime());
