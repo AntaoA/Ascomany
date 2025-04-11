@@ -899,16 +899,19 @@ function flowmodoro_stats_shortcode() {
                     url: `/historique?focus=session:${s.start}`
                 }));
             } else {
-                items = rankings[selected].map(period => ({
-                    label: period.period,
-                    value: formatDuration(period.duration),
+                items = rankings[selected].map(period => {
                     let urlUnit = selected;
                     if (selected === "jours") urlUnit = "day";
                     else if (selected === "semaines") urlUnit = "week";
                     else if (selected === "mois") urlUnit = "month";
                     else if (selected === "annees") urlUnit = "year";
-                    url: `/historique?focus=${urlUnit}:${period.period}`
-                }));
+
+                    return {
+                        label: period.period,
+                        value: formatDuration(period.duration),
+                        url: `/historique?focus=${urlUnit}:${period.period}`
+                    };
+                });
             }
 
             items.forEach(({ label, value, url }) => {
@@ -935,6 +938,7 @@ function flowmodoro_stats_shortcode() {
                 container.appendChild(card);
             });
         }
+
 
 
 
