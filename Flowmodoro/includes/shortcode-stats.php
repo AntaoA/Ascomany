@@ -90,15 +90,21 @@ function flowmodoro_stats_shortcode() {
             </div>
 
             <div id="top-ranking" style="margin-top: 50px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                    <h3 style="margin: 0;">🏅 Classement</h3>
-                    <select id="ranking-select" style="padding: 6px 10px; border-radius: 6px;">
+                <div id="ranking-view-toggle" style="margin-top: 30px; text-align: center;">
+                    <button id="toggle-ranking-view" class="period-btn">🧾 Voir l'affichage complet</button>
+                </div>
+
+                <div id="ranking-display-modes" style="margin-top: 30px; display: none;">
+                    <select id="ranking-mode-select" style="padding: 6px 12px; border-radius: 6px;">
                         <option value="phases">Phases les plus longues</option>
                         <option value="sessions">Sessions les plus longues</option>
-                        <option value="jours">Journées les plus productives</option>
+                        <option value="jours">Jours les plus productifs</option>
+                        <option value="semaines">Semaines les plus productives</option>
+                        <option value="mois">Mois les plus productifs</option>
+                        <option value="annees">Années les plus productives</option>
                     </select>
+                    <div id="full-ranking-container" style="margin-top: 20px;"></div>
                 </div>
-                <div id="ranking-list" style="margin-top: 20px;"></div>
             </div>
     </div>
 
@@ -157,6 +163,37 @@ function flowmodoro_stats_shortcode() {
         #nav-buttons button:hover {
             background: #ddd;
         }
+
+        .ranking-section {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+
+        .ranking-list {
+            margin-top: 10px;
+        }
+
+        .ranking-item {
+            padding: 6px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .ranking-pagination button {
+            padding: 6px 12px;
+            margin: 0 4px;
+            border: none;
+            background: #f0f0f0;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .ranking-pagination button:hover {
+            background: #ddd;
+        }
+
 
 
     </style>
@@ -587,7 +624,7 @@ function flowmodoro_stats_shortcode() {
         }
  
         let hourChartInstance = null;
- 
+
         function renderHourChart(filteredEntries) {
             const hours = new Array(24).fill(0);
             const chartType = document.getElementById("hour-chart-type").value;
@@ -854,82 +891,155 @@ function flowmodoro_stats_shortcode() {
         }
 
 
-        function renderTopRankings(rankings, selected = "phases") {
-            const container = document.getElementById("ranking-list");
-            container.innerHTML = "";
+        function renderTopRankingsPaginated(container, data, title, formatter) {
+            const defaultLimit = 10;
+            let currentPage = 1;
+            let currentLimit = defaultLimit;
 
-            const formatDuration = d => (d / 60000).toFixed(2) + " min";
-            const formatDate = ts => new Date(ts).toLocaleString('fr-FR', {
-                weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
-                hour: '2-digit', minute: '2-digit'
+            const wrapper = document.createElement("div");
+            wrapper.className = "ranking-section";
+
+            const header = document.createElement("div");
+            header.style.display = "flex";
+            header.style.justifyContent = "space-between";
+            header.style.alignItems = "center";
+
+            const h3 = document.createElement("h3");
+            h3.textContent = title;
+
+            const select = document.createElement("select");
+            [5, 10, 20, 0].forEach(val => {
+                const opt = document.createElement("option");
+                opt.value = val;
+                opt.textContent = val === 0 ? "Tous" : val;
+                if (val === defaultLimit) opt.selected = true;
+                select.appendChild(opt);
             });
 
-            const cardStyle = `
-                background: #fff;
-                border: 1px solid #ccc;
-                border-radius: 10px;
-                padding: 12px 18px;
-                margin-bottom: 12px;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                flex-wrap: wrap;
-            `;
+            select.onchange = () => {
+                currentLimit = parseInt(select.value);
+                currentPage = 1;
+                render();
+            };
 
-            let items = [];
+            header.appendChild(h3);
+            header.appendChild(select);
+            wrapper.appendChild(header);
 
-            if (selected === "phases") {
-                items = rankings.byPhase.map(e => ({
-                    label: formatDate(e.timestamp),
-                    value: formatDuration(e.duration),
-                    url: `/historique?focus=phase:${e.timestamp}`
-                }));
-            } else if (selected === "sessions") {
-                items = rankings.sessionDurations.map(s => ({
-                    label: `${formatDate(s.start)} → ${formatDate(s.end)}`,
-                    value: formatDuration(s.duration),
-                    url: `/historique?focus=session:${s.start}`
-                }));
-            } else if (selected === "jours") {
-                items = rankings.topDays.map(d => ({
-                    label: d.date,
-                    value: formatDuration(d.duration),
-                    url: `/historique?focus=day:${d.date}`
-                }));
+            const list = document.createElement("div");
+            list.className = "ranking-list";
+            wrapper.appendChild(list);
+
+            const pagination = document.createElement("div");
+            pagination.className = "ranking-pagination";
+            pagination.style.textAlign = "center";
+            pagination.style.marginTop = "10px";
+            wrapper.appendChild(pagination);
+
+            function render() {
+                list.innerHTML = "";
+                pagination.innerHTML = "";
+
+                const totalPages = currentLimit === 0 ? 1 : Math.ceil(data.length / currentLimit);
+                const start = currentLimit === 0 ? 0 : (currentPage - 1) * currentLimit;
+                const end = currentLimit === 0 ? data.length : start + currentLimit;
+                const visible = data.slice(start, end);
+
+                visible.forEach((item, index) => {
+                    const el = formatter(item, start + index + 1);
+                    list.appendChild(el);
+                });
+
+                if (totalPages > 1 && currentLimit !== 0) {
+                    const prev = document.createElement("button");
+                    prev.textContent = "← Précédent";
+                    prev.disabled = currentPage === 1;
+                    prev.onclick = () => {
+                        if (currentPage > 1) {
+                            currentPage--;
+                            render();
+                        }
+                    };
+
+                    const next = document.createElement("button");
+                    next.textContent = "Suivant →";
+                    next.disabled = currentPage >= totalPages;
+                    next.onclick = () => {
+                        if (currentPage < totalPages) {
+                            currentPage++;
+                            render();
+                        }
+                    };
+
+                    const label = document.createElement("span");
+                    label.textContent = ` Page ${currentPage} / ${totalPages} `;
+                    label.style.margin = "0 10px";
+
+                    pagination.appendChild(prev);
+                    pagination.appendChild(label);
+                    pagination.appendChild(next);
+                }
             }
 
-            items.slice(0, 5).forEach(({ label, value, url }) => {
-                const card = document.createElement("div");
-                card.style = cardStyle;
-
-                const left = document.createElement("div");
-                left.innerHTML = `<strong>${label}</strong><br><small>${value}</small>`;
-
-                const right = document.createElement("div");
-                const btn = document.createElement("a");
-                btn.href = url;
-                btn.textContent = "👁 Voir";
-                btn.style = `
-                    font-size: 14px;
-                    padding: 6px 10px;
-                    background: #f0f0f0;
-                    border-radius: 6px;
-                    text-decoration: none;
-                    color: #111;
-                    border: 1px solid #ccc;
-                `;
-                btn.onmouseover = () => btn.style.background = "#ddd";
-                btn.onmouseout = () => btn.style.background = "#f0f0f0";
-
-                right.appendChild(btn);
-                card.appendChild(left);
-                card.appendChild(right);
-                container.appendChild(card);
-            });
+            render();
+            container.appendChild(wrapper);
         }
 
 
+
+        function renderFullRanking(rankings) {
+            const selected = document.getElementById("ranking-mode-select").value;
+            const container = document.getElementById("full-ranking-container");
+            container.innerHTML = "";
+
+            if (selected === "phases") {
+                renderTopRankingsPaginated(container, rankings.byPhase, "Phases les plus longues", (item, rank) => {
+                    const div = document.createElement("div");
+                    div.className = "ranking-item";
+                    div.innerHTML = `<strong>#${rank}</strong> — ${format(item.duration)} — ${new Date(item.timestamp).toLocaleString()}`;
+                    return div;
+                });
+            } else if (selected === "sessions") {
+                renderTopRankingsPaginated(container, rankings.sessionDurations, "Sessions les plus longues", (item, rank) => {
+                    const div = document.createElement("div");
+                    div.className = "ranking-item";
+                    div.innerHTML = `<strong>#${rank}</strong> — ${format(item.duration)} — ${new Date(item.start).toLocaleString()}`;
+                    return div;
+                });
+            } else if (selected === "jours") {
+                renderTopRankingsPaginated(container, rankings.topDays, "Jours les plus productifs", (item, rank) => {
+                    const div = document.createElement("div");
+                    div.className = "ranking-item";
+                    div.innerHTML = `<strong>#${rank}</strong> — ${item.date} — ${format(item.duration)}`;
+                    return div;
+                });
+            } else if (selected === "semaines" || selected === "mois" || selected === "annees") {
+                const unitMap = {
+                    semaines: "week",
+                    mois: "month",
+                    annees: "year"
+                };
+                const unit = unitMap[selected];
+
+                const byDate = getStatsBetween(currentRange.start, currentRange.end).byDate;
+                const filled = fillMissingDates(currentRange.start, currentRange.end, byDate);
+                const grouped = groupDataByTemporalUnit(filled, unit);
+
+                const sorted = Object.entries(grouped)
+                    .map(([label, value]) => ({
+                        label,
+                        duration: value.travail
+                    }))
+                    .sort((a, b) => b.duration - a.duration);
+
+                renderTopRankingsPaginated(container, sorted, `Classement par ${unit}`, (item, rank) => {
+                    const div = document.createElement("div");
+                    div.className = "ranking-item";
+                    div.innerHTML = `<strong>#${rank}</strong> — ${item.label} — ${format(item.duration)}`;
+                    return div;
+                });
+            }
+        }
 
 
  
@@ -1017,7 +1127,7 @@ function flowmodoro_stats_shortcode() {
 
             const rankings = getTopRankings(stats.filtered);
             const selected = document.getElementById("ranking-select")?.value || "phases";
-            renderTopRankings(rankings, selected);
+            renderFullRanking(getTopRankings(stats.filtered));
 
             updatePeriodLabel();
             updateGroupingVisibility();
@@ -1111,6 +1221,16 @@ function flowmodoro_stats_shortcode() {
         }
 
 
+        document.getElementById("toggle-ranking-view").addEventListener("click", () => {
+            const bloc = document.getElementById("ranking-display-modes");
+            bloc.style.display = bloc.style.display === "none" ? "block" : "none";
+        });
+
+        document.getElementById("ranking-mode-select").addEventListener("change", () => {
+            const stats = getStatsBetween(currentRange.start, currentRange.end);
+            const rankings = getTopRankings(stats.filtered);
+            renderFullRanking(rankings);
+        });
 
  
  
