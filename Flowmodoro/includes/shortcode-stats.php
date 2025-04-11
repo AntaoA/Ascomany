@@ -67,7 +67,33 @@ function flowmodoro_stats_shortcode() {
             </div>
 
             <div id="hour-distribution" style="margin-top: 40px;">
-                <h3>🕓 Répartition horaire du travail</h3>
+                <h3>🕓 Répartition horaire</h3>
+                <div style="margin-bottom: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <label>
+                    Type :
+                    <select id="hour-chart-type">
+                        <option value="bar">Barres</option>
+                        <option value="line">Lignes</option>
+                    </select>
+                </label>
+
+                <label>
+                    Phase :
+                    <select id="hour-chart-phase">
+                        <option value="Travail">Travail</option>
+                        <option value="Pause">Pause</option>
+                    </select>
+                </label>
+
+                <label>
+                    Mode :
+                    <select id="hour-chart-mode">
+                        <option value="volume">Volume (min)</option>
+                        <option value="pourcentage">Pourcentage</option>
+                    </select>
+                </label>
+            </div>
+
                 <canvas id="hour-chart" height="200" style="background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
             </div>
 
@@ -566,9 +592,12 @@ function flowmodoro_stats_shortcode() {
  
         function renderHourChart(filteredEntries) {
             const hours = new Array(24).fill(0);
+            const chartType = document.getElementById("hour-chart-type").value;
+            const selectedPhase = document.getElementById("hour-chart-phase").value;
+            const mode = document.getElementById("hour-chart-mode").value;
 
             filteredEntries.forEach(e => {
-                if (e.type !== "Travail") return;
+                if (e.type !== selectedPhase) return;
                 const start = new Date(e.timestamp);
                 const end = new Date(e.timestamp + e.duration);
 
@@ -588,22 +617,29 @@ function flowmodoro_stats_shortcode() {
                 }
             });
 
-            const minutes = hours.map(ms => {
-                const min = ms / 60000;
-                return parseFloat((min < 0.1 && min > 0) ? 0.1 : min.toFixed(2));
-            });
+            let data = hours.map(ms => ms / 60000); // minutes
+
+            if (mode === "pourcentage") {
+                const total = data.reduce((a, b) => a + b, 0);
+                data = data.map(min => total > 0 ? parseFloat(((min / total) * 100).toFixed(2)) : 0);
+            } else {
+                data = data.map(min => parseFloat((min < 0.1 && min > 0) ? 0.1 : min.toFixed(2)));
+            }
 
             const ctx = document.getElementById("hour-chart").getContext("2d");
             if (hourChartInstance) hourChartInstance.destroy();
 
             hourChartInstance = new Chart(ctx, {
-                type: 'bar',
+                type: chartType,
                 data: {
                     labels: [...Array(24)].map((_, i) => `${String(i).padStart(2, '0')}h`),
                     datasets: [{
-                        label: 'Temps de travail (min)',
-                        data: minutes,
-                        backgroundColor: '#e67e22'
+                        label: selectedPhase + (mode === "pourcentage" ? ' (%)' : ' (min)'),
+                        data: data,
+                        backgroundColor: chartType === "bar" ? '#e67e22' : 'transparent',
+                        borderColor: '#e67e22',
+                        tension: 0.3,
+                        fill: false
                     }]
                 },
                 options: {
@@ -612,7 +648,7 @@ function flowmodoro_stats_shortcode() {
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return context.dataset.label + ': ' + context.formattedValue + ' min';
+                                    return context.dataset.label + ': ' + context.formattedValue + (mode === "pourcentage" ? '%' : ' min');
                                 }
                             }
                         }
@@ -620,12 +656,16 @@ function flowmodoro_stats_shortcode() {
                     scales: {
                         y: {
                             beginAtZero: true,
-                            title: { display: true, text: 'Minutes' }
+                            title: {
+                                display: true,
+                                text: mode === "pourcentage" ? "Pourcentage (%)" : "Minutes"
+                            }
                         }
                     }
                 }
             });
         }
+
 
  
  
@@ -991,6 +1031,7 @@ function flowmodoro_stats_shortcode() {
             renderChart(grouped);
             renderHourChart(stats.filtered);
 
+
             const rankings = getTopRankings(stats.filtered);
             renderTopRankings(rankings);
 
@@ -1000,6 +1041,15 @@ function flowmodoro_stats_shortcode() {
 
         }
 
+
+        ["hour-chart-type", "hour-chart-phase", "hour-chart-mode"].forEach(id => {
+                document.getElementById(id).addEventListener("change", () => {
+                    const stats = getStatsBetween(currentRange.start, currentRange.end);
+                    renderHourChart(stats.filtered);
+                });
+            });
+
+            
         document.getElementById("grouping-select").addEventListener("change", () => {
             applyFilter();
         });
