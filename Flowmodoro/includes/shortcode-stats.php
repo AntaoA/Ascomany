@@ -1033,12 +1033,12 @@ function flowmodoro_stats_shortcode() {
         }
 
 
-        ["hour-chart-type", "hour-chart-phase", "hour-chart-mode"].forEach(id => {
-                document.getElementById(id).addEventListener("change", () => {
-                    const stats = getStatsBetween(currentRange.start, currentRange.end);
-                    renderHourChart(stats.filtered);
-                });
+        document.querySelectorAll("#hour-chart-type, #hour-chart-phase").forEach(el => {
+            el.addEventListener("change", () => {
+                const stats = getStatsBetween(currentRange.start, currentRange.end);
+                renderHourChart(stats.filtered);
             });
+        });
 
 
         document.getElementById("grouping-select").addEventListener("change", () => {
