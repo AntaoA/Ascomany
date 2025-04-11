@@ -711,13 +711,14 @@ document.addEventListener('DOMContentLoaded', function () {
             const sessionKey = session.map(e => e.timestamp).join("-");
             const sessionNum = sessionNumbers.get(sessionKey);
             const firstPhase = session[0];
-            const startTs = firstPhase.timestamp
-            const startTime = new Date(startTs).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-            
+            const sessionDate = formatDate(firstPhase.timestamp, false);
+            const sessionTime = new Date(firstPhase.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+
             div.innerHTML = `
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <h4 style="margin: 0;">Session ${sessionNum} — ${formatDate(session[0].timestamp, false)} à ${startTime}</h4>
+                        <h4 style="margin: 0;">Session ${sessionNum} — ${sessionDate} à ${sessionTime}</h4>
                         <small>
                             Travail : ${formatTime(totalTravail)} |
                             Pause : ${formatTime(totalPause)} |

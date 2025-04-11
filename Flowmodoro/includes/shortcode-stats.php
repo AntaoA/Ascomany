@@ -593,29 +593,18 @@ function flowmodoro_stats_shortcode() {
             const chartType = document.getElementById("hour-chart-type").value;
             const selectedPhase = document.getElementById("hour-chart-phase").value;
 
-            const now = new Date();
-
             filteredEntries.forEach(e => {
-                if (e.type !== selectedPhase) return;
+                if (selectedPhase !== "all" && e.type !== selectedPhase) return;
 
+                const duration = typeof e.duration === "number" ? e.duration : 0;
                 const start = new Date(e.timestamp);
-                const end = new Date(e.timestamp + e.duration);
+                const end = new Date(e.timestamp + duration);
 
-
-                // tentative correction UTC → heure locale pour anciennes entrées
-                if (start > now && start.getHours() > now.getHours() + 1) {
-                    console.log("⚠️ Correction appliquée à l'entrée (avant)", start.toString());
-                    start.setHours(start.getHours() - 2);
-                    end.setHours(end.getHours() - 2);
-                    console.log("✅ Correction appliquée (après)", start.toString());
-                }
-
-                // Découpage par tranches horaires
-                let cursor = new Date(start.getTime());
+                let cursor = new Date(start);
                 cursor.setMinutes(0, 0, 0);
 
                 while (cursor < end) {
-                    const next = new Date(cursor.getTime());
+                    const next = new Date(cursor);
                     next.setHours(cursor.getHours() + 1);
 
                     const overlapStart = Math.max(start.getTime(), cursor.getTime());
@@ -625,7 +614,6 @@ function flowmodoro_stats_shortcode() {
                     if (overlap > 0) {
                         const h = cursor.getHours();
                         hours[h] += overlap;
-                        console.log(`📊 Ajout ${overlap / 60000} min à ${h}h`);
                     }
 
                     cursor = next;
