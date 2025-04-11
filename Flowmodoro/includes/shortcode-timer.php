@@ -364,7 +364,8 @@ function flowmodoro_shortcode() {
 
             function updateLive(addToTotal = false) {
                 const now = Date.now();
-                const elapsed = now - currentLiveEntry.end + currentLiveEntry.duration;
+                const start = currentLiveEntry.start || (Date.now() - (currentLiveEntry.duration || 0));
+                const elapsed = now - currentLiveEntry.start;
 
                 let displayTime = formatTime(elapsed)
                 li.textContent = `${currentLiveEntry.type} (en cours) : ${displayTime}`;
