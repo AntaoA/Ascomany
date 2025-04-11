@@ -728,6 +728,7 @@ function flowmodoro_stats_shortcode() {
                     const startStr = start;
                     const endStr = end;
                     document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
+                    document.getElementById("grouping-select").value = "day";
                     applyFilter(startStr, endStr);
                     updatePeriodLabel("full", startStr, endStr);
                     updateGroupingVisibility();
@@ -764,13 +765,6 @@ function flowmodoro_stats_shortcode() {
                 const endStr = end.getFullYear() + "-" + String(end.getMonth() + 1).padStart(2, '0') + "-" + String(end.getDate()).padStart(2, '0');
 
                 document.getElementById("date-range-picker").value = `${startStr} - ${endStr}`;
-                applyFilter(startStr, endStr);
-                updatePeriodLabel(period, startStr, endStr);
-                updateGroupingVisibility();
-                updateNavButtonsVisibility();
-
-                document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
-                btn.classList.add("selected");
 
                 // 🟠 Forcer regroupement en "day" si on est en "semaine" ou "mois"
                 const groupingSelect = document.getElementById("grouping-select");
@@ -779,6 +773,14 @@ function flowmodoro_stats_shortcode() {
                 } else if (period === "year" && !groupingSelect.value) {
                     groupingSelect.value = "month";
                 }
+
+                applyFilter(startStr, endStr);
+                updatePeriodLabel(period, startStr, endStr);
+                updateGroupingVisibility();
+                updateNavButtonsVisibility();
+
+                document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
+                btn.classList.add("selected");
             });
         });
 
