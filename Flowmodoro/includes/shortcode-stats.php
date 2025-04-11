@@ -1057,13 +1057,6 @@ function flowmodoro_stats_shortcode() {
             renderChart(grouped);
         });
 
-        let showAllRanking = false;
-        document.getElementById("show-more-ranking").addEventListener("click", () => {
-            showAllRanking = !showAllRanking;
-            const rankings = getTopRankings(stats.filtered, showAllRanking ? 100 : 5);
-            renderTopRankings(rankings, showAllRanking);
-            document.getElementById("show-more-ranking").textContent = showAllRanking ? "Afficher moins" : "Afficher plus";
-        });
 
  
         function shiftDateRange(amount, unit) {
