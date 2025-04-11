@@ -902,7 +902,12 @@ function flowmodoro_stats_shortcode() {
                 items = rankings[selected].map(period => ({
                     label: period.period,
                     value: formatDuration(period.duration),
-                    url: `/historique?focus=${selected.slice(0, -1)}:${period.period}`
+                    let urlUnit = selected;
+                    if (selected === "jours") urlUnit = "day";
+                    else if (selected === "semaines") urlUnit = "week";
+                    else if (selected === "mois") urlUnit = "month";
+                    else if (selected === "annees") urlUnit = "year";
+                    url: `/historique?focus=${urlUnit}:${period.period}`
                 }));
             }
 
