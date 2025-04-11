@@ -819,8 +819,8 @@ function flowmodoro_stats_shortcode() {
 
  
 
-        function getTopRankings(filteredEntries, limit = 3) {
-            const applyLimit = (arr) => limit ? arr.slice(0, limit) : arr;
+        function getTopRankings(filteredEntries, limit = null) {
+            const applyLimit = (arr) => limit === null ? arr : arr.slice(0, limit);
 
             const byPhase = applyLimit(
                 filteredEntries.filter(e => e.type === "Travail").sort((a, b) => b.duration - a.duration)
@@ -1032,9 +1032,9 @@ function flowmodoro_stats_shortcode() {
 
 
             const limitValue = document.getElementById("ranking-limit-select").value;
-            const limit = limitValue === "all" ? undefined : parseInt(limitValue, 10);
+            const limit = limitValue === "all" ? null : parseInt(limitValue, 10);
             const rankings = getTopRankings(stats.filtered, limit);
-
+            
             const selected = document.getElementById("ranking-select")?.value || "phases";
             renderTopRankings(rankings, selected);
 
@@ -1060,7 +1060,7 @@ function flowmodoro_stats_shortcode() {
                 const stats = getStatsBetween(currentRange.start, currentRange.end);
                 const selected = document.getElementById("ranking-select").value;
                 const limitValue = rankingLimitSelect.value;
-                const limit = limitValue === "all" ? undefined : parseInt(limitValue, 10);
+                const limit = limitValue === "all" ? null : parseInt(limitValue, 10);
                 const rankings = getTopRankings(stats.filtered, limit);
                 renderTopRankings(rankings, selected);
             });
