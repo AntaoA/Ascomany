@@ -604,14 +604,14 @@ function flowmodoro_stats_shortcode() {
 
                 while (cursor < end) {
                     const next = new Date(cursor.getTime());
-                    next.setHours(cursor.getHours() + 1);
+                    next.setHours(cursor.getUTCHours() + 1);
 
                     const overlapStart = Math.max(start.getTime(), cursor.getTime());
                     const overlapEnd = Math.min(end.getTime(), next.getTime());
                     const overlap = overlapEnd - overlapStart;
 
                     if (overlap > 0) {
-                        const h = cursor.getHours(); // ou getUTCHours() si nécessaire
+                        const h = cursor.getUTCHours(); // ou getUTCHours() si nécessaire
                         hours[h] += overlap;
                     }
 
