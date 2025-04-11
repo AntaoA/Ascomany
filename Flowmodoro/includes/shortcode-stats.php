@@ -438,6 +438,13 @@ function flowmodoro_stats_shortcode() {
             return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
         }
  
+
+        function getTotalDays(start, end) {
+            const s = new Date(start);
+            const e = new Date(end);
+            return Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
+        }
+        
         function renderStats(stats) {
             const el = document.getElementById("stats-summary");
             const streaks = computeConsistencyStreaks(stats.byDate);
@@ -449,7 +456,7 @@ function flowmodoro_stats_shortcode() {
                     <li><strong>🕓 Pause réelle :</strong> ${format(stats.pauseReal)}</li>
                     <li><strong>📉 % de pause comptabilisée :</strong> ${stats.pauseReal > 0 ? ((stats.pause / stats.pauseReal) * 100).toFixed(1) : "100.0"}%</li>
                     <li><strong>Nombre de sessions :</strong> ${stats.sessionCount}</li>
-                    <li><strong>Jours actifs :</strong> ${stats.daysActive}</li>
+                    <li><strong>Jours actifs :</strong> ${stats.daysActive} / ${getTotalDays(currentRange.start, currentRange.end)} (${((stats.daysActive / getTotalDays(currentRange.start, currentRange.end)) * 100).toFixed(1)}%)</li>
                     <li><strong>🔥 Streak en cours :</strong> ${streaks.current.streak} jour(s) ${streaks.current.streak > 0 ? `depuis ${streaks.current.start}` : ''} ${!streaks.todayIncluded ? `<span style="color:#e74c3c;">(⚠️ aujourd'hui non compté)</span>` : ''}</li>
                     <li><strong>🏅 Streak maximum :</strong> ${streaks.max.streak} jour(s) ${streaks.max.streak > 0 ? `(${streaks.max.start} → ${streaks.max.end})` : ''}</li>
                     <li><strong>Première entrée :</strong> ${stats.first ? new Date(stats.first).toLocaleString() : "—"}</li>
