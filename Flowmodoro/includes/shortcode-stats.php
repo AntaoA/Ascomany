@@ -96,7 +96,11 @@ function flowmodoro_stats_shortcode() {
                         <option value="phases">Phases les plus longues</option>
                         <option value="sessions">Sessions les plus longues</option>
                         <option value="jours">Journées les plus productives</option>
+                        <option value="semaines">Semaines les plus productives</option>
+                        <option value="mois">Mois les plus productifs</option>
+                        <option value="années">Années les plus productives</option>
                     </select>
+
                 </div>
                 <div id="ranking-list" style="margin-top: 20px;"></div>
             </div>
@@ -808,7 +812,7 @@ function flowmodoro_stats_shortcode() {
  
 
         function getTopRankings(filteredEntries, limit = 5) {
-            const byPhase = [...filteredEntries]
+            const byPhase = filteredEntries
                 .filter(e => e.type === "Travail")
                 .sort((a, b) => b.duration - a.duration)
                 .slice(0, limit);
@@ -816,7 +820,6 @@ function flowmodoro_stats_shortcode() {
             const sessions = [];
             let currentSession = [];
             let lastEnd = null;
-
             filteredEntries.forEach(e => {
                 const start = e.timestamp;
                 const end = start + (e.duration || 0);
@@ -829,27 +832,39 @@ function flowmodoro_stats_shortcode() {
             });
             if (currentSession.length > 0) sessions.push(currentSession);
 
-            const sessionDurations = sessions.map(session => {
-                return {
-                    start: session[0].timestamp,
-                    end: session.at(-1).timestamp + session.at(-1).duration,
-                    duration: session.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0)
-                };
-            }).sort((a, b) => b.duration - a.duration).slice(0, limit);
+            const sessionDurations = sessions.map(session => ({
+                start: session[0].timestamp,
+                end: session.at(-1).timestamp + session.at(-1).duration,
+                duration: session.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0)
+            })).sort((a, b) => b.duration - a.duration).slice(0, limit);
 
-            const byDay = {};
-            filteredEntries.forEach(e => {
-                const d = parseDate(e.timestamp);
-                if (!byDay[d]) byDay[d] = 0;
-                if (e.type === "Travail") byDay[d] += e.duration || 0;
-            });
+            const groupByUnit = (unitFunc) => {
+                const groups = {};
+                filteredEntries.forEach(e => {
+                    if (e.type === "Travail") {
+                        const key = unitFunc(new Date(e.timestamp));
+                        if (!groups[key]) groups[key] = 0;
+                        groups[key] += e.duration || 0;
+                    }
+                });
+                return Object.entries(groups)
+                    .map(([key, duration]) => ({ period: key, duration }))
+                    .sort((a, b) => b.duration - a.duration)
+                    .slice(0, limit);
+            };
 
-            const topDays = Object.entries(byDay)
-                .map(([date, duration]) => ({ date, duration }))
-                .sort((a, b) => b.duration - a.duration)
-                .slice(0, limit);
-
-            return { byPhase, sessionDurations, topDays };
+            return {
+                phases: byPhase,
+                sessions: sessionDurations,
+                jours: groupByUnit(d => d.toISOString().split('T')[0]),
+                semaines: groupByUnit(d => {
+                    const year = d.getFullYear();
+                    const week = getWeekNumber(d);
+                    return `${year}-S${String(week).padStart(2, '0')}`;
+                }),
+                mois: groupByUnit(d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`),
+                annees: groupByUnit(d => d.getFullYear().toString())
+            };
         }
 
 
@@ -864,41 +879,34 @@ function flowmodoro_stats_shortcode() {
             });
 
             const cardStyle = `
-                background: #fff;
-                border: 1px solid #ccc;
-                border-radius: 10px;
-                padding: 12px 18px;
-                margin-bottom: 12px;
-                box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                flex-wrap: wrap;
+                background: #fff; border: 1px solid #ccc; border-radius: 10px; padding: 12px 18px;
+                margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); display: flex;
+                justify-content: space-between; align-items: center; flex-wrap: wrap;
             `;
 
             let items = [];
 
             if (selected === "phases") {
-                items = rankings.byPhase.map(e => ({
+                items = rankings.phases.map(e => ({
                     label: formatDate(e.timestamp),
                     value: formatDuration(e.duration),
                     url: `/historique?focus=phase:${e.timestamp}`
                 }));
             } else if (selected === "sessions") {
-                items = rankings.sessionDurations.map(s => ({
+                items = rankings.sessions.map(s => ({
                     label: `${formatDate(s.start)} → ${formatDate(s.end)}`,
                     value: formatDuration(s.duration),
                     url: `/historique?focus=session:${s.start}`
                 }));
-            } else if (selected === "jours") {
-                items = rankings.topDays.map(d => ({
-                    label: d.date,
-                    value: formatDuration(d.duration),
-                    url: `/historique?focus=day:${d.date}`
+            } else {
+                items = rankings[selected].map(period => ({
+                    label: period.period,
+                    value: formatDuration(period.duration),
+                    url: `/historique?focus=${selected.slice(0, -1)}:${period.period}`
                 }));
             }
 
-            items.slice(0, 5).forEach(({ label, value, url }) => {
+            items.forEach(({ label, value, url }) => {
                 const card = document.createElement("div");
                 card.style = cardStyle;
 
@@ -910,13 +918,8 @@ function flowmodoro_stats_shortcode() {
                 btn.href = url;
                 btn.textContent = "👁 Voir";
                 btn.style = `
-                    font-size: 14px;
-                    padding: 6px 10px;
-                    background: #f0f0f0;
-                    border-radius: 6px;
-                    text-decoration: none;
-                    color: #111;
-                    border: 1px solid #ccc;
+                    font-size: 14px; padding: 6px 10px; background: #f0f0f0; border-radius: 6px;
+                    text-decoration: none; color: #111; border: 1px solid #ccc;
                 `;
                 btn.onmouseover = () => btn.style.background = "#ddd";
                 btn.onmouseout = () => btn.style.background = "#f0f0f0";
@@ -927,6 +930,7 @@ function flowmodoro_stats_shortcode() {
                 container.appendChild(card);
             });
         }
+
 
 
 
