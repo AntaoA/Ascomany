@@ -598,20 +598,26 @@ function flowmodoro_stats_shortcode() {
                 const start = new Date(e.timestamp);
                 const end = new Date(e.timestamp + e.duration);
 
-                let hourCursor = new Date(start);
-                hourCursor.setMinutes(0, 0, 0);
+                // Avancer par tranches horaires de 1h
+                let cursor = new Date(start.getTime());
+                cursor.setMinutes(0, 0, 0);
 
-                while (hourCursor < end) {
-                    const h = hourCursor.getUTCHours();
-                    const sliceStart = new Date(hourCursor);
-                    const sliceEnd = new Date(hourCursor);
-                    sliceEnd.setHours(h + 1);
+                while (cursor < end) {
+                    const next = new Date(cursor.getTime());
+                    next.setHours(cursor.getHours() + 1);
 
-                    const overlap = Math.min(end, sliceEnd) - Math.max(start, sliceStart);
-                    if (overlap > 0) hours[h] += overlap;
+                    const overlapStart = Math.max(start.getTime(), cursor.getTime());
+                    const overlapEnd = Math.min(end.getTime(), next.getTime());
+                    const overlap = overlapEnd - overlapStart;
 
-                    hourCursor.setHours(h + 1);
+                    if (overlap > 0) {
+                        const h = cursor.getHours(); // ou getUTCHours() si nécessaire
+                        hours[h] += overlap;
+                    }
+
+                    cursor = next;
                 }
+
             });
 
             const rawMinutes = hours.map(ms => ms / 60000);
@@ -1019,12 +1025,16 @@ function flowmodoro_stats_shortcode() {
 
         }
 
-        document.getElementById("ranking-select").addEventListener("change", () => {
-            const stats = getStatsBetween(currentRange.start, currentRange.end);
-            const rankings = getTopRankings(stats.filtered);
-            const selected = document.getElementById("ranking-select").value;
-            renderTopRankings(rankings, selected);
-        });
+        const rankingSelect = document.getElementById("ranking-select");
+        if (rankingSelect) {
+            rankingSelect.addEventListener("change", () => {
+                const stats = getStatsBetween(currentRange.start, currentRange.end);
+                const rankings = getTopRankings(stats.filtered);
+                const selected = rankingSelect.value;
+                renderTopRankings(rankings, selected);
+            });
+        }
+
 
 
 
