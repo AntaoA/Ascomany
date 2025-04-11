@@ -599,8 +599,8 @@ function flowmodoro_stats_shortcode() {
             filteredEntries.forEach(e => {
                 if (e.type !== selectedPhase) return;
 
-                let start = new Date(e.timestamp);
-                let end = new Date(e.timestamp + e.duration);
+                const end = new Date(e.timestamp);
+                const start = new Date(e.timestamp - e.duration);
 
                 console.log("➡️ Raw phase:", {
                     timestamp: e.timestamp,
