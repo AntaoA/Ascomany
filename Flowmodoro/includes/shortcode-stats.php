@@ -98,8 +98,9 @@ function flowmodoro_stats_shortcode() {
                         <option value="jours">Journées les plus productives</option>
                         <option value="semaines">Semaines les plus productives</option>
                         <option value="mois">Mois les plus productifs</option>
-                        <option value="années">Années les plus productives</option>
+                        <option value="annees">Années les plus productives</option>
                     </select>
+
 
                 </div>
                 <div id="ranking-list" style="margin-top: 20px;"></div>
