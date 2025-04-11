@@ -598,6 +598,17 @@ function flowmodoro_stats_shortcode() {
                 const start = new Date(e.timestamp);
                 const end = new Date(e.timestamp + e.duration);
 
+                // Corrige les anciennes entrées si l'heure est > 2h dans le futur (signe de mauvais fuseau)
+                const now = new Date();
+                if (start > now && start.getHours() > now.getHours() + 1) {
+                    start.setHours(start.getHours() - 2);
+                }
+                // Idem : corriger si incohérent
+                if (end > now && end.getHours() > now.getHours() + 1) {
+                    end.setHours(end.getHours() - 2);
+                }
+
+
                 // Avancer par tranches horaires de 1h
                 let cursor = new Date(start.getTime());
                 cursor.setMinutes(0, 0, 0);
@@ -614,12 +625,11 @@ function flowmodoro_stats_shortcode() {
                         const h = cursor.getHours(); // ou getUTCHours() si nécessaire
                         hours[h] += overlap;
                     }
-
                     cursor = next;
                 }
 
             });
-
+            
             const rawMinutes = hours.map(ms => ms / 60000);
             const total = rawMinutes.reduce((a, b) => a + b, 0);
             const minutes = rawMinutes.map(min => parseFloat((min < 0.1 && min > 0) ? 0.1 : min.toFixed(2)));
