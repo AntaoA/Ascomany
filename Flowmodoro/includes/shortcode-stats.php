@@ -772,11 +772,9 @@ function flowmodoro_stats_shortcode() {
                 document.querySelectorAll(".period-btn").forEach(b => b.classList.remove("selected"));
                 btn.classList.add("selected");
 
-                // ⚠️ Forcer regroupement à "day" seulement si on passe en "month" (sinon 1 colonne)
+                // 🟠 Forcer regroupement en "day" si on est en "semaine" ou "mois"
                 const groupingSelect = document.getElementById("grouping-select");
-                if (period === "month") {
-                    groupingSelect.value = "day";
-                } else if (!groupingSelect.value || period === "week") {
+                if (period === "week" || period === "month") {
                     groupingSelect.value = "day";
                 } else if (period === "year" && !groupingSelect.value) {
                     groupingSelect.value = "month";
