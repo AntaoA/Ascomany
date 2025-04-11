@@ -282,7 +282,7 @@ function flowmodoro_shortcode() {
             const entry = {
                 type,
                 duration,
-                timestamp: Date.now()
+                timestamp: Date.now() - duration
             };
 
             allHistory.push(entry);
@@ -364,7 +364,7 @@ function flowmodoro_shortcode() {
 
             function updateLive(addToTotal = false) {
                 const now = Date.now();
-                const elapsed = now - currentLiveEntry.start;
+                const elapsed = now - currentLiveEntry.end + currentLiveEntry.duration;
 
                 let displayTime = formatTime(elapsed)
                 li.textContent = `${currentLiveEntry.type} (en cours) : ${displayTime}`;

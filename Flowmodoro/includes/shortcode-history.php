@@ -711,7 +711,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const sessionKey = session.map(e => e.timestamp).join("-");
             const sessionNum = sessionNumbers.get(sessionKey);
             const firstPhase = session[0];
-            const startTs = firstPhase.timestamp - (firstPhase.duration || 0);
+            const startTs = firstPhase.timestamp
             const startTime = new Date(startTs).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
             
             div.innerHTML = `
@@ -783,7 +783,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const isTravail = e.type === "Travail";
             const icon = isTravail ? "💼" : "☕";
             const color = isTravail ? "#e74c3c" : "#3498db";
-            const startTs = e.timestamp - (e.duration || 0);
+            const startTs = e.timestamp
             const phaseNum = phaseNumbers.get(JSON.stringify(e));
 
             const div = document.createElement("div");
@@ -826,7 +826,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const realPause = computeRealPause(session);
                 const pause = session.filter(e => e.type === "Pause").reduce((a, b) => a + (b.duration || 0), 0);
                 const percentPause = (pause === 0 && realPause === 0) ? 100 : (pause / realPause) * 100 || 0;
-                const start = new Date(session[0].timestamp - (session[0].duration || 0)).toLocaleString();
+                const start = new Date(session[0].timestamp).toLocaleString();
 
                 sessionDetail.innerHTML = `
                     <strong>Session contenant cette phase :</strong><br>

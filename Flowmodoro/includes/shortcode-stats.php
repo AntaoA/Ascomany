@@ -594,20 +594,13 @@ function flowmodoro_stats_shortcode() {
             const selectedPhase = document.getElementById("hour-chart-phase").value;
 
             const now = new Date();
-            console.log("🕓 Current time:", now.toString());
 
             filteredEntries.forEach(e => {
                 if (e.type !== selectedPhase) return;
 
-                const end = new Date(e.timestamp);
-                const start = new Date(e.timestamp - e.duration);
+                const start = new Date(e.timestamp);
+                const end = new Date(e.timestamp + e.duration);
 
-                console.log("➡️ Raw phase:", {
-                    timestamp: e.timestamp,
-                    duration: e.duration,
-                    start: start.toString(),
-                    end: end.toString(),
-                });
 
                 // tentative correction UTC → heure locale pour anciennes entrées
                 if (start > now && start.getHours() > now.getHours() + 1) {
