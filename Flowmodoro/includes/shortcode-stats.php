@@ -609,7 +609,7 @@ function flowmodoro_stats_shortcode() {
                                 }
                             }
                         }
-                    }
+                    },
                     responsive: true,
                     scales: {
                         y: {
