@@ -49,10 +49,14 @@ function flowmodoro_stats_shortcode() {
 
 
         <div id="stats-summary" style="margin-bottom: 40px;"></div>
-
+        <div style="margin-bottom: 10px;">
+            <label for="chart-type-select">Type de graphique :</label>
+            <select id="chart-type-select" style="padding: 4px 8px; border-radius: 4px;">
+                <option value="bar">Barres</option>
+                <option value="line">Courbe</option>
+            </select>
+        </div>
         <canvas id="stats-chart" height="200" style="background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
-        <canvas id="stats-line-chart" height="200" style="margin-top: 40px; background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
-
 
         <div id="heatmap-container"
             style="display: grid; grid-template-columns: repeat(53, 1fr); gap: 2px; max-width: 100%;"></div>
@@ -444,7 +448,7 @@ function flowmodoro_stats_shortcode() {
             const e = new Date(end);
             return Math.floor((e - s) / (1000 * 60 * 60 * 24)) + 1;
         }
-        
+
         function renderStats(stats) {
             const el = document.getElementById("stats-summary");
             const streaks = computeConsistencyStreaks(stats.byDate);
@@ -668,11 +672,10 @@ function flowmodoro_stats_shortcode() {
             return new Date(date.getTime());
         }
  
- 
- 
         let chartInstance = null;
- 
+
         function renderChart(dataByDate) {
+            const chartType = document.getElementById("chart-type-select")?.value || "bar";
             const ctx = document.getElementById('stats-chart').getContext('2d');
             const labels = Object.keys(dataByDate).sort();
             const travail = labels.map(d => parseFloat((dataByDate[d].travail || 0) / 60000).toFixed(2));
@@ -681,19 +684,25 @@ function flowmodoro_stats_shortcode() {
             if (chartInstance) chartInstance.destroy();
 
             chartInstance = new Chart(ctx, {
-                type: 'bar',
+                type: chartType,
                 data: {
                     labels,
                     datasets: [
                         {
                             label: 'Travail (min)',
                             data: travail,
-                            backgroundColor: '#e74c3c'
+                            borderColor: '#e74c3c',
+                            backgroundColor: chartType === 'bar' ? '#e74c3c' : 'transparent',
+                            tension: 0.3,
+                            fill: false
                         },
                         {
                             label: 'Pause (min)',
                             data: pause,
-                            backgroundColor: '#3498db'
+                            borderColor: '#3498db',
+                            backgroundColor: chartType === 'bar' ? '#3498db' : 'transparent',
+                            tension: 0.3,
+                            fill: false
                         }
                     ]
                 },
@@ -720,6 +729,7 @@ function flowmodoro_stats_shortcode() {
                 }
             });
         }
+
  
         document.getElementById("manual-picker-btn").addEventListener("click", () => {
             picker.show();
@@ -1032,6 +1042,13 @@ function flowmodoro_stats_shortcode() {
 
         document.getElementById("grouping-select").addEventListener("change", () => {
             applyFilter();
+        });
+
+        document.getElementById("chart-type-select").addEventListener("change", () => {
+            const stats = getStatsBetween(currentRange.start, currentRange.end);
+            const grouping = document.getElementById("grouping-select").value || "day";
+            const grouped = groupDataByTemporalUnit(fillMissingDates(currentRange.start, currentRange.end, stats.byDate), grouping);
+            renderChart(grouped);
         });
 
         let showAllRanking = false;
