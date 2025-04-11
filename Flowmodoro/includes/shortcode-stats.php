@@ -90,9 +90,15 @@ function flowmodoro_stats_shortcode() {
             </div>
 
             <div id="top-ranking" style="margin-top: 50px;">
-                <h3>🏅 Classements</h3>
-                <div id="ranking-list"></div>
-                <button id="show-more-ranking" class="period-btn" style="margin-top: 10px;">Afficher plus</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <h3 style="margin: 0;">🏅 Classement</h3>
+                    <select id="ranking-select" style="padding: 6px 10px; border-radius: 6px;">
+                        <option value="phases">Phases les plus longues</option>
+                        <option value="sessions">Sessions les plus longues</option>
+                        <option value="jours">Journées les plus productives</option>
+                    </select>
+                </div>
+                <div id="ranking-list" style="margin-top: 20px;"></div>
             </div>
     </div>
 
@@ -842,7 +848,7 @@ function flowmodoro_stats_shortcode() {
         }
 
 
-        function renderTopRankings(rankings, showAll = false) {
+        function renderTopRankings(rankings, selected = "phases") {
             const container = document.getElementById("ranking-list");
             container.innerHTML = "";
 
@@ -851,11 +857,6 @@ function flowmodoro_stats_shortcode() {
                 weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
                 hour: '2-digit', minute: '2-digit'
             });
-
-            const getDateStr = (ts) => {
-                const d = new Date(ts);
-                return d.toLocaleDateString('fr-CA'); // YYYY-MM-DD
-            };
 
             const cardStyle = `
                 background: #fff;
@@ -870,73 +871,58 @@ function flowmodoro_stats_shortcode() {
                 flex-wrap: wrap;
             `;
 
-            const sections = [
-                {
-                    title: "🧱 Phases les plus longues",
-                    items: rankings.byPhase,
-                    render: e => ({
-                        label: `${formatDate(e.timestamp)}`,
-                        value: formatDuration(e.duration),
-                        url: `/historique?focus=phase:${e.timestamp}`
-                    })
-                },
-                {
-                    title: "📚 Sessions les plus longues",
-                    items: rankings.sessionDurations,
-                    render: s => ({
-                        label: `${formatDate(s.start)} → ${formatDate(s.end)}`,
-                        value: formatDuration(s.duration),
-                        url: `/historique?focus=session:${s.start}`
-                    })
-                },
-                {
-                    title: "📅 Journées les plus productives",
-                    items: rankings.topDays,
-                    render: d => ({
-                        label: d.date,
-                        value: formatDuration(d.duration),
-                        url: `/historique?focus=day:${d.date}`
-                    })
-                }
-            ];
+            let items = [];
 
-            sections.forEach(section => {
-                const sectionTitle = document.createElement("h4");
-                sectionTitle.textContent = section.title;
-                sectionTitle.style.marginTop = "25px";
-                container.appendChild(sectionTitle);
+            if (selected === "phases") {
+                items = rankings.byPhase.map(e => ({
+                    label: formatDate(e.timestamp),
+                    value: formatDuration(e.duration),
+                    url: `/historique?focus=phase:${e.timestamp}`
+                }));
+            } else if (selected === "sessions") {
+                items = rankings.sessionDurations.map(s => ({
+                    label: `${formatDate(s.start)} → ${formatDate(s.end)}`,
+                    value: formatDuration(s.duration),
+                    url: `/historique?focus=session:${s.start}`
+                }));
+            } else if (selected === "jours") {
+                items = rankings.topDays.map(d => ({
+                    label: d.date,
+                    value: formatDuration(d.duration),
+                    url: `/historique?focus=day:${d.date}`
+                }));
+            }
 
-                (showAll ? section.items : section.items.slice(0, 3)).forEach(item => {
-                    const { label, value, url } = section.render(item);
-                    const card = document.createElement("div");
-                    card.style = cardStyle;
+            items.slice(0, 5).forEach(({ label, value, url }) => {
+                const card = document.createElement("div");
+                card.style = cardStyle;
 
-                    const left = document.createElement("div");
-                    left.innerHTML = `<strong>${label}</strong><br><small>${value}</small>`;
+                const left = document.createElement("div");
+                left.innerHTML = `<strong>${label}</strong><br><small>${value}</small>`;
 
-                    const right = document.createElement("div");
-                    const btn = document.createElement("a");
-                    btn.href = url;
-                    btn.textContent = "👁 Voir";
-                    btn.style = `
-                        font-size: 14px;
-                        padding: 6px 10px;
-                        background: #f0f0f0;
-                        border-radius: 6px;
-                        text-decoration: none;
-                        color: #111;
-                        border: 1px solid #ccc;
-                    `;
-                    btn.onmouseover = () => btn.style.background = "#ddd";
-                    btn.onmouseout = () => btn.style.background = "#f0f0f0";
+                const right = document.createElement("div");
+                const btn = document.createElement("a");
+                btn.href = url;
+                btn.textContent = "👁 Voir";
+                btn.style = `
+                    font-size: 14px;
+                    padding: 6px 10px;
+                    background: #f0f0f0;
+                    border-radius: 6px;
+                    text-decoration: none;
+                    color: #111;
+                    border: 1px solid #ccc;
+                `;
+                btn.onmouseover = () => btn.style.background = "#ddd";
+                btn.onmouseout = () => btn.style.background = "#f0f0f0";
 
-                    right.appendChild(btn);
-                    card.appendChild(left);
-                    card.appendChild(right);
-                    container.appendChild(card);
-                });
+                right.appendChild(btn);
+                card.appendChild(left);
+                card.appendChild(right);
+                container.appendChild(card);
             });
         }
+
 
 
 
@@ -1024,13 +1010,22 @@ function flowmodoro_stats_shortcode() {
 
 
             const rankings = getTopRankings(stats.filtered);
-            renderTopRankings(rankings);
+            const selected = document.getElementById("ranking-select")?.value || "phases";
+            renderTopRankings(rankings, selected);
 
             updatePeriodLabel();
             updateGroupingVisibility();
             updateNavButtonsVisibility();
 
         }
+
+        document.getElementById("ranking-select").addEventListener("change", () => {
+            const stats = getStatsBetween(currentRange.start, currentRange.end);
+            const rankings = getTopRankings(stats.filtered);
+            const selected = document.getElementById("ranking-select").value;
+            renderTopRankings(rankings, selected);
+        });
+
 
 
         document.querySelectorAll("#hour-chart-type, #hour-chart-phase").forEach(el => {
