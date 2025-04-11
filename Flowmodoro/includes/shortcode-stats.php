@@ -84,14 +84,6 @@ function flowmodoro_stats_shortcode() {
                         <option value="Pause">Pause</option>
                     </select>
                 </label>
-
-                <label>
-                    Mode :
-                    <select id="hour-chart-mode">
-                        <option value="volume">Volume (min)</option>
-                        <option value="pourcentage">Pourcentage</option>
-                    </select>
-                </label>
             </div>
 
                 <canvas id="hour-chart" height="200" style="background: #fff; border: 1px solid #ccc; border-radius: 6px; padding: 10px;"></canvas>
@@ -594,7 +586,6 @@ function flowmodoro_stats_shortcode() {
             const hours = new Array(24).fill(0);
             const chartType = document.getElementById("hour-chart-type").value;
             const selectedPhase = document.getElementById("hour-chart-phase").value;
-            const mode = document.getElementById("hour-chart-mode").value;
 
             filteredEntries.forEach(e => {
                 if (e.type !== selectedPhase) return;
@@ -617,14 +608,10 @@ function flowmodoro_stats_shortcode() {
                 }
             });
 
-            let data = hours.map(ms => ms / 60000); // minutes
-
-            if (mode === "pourcentage") {
-                const total = data.reduce((a, b) => a + b, 0);
-                data = data.map(min => total > 0 ? parseFloat(((min / total) * 100).toFixed(2)) : 0);
-            } else {
-                data = data.map(min => parseFloat((min < 0.1 && min > 0) ? 0.1 : min.toFixed(2)));
-            }
+            const rawMinutes = hours.map(ms => ms / 60000);
+            const total = rawMinutes.reduce((a, b) => a + b, 0);
+            const minutes = rawMinutes.map(min => parseFloat((min < 0.1 && min > 0) ? 0.1 : min.toFixed(2)));
+            const percentages = rawMinutes.map(min => total > 0 ? ((min / total) * 100).toFixed(1) : "0.0");
 
             const ctx = document.getElementById("hour-chart").getContext("2d");
             if (hourChartInstance) hourChartInstance.destroy();
@@ -634,8 +621,8 @@ function flowmodoro_stats_shortcode() {
                 data: {
                     labels: [...Array(24)].map((_, i) => `${String(i).padStart(2, '0')}h`),
                     datasets: [{
-                        label: selectedPhase + (mode === "pourcentage" ? ' (%)' : ' (min)'),
-                        data: data,
+                        label: selectedPhase + ' (min)',
+                        data: minutes,
                         backgroundColor: chartType === "bar" ? '#e67e22' : 'transparent',
                         borderColor: '#e67e22',
                         tension: 0.3,
@@ -648,7 +635,10 @@ function flowmodoro_stats_shortcode() {
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    return context.dataset.label + ': ' + context.formattedValue + (mode === "pourcentage" ? '%' : ' min');
+                                    const hour = context.dataIndex;
+                                    const min = context.formattedValue;
+                                    const pct = percentages[hour];
+                                    return `${context.dataset.label} : ${min} min (${pct}%)`;
                                 }
                             }
                         }
@@ -658,13 +648,14 @@ function flowmodoro_stats_shortcode() {
                             beginAtZero: true,
                             title: {
                                 display: true,
-                                text: mode === "pourcentage" ? "Pourcentage (%)" : "Minutes"
+                                text: 'Minutes'
                             }
                         }
                     }
                 }
             });
         }
+
 
 
  
@@ -1049,7 +1040,7 @@ function flowmodoro_stats_shortcode() {
                 });
             });
 
-            
+
         document.getElementById("grouping-select").addEventListener("change", () => {
             applyFilter();
         });
