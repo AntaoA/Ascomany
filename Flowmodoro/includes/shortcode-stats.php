@@ -473,61 +473,6 @@ function flowmodoro_stats_shortcode() {
  
         let lineChartInstance = null;
  
-        function renderLineChart(dataByDate) {
- 
-            const ctx = document.getElementById('stats-line-chart').getContext('2d');
-            const labels = Object.keys(dataByDate).sort();
-            const travail = labels.map(d => parseFloat((dataByDate[d].travail || 0) / 60000).toFixed(2));
-            const pause = labels.map(d => parseFloat((dataByDate[d].pause || 0) / 60000).toFixed(2));
- 
-            if (lineChartInstance) lineChartInstance.destroy();
- 
-            lineChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels,
-                    datasets: [
-                        {
-                            label: 'Travail (min)',
-                            data: travail,
-                            borderColor: '#e74c3c',
-                            backgroundColor: 'transparent',
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Pause (min)',
-                            data: pause,
-                            borderColor: '#3498db',
-                            backgroundColor: 'transparent',
-                            tension: 0.3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { display: true }
-                    },
-                    scales: {
-                        x: {
-                            type: 'category',
-                            ticks: {
-                                autoSkip: true,
-                                maxTicksLimit: 31,
-                                maxRotation: 45,
-                                minRotation: 0
-                            }
-
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: { display: true, text: 'Minutes' }
-                        }
-                    }
-                }
-            });
-        }
- 
         function renderHeatmap(dataByDate) {
             const container = document.getElementById("heatmap-container");
             container.innerHTML = "";
@@ -656,6 +601,15 @@ function flowmodoro_stats_shortcode() {
                     }]
                 },
                 options: {
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.formattedValue + ' min';
+                                }
+                            }
+                        }
+                    }
                     responsive: true,
                     scales: {
                         y: {
@@ -1028,7 +982,6 @@ function flowmodoro_stats_shortcode() {
 
             renderStats(stats);
             renderChart(grouped);
-            renderLineChart(grouped);
             renderHourChart(stats.filtered);
 
             const rankings = getTopRankings(stats.filtered);
