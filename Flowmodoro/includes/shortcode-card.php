@@ -8,48 +8,44 @@ function flowmodoro_card_shortcode() {
     ob_start();
     ?>
     <style>
-        .flowmodoro-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 24px;
-            margin: 30px 0;
-        }
-
         .flowmodoro-card {
-            aspect-ratio: 1 / 1.2;
-            background: linear-gradient(145deg, #1a1a1a, #222);
-            border-radius: 20px;
-            padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: space-between;
             text-align: center;
-            color: #f0f0f0;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 20px;
             transition: transform 0.3s, box-shadow 0.3s;
             cursor: pointer;
+            background: linear-gradient(145deg, #FFFFFF, #222);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+            color: #f0f0f0;
         }
 
         .flowmodoro-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
         }
 
         .flowmodoro-card img {
-            max-width: 60px;
-            height: auto;
+            max-width: 80px;
+            margin-bottom: 15px;
         }
 
         .flowmodoro-card h3 {
-            font-size: 1.2rem;
-            margin: 15px 0 10px;
+            font-size: 1.4rem;
+            margin-bottom: 10px;
         }
 
         .flowmodoro-card p {
-            font-size: 0.9rem;
-            opacity: 0.8;
+            font-size: 0.95rem;
             margin: 0;
+        }
+
+        .flowmodoro-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
         }
     </style>
 
