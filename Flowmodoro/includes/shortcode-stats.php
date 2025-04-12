@@ -214,6 +214,7 @@ function flowmodoro_stats_shortcode() {
             border: none;
             border-radius: 6px;
             cursor: pointer;
+            font-weight: bold;
             box-sizing: border-box;
             transition: background 0.2s ease;
         }
