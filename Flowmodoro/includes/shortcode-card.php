@@ -17,7 +17,7 @@ function flowmodoro_card_shortcode() {
             padding: 20px;
             transition: transform 0.3s, box-shadow 0.3s;
             cursor: pointer;
-            background: linear-gradient(145deg,rgb(255, 255, 255), #222);
+            background: linear-gradient(145deg, #FFFFFF, #222);
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
             color: #f0f0f0;
         }
