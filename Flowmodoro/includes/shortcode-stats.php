@@ -186,7 +186,7 @@ function flowmodoro_stats_shortcode() {
         #nav-buttons button:hover {
             background: #ddd;
         }
-        
+
         #flowmodoro-right-panel {
             position: fixed;
             top: 130px;
