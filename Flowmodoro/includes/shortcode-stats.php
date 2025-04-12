@@ -20,9 +20,11 @@ function flowmodoro_stats_shortcode() {
     ?>
     <div id="flowmodoro-stats" style="padding: 30px; max-width: 900px; margin: auto; font-family: sans-serif;">
         <h2 style="margin-bottom: 20px;">📊 Statistiques Flowmodoro</h2>
-        <div id="flowmodoro-top-buttons">
-            <button id="show-timer" class="flowmodoro-main-btn full-width-btn">⏱️ Voir le timer</button>
-            <button id="show-history" class="flowmodoro-main-btn full-width-btn">📜 Voir l’historique</button>
+        <div id="flowmodoro-right-panel">
+            <div class="flowmodoro-history-actions">
+                <button id="show-timer" class="flowmodoro-main-btn full-width-btn">⏱️ Voir le timer</button>
+                <button id="show-history" class="flowmodoro-main-btn full-width-btn">📜 Voir l’historique</button>
+            </div>
         </div>
 
         <div style="margin-bottom: 30px;">
@@ -184,8 +186,8 @@ function flowmodoro_stats_shortcode() {
         #nav-buttons button:hover {
             background: #ddd;
         }
-
-        #flowmodoro-top-buttons {
+        
+        #flowmodoro-right-panel {
             position: fixed;
             top: 130px;
             right: 40px;
@@ -195,6 +197,14 @@ function flowmodoro_stats_shortcode() {
             gap: 12px;
             z-index: 100;
         }
+
+
+        .flowmodoro-history-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
 
         .flowmodoro-main-btn {
             font-size: 18px;

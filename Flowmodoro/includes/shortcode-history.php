@@ -315,6 +315,7 @@ function flowmodoro_history_shortcode() {
             z-index: 100;
         }
 
+
         .flowmodoro-history-actions {
             display: flex;
             flex-direction: column;
