@@ -1102,7 +1102,7 @@ function flowmodoro_stats_shortcode() {
         }
 
         document.getElementById("show-timer").addEventListener("click", () => {
-            window.open("/timer-flowmodoro", "_blank");
+            window.open("/flowmodoro", "_blank");
         });
 
         document.getElementById("show-history").addEventListener("click", () => {
