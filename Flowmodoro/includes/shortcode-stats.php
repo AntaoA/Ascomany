@@ -20,6 +20,10 @@ function flowmodoro_stats_shortcode() {
     ?>
     <div id="flowmodoro-stats" style="padding: 30px; max-width: 900px; margin: auto; font-family: sans-serif;">
         <h2 style="margin-bottom: 20px;">📊 Statistiques Flowmodoro</h2>
+        <div id="flowmodoro-top-buttons">
+            <button id="show-timer" class="flowmodoro-main-btn full-width-btn">⏱️ Voir le timer</button>
+            <button id="show-history" class="flowmodoro-main-btn full-width-btn">📜 Voir l’historique</button>
+        </div>
 
         <div style="margin-bottom: 30px;">
             <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
@@ -168,6 +172,37 @@ function flowmodoro_stats_shortcode() {
         }
         #nav-buttons button:hover {
             background: #ddd;
+        }
+
+        #flowmodoro-top-buttons {
+            position: fixed;
+            top: 130px;
+            right: 40px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 100;
+        }
+
+        .flowmodoro-main-btn {
+            font-size: 18px;
+            padding: 10px 24px;
+            background: #2c80c4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: background 0.2s ease;
+        }
+
+        .flowmodoro-main-btn:hover {
+            background: #21679d;
+        }
+
+        .full-width-btn {
+            width: 100%;
         }
 
 
@@ -1066,6 +1101,13 @@ function flowmodoro_stats_shortcode() {
             });
         }
 
+        document.getElementById("show-timer").addEventListener("click", () => {
+            window.open("/timer-flowmodoro", "_blank");
+        });
+
+        document.getElementById("show-history").addEventListener("click", () => {
+            window.open("/historique-flowmodoro", "_blank");
+        });
 
 
 
