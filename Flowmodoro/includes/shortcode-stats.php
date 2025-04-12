@@ -120,8 +120,19 @@ function flowmodoro_stats_shortcode() {
 
     <style>
         .period-btn {
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            font-size: 18px;
+            padding: 10px 24px;
+            background: #2c80c4;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: background 0.2s ease;        }
+
+
+        .period-btn:hover {
+            background: #21679d;
         }
 
         #period-label {
