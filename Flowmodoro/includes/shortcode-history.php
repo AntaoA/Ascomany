@@ -850,6 +850,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
             `;
 
+            
+
             const sessionDetail = document.createElement("div");
             sessionDetail.className = "session-details";
             sessionDetail.style.display = "none";
@@ -1228,6 +1230,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }, 300);
             });
         }
+
 
         else if (level === "week") {
             const [y, w] = target.split("-W");

@@ -654,7 +654,8 @@ function flowmodoro_stats_shortcode() {
                 });
             });
         }
- 
+
+
         let hourChartInstance = null;
         function renderHourChart(filteredEntries) {
             const hours = new Array(24).fill(0);
