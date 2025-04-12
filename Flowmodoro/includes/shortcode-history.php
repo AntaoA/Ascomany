@@ -13,10 +13,15 @@ function flowmodoro_history_shortcode() {
     ?>
     <div class="flowmodoro-history-container">
         <h2>📜 Historique Flowmodoro</h2>
-        <div id="flowmodoro-top-buttons">
-            <button id="show-timer" class="flowmodoro-main-btn full-width-btn">⏱️ Voir le timer</button>
-            <button id="show-stats" class="flowmodoro-main-btn full-width-btn">📊 Voir les statistiques</button>
+
+        <!-- BOUTONS TIMER ET STATISTIQUES EN HAUT À DROITE -->
+        <div id="flowmodoro-right-panel">
+            <div class="flowmodoro-history-actions">
+                <button id="show-timer" class="flowmodoro-main-btn full-width-btn">⏱️ Voir le timer</button>
+                <button id="show-stats" class="flowmodoro-main-btn full-width-btn">📊 Voir les statistiques</button>
+            </div>
         </div>
+
         <div class="history-controls">
             <div class="grouping-select">
                 <button id="grouping-toggle" class="toggle-button">
@@ -42,15 +47,9 @@ function flowmodoro_history_shortcode() {
                 </select>
             </div>
         </div>
+        
         <div id="history-output"></div>
-        <div id="popup-confirm" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#0008; z-index:10000; justify-content:center; align-items:center;">
-            <div style="background:white; padding:20px; border-radius:8px; text-align:center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
-                <p id="popup-message" style="margin-bottom: 20px;">Confirmer la suppression ?</p>
-                <button id="popup-yes" style="margin-right: 10px;">✅ Oui</button>
-                <button id="popup-no">❌ Non</button>
-            </div>
-        </div>
-    </div>
+
     <?php if (is_user_logged_in()) : ?>
         <script>const userIsLoggedIn = true;</script>
     <?php else : ?>
@@ -60,15 +59,17 @@ function flowmodoro_history_shortcode() {
 
     <style>
         .flowmodoro-history-container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: auto;
-            padding: 20px;
-            font-family: sans-serif;
+            padding: 30px;
+            font-family: 'Roboto', sans-serif;
+            position: relative;
             background: #fafafa;
             color: #111;
         }
 
         .history-controls {
+            margin-top: 50px; /* Ajout de marge pour éviter chevauchement avec les boutons */
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -303,7 +304,26 @@ function flowmodoro_history_shortcode() {
             width: 100%;
         }
 
+        #flowmodoro-right-panel {
+            position: fixed;
+            top: 130px;
+            right: 40px;
+            width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            z-index: 100;
+        }
 
+        .flowmodoro-history-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .flowmodoro-history-container h2 {
+            margin-bottom: 25px;
+        }
 
 
     </style>
