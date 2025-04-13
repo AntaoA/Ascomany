@@ -322,6 +322,38 @@ function flowmodoro_stats_shortcode() {
             return grouped;
         }
 
+
+        function splitEntryByDay(entry) {
+            const results = [];
+            const start = new Date(entry.timestamp);
+            const end = new Date(entry.timestamp + entry.duration);
+
+            let current = new Date(start);
+            current.setHours(0, 0, 0, 0);
+
+            while (current < end) {
+                const nextDay = new Date(current);
+                nextDay.setDate(current.getDate() + 1);
+
+                const segmentStart = Math.max(current.getTime(), start.getTime());
+                const segmentEnd = Math.min(nextDay.getTime(), end.getTime());
+                const duration = segmentEnd - segmentStart;
+
+                if (duration > 0) {
+                    results.push({
+                        timestamp: segmentStart,
+                        duration,
+                        type: entry.type
+                    });
+                }
+
+                current = nextDay;
+            }
+
+            return results;
+        }
+
+
  
         const rawEntries = <?php echo json_encode($entries, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
  
@@ -345,7 +377,8 @@ function flowmodoro_stats_shortcode() {
         }
  
         function getStatsBetween(startDate, endDate) {
-            const filtered = rawEntries.filter(e => {
+            const slicedEntries = rawEntries.flatMap(splitEntryByDay);
+            const filtered = slicedEntries.filter(e => {
                 const d = parseDate(e.timestamp);
                 return d >= startDate && d <= endDate;
             });
@@ -398,7 +431,6 @@ function flowmodoro_stats_shortcode() {
                 if (real > 0) pauseReal += real;
             });
 
-
             const pauseExcess = pause - pauseReal;
             const pauseExcessPercentage = pauseReal > 0 
                 ? ((pauseExcess / pauseReal) * 100).toFixed(1) 
@@ -416,6 +448,7 @@ function flowmodoro_stats_shortcode() {
                 filtered
             };
         }
+
 
 
 
