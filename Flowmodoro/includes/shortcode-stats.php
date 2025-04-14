@@ -17,10 +17,6 @@ function flowmodoro_stats_shortcode() {
     $entries = json_decode((string) $history, true);
     if (!is_array($entries)) $entries = [];
 
-    echo '<pre>';
-    print_r($entries);
-    echo '</pre>';
-
     ?>
     <div id="flowmodoro-stats" style="padding: 30px; max-width: 900px; margin: auto; font-family: sans-serif;">
         <h2 style="margin-bottom: 20px;">📊 Statistiques Flowmodoro</h2>
@@ -331,6 +327,7 @@ function flowmodoro_stats_shortcode() {
             const results = [];
             const start = new Date(entry.timestamp);
             const end = new Date(entry.timestamp + entry.duration);
+            if (entry.duration > 86400000) console.log("🌗 Entry interjour détectée", entry);
 
             let current = new Date(start);
             current.setHours(0, 0, 0, 0);
@@ -350,6 +347,8 @@ function flowmodoro_stats_shortcode() {
                         type: entry.type
                     });
                 }
+
+
 
                 current = nextDay;
             }
@@ -383,6 +382,7 @@ function flowmodoro_stats_shortcode() {
         function getStatsBetween(startDate, endDate) {
             const slicedEntries = rawEntries.flatMap(splitEntryByDay);
             const filtered = slicedEntries.filter(e => {
+                console.log("🔍 filtered after split", filtered);
                 const d = parseDate(e.timestamp);
                 return d >= startDate && d <= endDate;
             });
@@ -1261,6 +1261,11 @@ function flowmodoro_stats_shortcode() {
             shiftDateRange(1, type);
         });
 
+        console.log("✂️ Découpé :", splitEntryByDay({
+            timestamp: 1744145876719,
+            duration: 6786200,
+            type: "Travail"
+        }));
 
         const fullByDate = {};
         rawEntries.forEach(e => {
