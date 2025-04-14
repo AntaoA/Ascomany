@@ -572,9 +572,9 @@ function flowmodoro_stats_shortcode() {
                 if (hasWork) {
                     ongoingStreak++;
                     ongoingStart = iso;
-                    if (iso === today && hasWork) todayIncluded = true;
+                    if (iso === today) todayIncluded = true;
                     cursor.setDate(cursor.getDate() - 1);
-                } elseif (iso === today) {
+                } else if (iso === today) {
                     ongoingStreak = 0;
                     ongoingStart = null;
                     cursor.setDate(cursor.getDate() - 1);
