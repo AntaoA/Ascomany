@@ -361,7 +361,6 @@ function flowmodoro_stats_shortcode() {
                         type: entry.type
                     });
 
-                    console.log(`🧩 Découpe : ${entry.type} - ${duration}ms sur ${parseDate(localDateOnly.getTime())}`);
                 }
 
                 cursor = dayEnd;
@@ -397,15 +396,12 @@ function flowmodoro_stats_shortcode() {
         }
  
         function getStatsBetween(startDate, endDate) {
-            console.log("✅ Dates de début et de fin :", startDate, endDate);
             const filteredRaw = rawEntries.filter(e => {
                 const d = parseDate(e.timestamp);
                 return d >= startDate && d <= endDate;
             });
-            console.log("✅ Entrées filtrées :", filteredRaw);
 
             const slicedEntries = filteredRaw.flatMap(splitEntryByDay);
-            console.log("✅ Entrées découpées :", slicedEntries);
             const days = new Set();
             const sessions = [];
             let work = 0, pause = 0, pauseReal = 0;
@@ -434,11 +430,7 @@ function flowmodoro_stats_shortcode() {
                     byDate[d].pause += e.duration || 0;
                 }
             });
-            console.log("✅ Données par date :", byDate);
-            console.log("✅ Découpe finale après split (avec date réelle) :");
-            slicedEntries.forEach(e => {
-                console.log(parseDate(e.timestamp), e);
-            });
+
             // sessions pour pause réelle
             let currentSession = [];
             let lastEnd = null;
@@ -526,7 +518,6 @@ function flowmodoro_stats_shortcode() {
             const dates = Object.keys(dataByDate).sort();
             const today = new Date().toISOString().split("T")[0];
 
-            console.log("✅ Dates utilisées pour analyse du streak :", dates);
 
             let maxStreak = 0, maxStart = null, maxEnd = null;
             let currentStreak = 0, currentStart = null;
@@ -535,7 +526,6 @@ function flowmodoro_stats_shortcode() {
 
             dates.forEach(d => {
                 const hasWork = dataByDate[d]?.travail > 0;
-                console.log(`📅 ${d} : ${hasWork ? "Travail" : "Pas de travail"}`);
 
                 if (hasWork) {
                     if (
@@ -562,7 +552,6 @@ function flowmodoro_stats_shortcode() {
                 }
             });
 
-            console.log(`🔥 Streak max : ${maxStreak} jours, de ${maxStart} à ${maxEnd}`);
 
             // 🔁 Streak actuel en partant d’aujourd’hui (même sans travail aujourd’hui)
             let ongoingStreak = 0;
@@ -575,7 +564,6 @@ function flowmodoro_stats_shortcode() {
             while (true) {
                 const iso = cursor.toISOString().split("T")[0];
                 const hasWork = dataByDate[iso]?.travail > 0;
-                console.log(`🔁 Vérif streak actuel pour ${iso} : ${hasWork ? "Travail" : "Rien"}`);
 
                 if (ongoingStreak === 0 && iso === today && !hasWork) {
                     threatened = true; // aujourd’hui sans travail
@@ -590,6 +578,7 @@ function flowmodoro_stats_shortcode() {
                     break;
                 }
             }
+            console.log("ongoingStreak", ongoingStreak, "ongoingStart", ongoingStart, "todayIncluded", todayIncluded, "threatened", threatened);
 
             return {
                 max: { streak: maxStreak, start: maxStart, end: maxEnd },
@@ -632,6 +621,7 @@ function flowmodoro_stats_shortcode() {
             const el = document.getElementById("stats-summary");
             const streaks = computeConsistencyStreaks(stats.byDate);
             const cont = computeContinuationRate(stats.filtered);
+            console.log("streaks", streaks);
             el.innerHTML = `
                 <ul style="list-style: none; padding: 0; font-size: 16px;">
                     <li><strong>Total travail :</strong> ${format(stats.work)}</li>
@@ -1173,7 +1163,6 @@ function flowmodoro_stats_shortcode() {
             currentEnd = new Date(end);
             currentRange = { start, end }; // <-- stocke la période
             const stats = getStatsBetween(start, end);
-            console.log("✅ Statistiques entre", start, "et", end, ":", stats);
             const grouping = document.getElementById("grouping-select").value || "day";
             const grouped = groupDataByTemporalUnit(fillMissingDates(start, end, stats.byDate), grouping);
 
