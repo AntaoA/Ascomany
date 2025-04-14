@@ -1415,12 +1415,7 @@ function flowmodoro_stats_shortcode() {
             document.getElementById("flowmodoro-feedback-modal").style.display = "flex";
         });
 
-        if (typeof userIsLoggedIn !== "undefined" && !userIsLoggedIn) {
-            const btn = document.getElementById("flowmodoro-feedback-button");
-            if (btn) {
-                btn.style.top = "20px";
-            }
-        }
+
         document.getElementById("cancel-feedback").addEventListener("click", () => {
             document.getElementById("flowmodoro-feedback-modal").style.display = "none";
         });
