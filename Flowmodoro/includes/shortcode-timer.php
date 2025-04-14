@@ -631,9 +631,26 @@ function flowmodoro_shortcode() {
             if (!text) return alert("Merci de remplir votre message.");
 
             // Exemple : envoyer dans la console ou faire un fetch AJAX
-            console.log("Feedback :", { type, text });
+            fetch('/wp-admin/admin-ajax.php?action=flowmodoro_send_feedback', {
+                method: "POST",
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                body: new URLSearchParams({ type, text })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Merci pour votre retour !");
+                    document.getElementById("flowmodoro-feedback-modal").style.display = "none";
+                    document.getElementById("feedback-text").value = "";
+                } else {
+                    alert("Erreur : " + data.data);
+                }
+            })
+            .catch(err => {
+                console.error("Erreur d'envoi :", err);
+                alert("Une erreur est survenue.");
+            });
 
-            alert("Merci pour votre retour !");
             document.getElementById("flowmodoro-feedback-modal").style.display = "none";
             document.getElementById("feedback-text").value = "";
         });
