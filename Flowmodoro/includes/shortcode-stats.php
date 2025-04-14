@@ -423,6 +423,7 @@ function flowmodoro_stats_shortcode() {
                     byDate[d].pause += e.duration || 0;
                 }
             });
+            console.log("✅ Données par date :", byDate);
 
             // sessions pour pause réelle
             let currentSession = [];
