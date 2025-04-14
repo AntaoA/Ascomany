@@ -50,6 +50,14 @@ function flowmodoro_history_shortcode() {
         
         <div id="history-output"></div>
 
+        <div id="popup-confirm" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 9999;">
+            <div style="background: white; padding: 20px; border-radius: 8px; max-width: 400px; text-align: center; color: #111;">
+                <p id="popup-message" style="margin-bottom: 20px;">Êtes-vous sûr ?</p>
+                <button id="popup-yes" style="margin-right: 10px;">Oui</button>
+                <button id="popup-no">Non</button>
+            </div>
+        </div>
+        
     <?php if (is_user_logged_in()) : ?>
         <script>const userIsLoggedIn = true;</script>
     <?php else : ?>
