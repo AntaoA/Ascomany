@@ -1123,7 +1123,12 @@ function flowmodoro_stats_shortcode() {
 
             renderStats(stats);
             renderChart(grouped);
-            renderHourChart(stats.filtered);
+            renderHourChart(
+                rawEntries.filter(e => {
+                    const d = parseDate(e.timestamp);
+                    return d >= currentRange.start && d <= currentRange.end;
+                })
+            );
 
 
             const limitValue = document.getElementById("ranking-limit-select").value;
