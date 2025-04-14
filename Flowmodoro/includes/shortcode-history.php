@@ -1322,6 +1322,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 }, 300);
             });
         }
+        
+        document.getElementById("flowmodoro-feedback-button").addEventListener("click", () => {
+            document.getElementById("flowmodoro-feedback-modal").style.display = "flex";
+        });
+        document.getElementById("cancel-feedback").addEventListener("click", () => {
+            document.getElementById("flowmodoro-feedback-modal").style.display = "none";
+        });
+        document.getElementById("send-feedback").addEventListener("click", () => {
+            const type = document.getElementById("feedback-type").value;
+            const text = document.getElementById("feedback-text").value.trim();
+
+            if (!text) return alert("Merci de remplir votre message.");
+
+            // Exemple : envoyer dans la console ou faire un fetch AJAX
+            console.log("Feedback :", { type, text });
+
+            alert("Merci pour votre retour !");
+            document.getElementById("flowmodoro-feedback-modal").style.display = "none";
+            document.getElementById("feedback-text").value = "";
+        });
+
     }
 
 
