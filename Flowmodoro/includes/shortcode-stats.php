@@ -17,6 +17,10 @@ function flowmodoro_stats_shortcode() {
     $entries = json_decode((string) $history, true);
     if (!is_array($entries)) $entries = [];
 
+    echo '<pre>';
+    print_r($entries);
+    echo '</pre>';
+
     ?>
     <div id="flowmodoro-stats" style="padding: 30px; max-width: 900px; margin: auto; font-family: sans-serif;">
         <h2 style="margin-bottom: 20px;">📊 Statistiques Flowmodoro</h2>
