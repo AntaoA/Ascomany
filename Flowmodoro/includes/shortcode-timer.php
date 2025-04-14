@@ -484,13 +484,7 @@ function flowmodoro_shortcode() {
     
 
         function isTimerRunning() {
-            const active = localStorage.getItem("flowmodoro_phase_active");
-            try {
-                const data = JSON.parse(active);
-                return data && data.start && data.type === "Travail";
-            } catch {
-                return false;
-            }
+            return working || reversing;
         }
 
         document.getElementById("show-history").addEventListener("click", () => {
