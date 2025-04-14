@@ -482,13 +482,33 @@ function flowmodoro_shortcode() {
         update();
 
     
+
+        function isTimerRunning() {
+            const active = localStorage.getItem("flowmodoro_phase_active");
+            try {
+                const data = JSON.parse(active);
+                return data && data.start && data.type === "Travail";
+            } catch {
+                return false;
+            }
+        }
+
         document.getElementById("show-history").addEventListener("click", () => {
             const encoded = encodeURIComponent(JSON.stringify(sessionHistory));
-            window.open("/historique-flowmodoro?session=" + encoded, "_blank");
+            if (isTimerRunning()) {
+                window.open("/historique-flowmodoro?session=" + encoded, "_blank");
+            } else {
+                window.locate.href = "/historique-flowmodoro";
+            }
         });
 
         document.getElementById("show-stats").addEventListener("click", () => {
-            window.open("/statistiques-flowmodoro", "_blank");
+            if (isTimerRunning()) {
+                window.open("/statistiques-flowmodoro", "_blank");
+            } else {
+                window.location.href = "/statistiques-flowmodoro";
+            }
+
         });
 
 

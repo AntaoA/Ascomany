@@ -1124,11 +1124,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     document.getElementById("show-timer").addEventListener("click", () => {
-        window.open("/flowmodoro", "_blank");
+        window.location.href = "/flowmodoro";
     });
 
     document.getElementById("show-stats").addEventListener("click", () => {
-        window.open("/statistiques-flowmodoro", "_blank");
+        window.location.href = "/statistiques-flowmodoro";
     });
 
 

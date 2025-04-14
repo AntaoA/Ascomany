@@ -1169,11 +1169,11 @@ function flowmodoro_stats_shortcode() {
         }
 
         document.getElementById("show-timer").addEventListener("click", () => {
-            window.open("/flowmodoro", "_blank");
+            window.location.href = "/flowmodoro";
         });
 
         document.getElementById("show-history").addEventListener("click", () => {
-            window.open("/historique-flowmodoro", "_blank");
+            window.location.href = "/historique-flowmodoro";
         });
 
 
