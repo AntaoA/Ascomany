@@ -6,8 +6,16 @@
  */
 function flowmodoro_history_shortcode() {
     if (!is_user_logged_in()) {
-        return '<p>Vous devez être connecté pour consulter votre historique.</p>';
+        return '
+            <div style="max-width: 600px; margin: 60px auto; text-align: center; font-family: sans-serif;">
+                <p style="font-size: 18px;">Vous devez être connecté pour consulter votre historique.</p>
+                <a href="/flowmodoro" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #2c80c4; color: white; text-decoration: none; border-radius: 6px; font-size: 16px;">
+                    ⏱️ Retour au timer
+                </a>
+            </div>
+        ';
     }
+    
 
     ob_start();
     ?>
