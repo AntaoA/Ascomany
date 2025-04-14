@@ -1338,7 +1338,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (!text) return alert("Merci de remplir votre message.");
 
-            // Exemple : envoyer dans la console ou faire un fetch AJAX
             fetch('/wp-admin/admin-ajax.php?action=flowmodoro_send_feedback', {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },

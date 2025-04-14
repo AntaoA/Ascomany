@@ -1414,6 +1414,13 @@ function flowmodoro_stats_shortcode() {
         document.getElementById("flowmodoro-feedback-button").addEventListener("click", () => {
             document.getElementById("flowmodoro-feedback-modal").style.display = "flex";
         });
+
+        if (typeof userIsLoggedIn !== "undefined" && !userIsLoggedIn) {
+            const btn = document.getElementById("flowmodoro-feedback-button");
+            if (btn) {
+                btn.style.top = "20px";
+            }
+        }
         document.getElementById("cancel-feedback").addEventListener("click", () => {
             document.getElementById("flowmodoro-feedback-modal").style.display = "none";
         });
@@ -1423,7 +1430,6 @@ function flowmodoro_stats_shortcode() {
 
             if (!text) return alert("Merci de remplir votre message.");
 
-            // Exemple : envoyer dans la console ou faire un fetch AJAX
             fetch('/wp-admin/admin-ajax.php?action=flowmodoro_send_feedback', {
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
