@@ -441,17 +441,18 @@ function flowmodoro_stats_shortcode() {
                 ? ((pauseExcess / pauseReal) * 100).toFixed(1) 
                 : "0.0";
 
-            return {
-                work,
-                pause,
-                pauseReal,
-                sessionCount: sessions.length,
-                daysActive: days.size,
-                first: filtered[0]?.timestamp,
-                last: filtered.at(-1)?.timestamp,
-                byDate,
-                filteredRaw
-            };
+                return {
+                    work,
+                    pause,
+                    pauseReal,
+                    sessionCount: sessions.length,
+                    daysActive: days.size,
+                    first: filteredRaw[0]?.timestamp,
+                    last: filteredRaw.at(-1)?.timestamp,
+                    byDate,
+                    filtered: filteredRaw // <- important pour que tout le reste fonctionne
+                };
+
         }
 
 
