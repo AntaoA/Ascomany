@@ -356,7 +356,7 @@ function flowmodoro_stats_shortcode() {
                     );
 
                     results.push({
-                        timestamp: localDateOnly.getTime(),
+                        timestamp: segmentStart,
                         duration,
                         type: entry.type
                     });
