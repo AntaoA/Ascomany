@@ -290,9 +290,15 @@ function flowmodoro_stats_shortcode() {
  
  
         function getMinMaxDates(entries) {
-            const dates = entries.map(e => parseDate(e.timestamp)).sort();
-            return [dates[0], dates.at(-1)];
+            const travailDates = entries
+                .filter(e => e.type === "Travail")
+                .map(e => parseDate(e.timestamp))
+                .sort();
+            
+            if (travailDates.length === 0) return [null, null];
+            return [travailDates[0], travailDates.at(-1)];
         }
+
  
  
         function groupDataByTemporalUnit(dataByDate, unit) {
