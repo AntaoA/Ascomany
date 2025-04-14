@@ -348,12 +348,20 @@ function flowmodoro_stats_shortcode() {
                 const duration = segmentEnd - segmentStart;
 
                 if (duration > 0) {
+                    const localDate = new Date(segmentStart);
+                    const localDateOnly = new Date(
+                        localDate.getFullYear(),
+                        localDate.getMonth(),
+                        localDate.getDate()
+                    );
+
                     results.push({
-                        timestamp: new Date(d).getTime(), 
+                        timestamp: localDateOnly.getTime(),
                         duration,
                         type: entry.type
                     });
 
+                    console.log(`🧩 Découpe : ${entry.type} - ${duration}ms sur ${parseDate(localDateOnly.getTime())}`);
                 }
 
                 cursor = dayEnd;
@@ -361,6 +369,7 @@ function flowmodoro_stats_shortcode() {
 
             return results;
         }
+
 
 
 
