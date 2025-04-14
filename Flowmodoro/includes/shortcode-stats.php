@@ -470,6 +470,7 @@ function flowmodoro_stats_shortcode() {
                 last: filteredRaw.at(-1)?.timestamp,
                 byDate,
                 filtered: slicedEntries
+                original: filteredRaw
             };
         }
 
@@ -1182,7 +1183,7 @@ function flowmodoro_stats_shortcode() {
 
             const limitValue = document.getElementById("ranking-limit-select").value;
             const limit = limitValue === "all" ? null : parseInt(limitValue, 10);
-            const rankings = getTopRankings(stats.filtered, limit);
+            const rankings = getTopRankings(stats.original, limit);
             
             const selected = document.getElementById("ranking-select")?.value || "phases";
             renderTopRankings(rankings, selected);
