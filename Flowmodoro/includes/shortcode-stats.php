@@ -641,9 +641,9 @@ function flowmodoro_stats_shortcode() {
                     <li><strong>Nombre de sessions :</strong> ${stats.sessionCount}</li>
                     <li><strong>Jours actifs :</strong> ${stats.daysActive} / ${getTotalDays(currentRange.start, currentRange.end)} (${((stats.daysActive / getTotalDays(currentRange.start, currentRange.end)) * 100).toFixed(1)}%)</li>
                     <li>
-                    <strong>🔥 Streak en cours :</strong> ${streaks.current.streak} jour(s) ${streaks.current.streak > 0 ? `depuis ${streaks.current.start}` : ''}
-                    ${streaks.current.todayProlongs ? '🔄' : ''}
-                    ${streaks.current.todayThreatens ? '<span style="color:#e74c3c;">⚠️ aujourd’hui sans activité</span>' : ''}
+                    <strong>🔥 Streak en cours :</strong> ${streaks.current.todayIncluded ? streaks.current.streak : (streaks.current.streak > 0 ? streaks.current.streak : 0)} jour(s)
+                    ${!streaks.current.todayIncluded && streaks.current.streak > 0 ? ` <small>(jusqu’à hier)</small>` : ''}
+                    ${streaks.current.threatened ? '<span style="color:#e74c3c;">⚠️ aucun travail aujourd’hui</span>' : ''}
                     </li>
                     <li>
                     <strong>🏅 Streak maximum :</strong> ${streaks.max.streak} jour(s) ${streaks.max.streak > 0 ? `(${streaks.max.start} → ${streaks.max.end})` : ''}
