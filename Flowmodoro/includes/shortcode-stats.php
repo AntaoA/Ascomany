@@ -394,7 +394,7 @@ function flowmodoro_stats_shortcode() {
             console.log("✅ Entrées filtrées :", filteredRaw);
 
             const slicedEntries = filteredRaw.flatMap(splitEntryByDay);
-
+            console.log("✅ Entrées découpées :", slicedEntries);
             const days = new Set();
             const sessions = [];
             let work = 0, pause = 0, pauseReal = 0;
@@ -1158,6 +1158,7 @@ function flowmodoro_stats_shortcode() {
             currentEnd = new Date(end);
             currentRange = { start, end }; // <-- stocke la période
             const stats = getStatsBetween(start, end);
+            console.log("✅ Statistiques entre", start, "et", end, ":", stats);
             const grouping = document.getElementById("grouping-select").value || "day";
             const grouped = groupDataByTemporalUnit(fillMissingDates(start, end, stats.byDate), grouping);
 

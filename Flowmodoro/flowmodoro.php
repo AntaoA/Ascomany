@@ -2,7 +2,7 @@
 /*
 Plugin Name: Flowmodoro
 Description: Timer Flowmodoro
-Version: 6.4.16
+Version: 6.4.17
 Author: Ascomany
 */
 
