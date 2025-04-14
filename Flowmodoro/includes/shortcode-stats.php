@@ -296,6 +296,7 @@ function flowmodoro_stats_shortcode() {
                 .sort();
             
             if (travailDates.length === 0) return [null, null];
+            console.log("✅ Dates de travail :", travailDates);
             return [travailDates[0], travailDates.at(-1)];
         }
 
