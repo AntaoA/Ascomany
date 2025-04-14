@@ -382,10 +382,11 @@ function flowmodoro_stats_shortcode() {
         function getStatsBetween(startDate, endDate) {
             const slicedEntries = rawEntries.flatMap(splitEntryByDay);
             const filtered = slicedEntries.filter(e => {
-                console.log("🔍 filtered after split", filtered);
                 const d = parseDate(e.timestamp);
                 return d >= startDate && d <= endDate;
             });
+            console.log("🔍 filtered after split", filtered);
+
 
             const days = new Set();
             const sessions = [];
