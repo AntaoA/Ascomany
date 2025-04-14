@@ -118,6 +118,24 @@ function flowmodoro_stats_shortcode() {
                 </div>
                 <div id="ranking-list" style="margin-top: 20px;"></div>
             </div>
+
+        <div id="flowmodoro-feedback-button">💬 Feedback</div>
+
+        <div id="flowmodoro-feedback-modal" style="display: none;">
+            <div id="flowmodoro-feedback-content">
+                <h3>Votre retour</h3>
+                <select id="feedback-type">
+                    <option value="avis">Donner un avis</option>
+                    <option value="bug">Signaler un bug</option>
+                    <option value="suggestion">Suggérer une amélioration</option>
+                </select>
+                <textarea id="feedback-text" placeholder="Votre message..." rows="5"></textarea>
+                <div style="margin-top: 10px; text-align: right;">
+                    <button id="send-feedback">Envoyer</button>
+                    <button id="cancel-feedback">Annuler</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <style>
@@ -227,6 +245,57 @@ function flowmodoro_stats_shortcode() {
             width: 100%;
         }
 
+
+        #flowmodoro-feedback-button {
+            position: fixed;
+            top: 50px;
+            right: 15px;
+            background: #2c80c4;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+        }
+        #flowmodoro-feedback-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+        }
+        #flowmodoro-feedback-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+        #feedback-text {
+            width: 100%;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+        #flowmodoro-feedback-content select,
+        #flowmodoro-feedback-content textarea,
+        #flowmodoro-feedback-content button {
+            font-size: 16px;
+        }
+        #flowmodoro-feedback-content button {
+            padding: 6px 12px;
+            border: none;
+            background: #2c80c4;
+            color: white;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+        #flowmodoro-feedback-content button:hover {
+            background: #21679d;
+        }
 
     </style>
  
