@@ -496,61 +496,70 @@ function flowmodoro_stats_shortcode() {
 
 
         function computeConsistencyStreaks(dataByDate) {
-            const dates = Object.keys(dataByDate).sort();
-            const today = new Date().toISOString().split("T")[0];
+            const allDates = Object.keys(dataByDate).sort();
+            if (allDates.length === 0) {
+                return {
+                    max: { streak: 0, start: null, end: null },
+                    current: { streak: 0, start: null, todayProlongs: false, todayThreatens: true }
+                };
+            }
 
-            let maxStreak = 0, maxStart = null, maxEnd = null;
-            let currentStreak = 0, currentStart = null;
+            const today = new Date().toISOString().split("T")[0];
+            const dates = [...allDates];
+
+            if (!dates.includes(today)) {
+                dates.push(today);
+                dates.sort();
+            }
+
+            let maxStreak = 0;
+            let maxStart = null;
+            let maxEnd = null;
+
+            let currentStreak = 0;
+            let currentStart = null;
 
             let previousDate = null;
 
-            for (let i = 0; i < dates.length; i++) {
-                const d = dates[i];
-                const hasWork = dataByDate[d]?.travail > 0;
-
-                if (!hasWork) {
-                    currentStreak = 0;
-                    currentStart = null;
-                    previousDate = null;
-                    continue;
-                }
-
-                if (
-                    previousDate &&
-                    new Date(d).getTime() - new Date(previousDate).getTime() === 86400000
-                ) {
-                    currentStreak++;
-                } else {
-                    currentStreak = 1;
-                    currentStart = d;
-                }
-
-                // correction : maxEnd doit correspondre à la date courante (et pas précédente)
-                if (currentStreak > maxStreak) {
-                    maxStreak = currentStreak;
-                    maxStart = currentStart;
-                    maxEnd = d;
-                }
-
-                previousDate = d;
-            }
-
-            // Calcul du streak actuel
-            let ongoingStreak = 0;
-            let ongoingStart = null;
-            let cursor = new Date(today);
-            const todayHasWork = dataByDate[today]?.travail > 0;
-
-            while (true) {
-                const iso = cursor.toISOString().split("T")[0];
-                const hasWork = dataByDate[iso]?.travail > 0;
+            for (const d of dates) {
+                const hasWork = (dataByDate[d]?.travail || 0) > 0;
 
                 if (hasWork) {
-                    ongoingStreak++;
-                    ongoingStart = iso;
-                    cursor.setDate(cursor.getDate() - 1);
-                } else if (iso === today) {
-                    // le jour d'aujourd'hui compte même si vide (on considère "en cours")
+                    if (
+                        previousDate &&
+                        new Date(d).getTime() - new Date(previousDate).getTime() === 86400000
+                    ) {
+                        currentStreak++;
+                    } else {
+                        currentStreak = 1;
+                        currentStart = d;
+                    }
+
+                    if (currentStreak > maxStreak) {
+                        maxStreak = currentStreak;
+                        maxStart = currentStart;
+                        maxEnd = d;
+                    }
+
+                    previousDate = d;
+                } else {
+                    previousDate = null;
+                    currentStreak = 0;
+                    currentStart = null;
+                }
+            }
+
+            // Calcul du streak actuel (recul depuis aujourd’hui)
+            let ongoingStreak = 0;
+            let ongoingStart = null;
+
+            const cursor = new Date(today);
+            while (true) {
+                const iso = cursor.toISOString().split("T")[0];
+                const hasWork = (dataByDate[iso]?.travail || 0) > 0;
+
+                // le jour d’aujourd’hui est toujours inclus au départ
+                if (iso === today || hasWork) {
                     ongoingStreak++;
                     ongoingStart = iso;
                     cursor.setDate(cursor.getDate() - 1);
@@ -564,11 +573,12 @@ function flowmodoro_stats_shortcode() {
                 current: {
                     streak: ongoingStreak,
                     start: ongoingStart,
-                    todayProlongs: todayHasWork,
-                    todayThreatens: !todayHasWork
+                    todayProlongs: (dataByDate[today]?.travail || 0) > 0,
+                    todayThreatens: (dataByDate[today]?.travail || 0) === 0
                 }
             };
         }
+
 
 
 
@@ -609,7 +619,10 @@ function flowmodoro_stats_shortcode() {
                     <strong>🔥 Streak en cours :</strong> ${streaks.current.streak} jour(s) ${streaks.current.streak > 0 ? `depuis ${streaks.current.start}` : ''}
                     ${streaks.current.todayProlongs ? '🔄' : ''}
                     ${streaks.current.todayThreatens ? '<span style="color:#e74c3c;">⚠️ aujourd’hui sans activité</span>' : ''}
-                    </li>                    <li><strong>🏅 Streak maximum :</strong> ${streaks.max.streak} jour(s) ${streaks.max.streak > 0 ? `(${streaks.max.start} → ${streaks.max.end})` : ''}</li>
+                    </li>
+                    <li>
+                    <strong>🏅 Streak maximum :</strong> ${streaks.max.streak} jour(s) ${streaks.max.streak > 0 ? `(${streaks.max.start} → ${streaks.max.end})` : ''}
+                    </li>
                     <li><strong>Première entrée :</strong> ${stats.first ? new Date(stats.first).toLocaleString() : "—"}</li>
                     <li><strong>Dernière entrée :</strong> ${stats.last ? new Date(stats.last).toLocaleString() : "—"}</li>
                     <li><strong>🔁 Taux de continuation :</strong> ${cont.percentage}% (${cont.continued} / ${cont.totalPauses} pauses)</li>
