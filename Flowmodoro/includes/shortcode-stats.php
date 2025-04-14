@@ -496,98 +496,88 @@ function flowmodoro_stats_shortcode() {
 
 
         function computeConsistencyStreaks(dataByDate) {
-            const allDates = Object.keys(dataByDate).sort();
-            if (allDates.length === 0) {
-                return {
-                    max: { streak: 0, start: null, end: null },
-                    current: { streak: 0, start: null, todayProlongs: false, todayThreatens: true }
-                };
-            }
-
+            const dates = Object.keys(dataByDate).sort();
             const today = new Date().toISOString().split("T")[0];
-            const dates = [...allDates];
-
-            if (!dates.includes(today)) {
-                dates.push(today);
-                dates.sort();
-            }
 
             console.log("✅ Dates utilisées pour analyse du streak :", dates);
 
-            let maxStreak = 0;
-            let maxStart = null;
-            let maxEnd = null;
-
-            let currentStreak = 0;
-            let currentStart = null;
+            let maxStreak = 0, maxStart = null, maxEnd = null;
+            let currentStreak = 0, currentStart = null;
 
             let previousDate = null;
 
-            for (const d of dates) {
-                const hasWork = (dataByDate[d]?.travail || 0) > 0;
+            for (let i = 0; i < dates.length; i++) {
+                const d = dates[i];
+                const hasWork = dataByDate[d]?.travail > 0;
+
                 console.log(`📅 ${d} : ${hasWork ? "Travail" : "Pas de travail"}`);
 
-                if (hasWork) {
-                    if (
-                        previousDate &&
-                        new Date(d).getTime() - new Date(previousDate).getTime() === 86400000
-                    ) {
-                        currentStreak++;
-                    } else {
-                        currentStreak = 1;
-                        currentStart = d;
-                    }
-
-                    if (currentStreak > maxStreak) {
-                        maxStreak = currentStreak;
-                        maxStart = currentStart;
-                        maxEnd = d;
-                    }
-
-                    previousDate = d;
-                } else {
-                    previousDate = null;
+                if (!hasWork) {
                     currentStreak = 0;
                     currentStart = null;
+                    previousDate = null;
+                    continue;
                 }
+
+                if (
+                    previousDate &&
+                    new Date(d).getTime() - new Date(previousDate).getTime() === 86400000
+                ) {
+                    currentStreak++;
+                } else {
+                    currentStreak = 1;
+                    currentStart = d;
+                }
+
+                // ✅ déplacer ici pour inclure le dernier jour
+                if (currentStreak > maxStreak) {
+                    maxStreak = currentStreak;
+                    maxStart = currentStart;
+                    maxEnd = d;
+                }
+
+                previousDate = d;
             }
 
             console.log(`🔥 Streak max : ${maxStreak} jours, de ${maxStart} à ${maxEnd}`);
 
-            // Calcul streak en cours
+            // ✅ Streak en cours : recule depuis aujourd’hui, même si aujourd’hui pas actif
             let ongoingStreak = 0;
             let ongoingStart = null;
+            let cursor = new Date(today);
+            let todayIncluded = false;
+            let isThreatened = false;
 
-            const cursor = new Date(today);
-            while (true) {
+            for (let i = 0; i < 100; i++) { // max 100 jours
                 const iso = cursor.toISOString().split("T")[0];
-                const hasWork = (dataByDate[iso]?.travail || 0) > 0;
+                const hasWork = dataByDate[iso]?.travail > 0;
 
                 console.log(`🔁 Vérif streak actuel pour ${iso} : ${hasWork ? "Travail" : "Rien"}`);
 
-                if (iso === today || hasWork) {
+                if (i === 0 && !hasWork) {
+                    isThreatened = true; // Aujourd’hui n’a pas encore été travaillé
+                }
+
+                if (hasWork || i === 0) {
                     ongoingStreak++;
                     ongoingStart = iso;
-                    cursor.setDate(cursor.getDate() - 1);
                 } else {
                     break;
                 }
+
+                cursor.setDate(cursor.getDate() - 1);
             }
 
             console.log(`🔥 Streak en cours : ${ongoingStreak} jours, depuis ${ongoingStart}`);
 
-            const todayHasWork = (dataByDate[today]?.travail || 0) > 0;
-
             return {
                 max: { streak: maxStreak, start: maxStart, end: maxEnd },
-                current: {
-                    streak: ongoingStreak,
-                    start: ongoingStart,
-                    todayProlongs: todayHasWork,
-                    todayThreatens: !todayHasWork
-                }
+                current: { streak: ongoingStreak, start: ongoingStart },
+                todayIncluded: dataByDate[today]?.travail > 0,
+                threatened: isThreatened
             };
         }
+
 
 
 
