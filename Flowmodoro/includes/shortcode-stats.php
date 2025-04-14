@@ -469,7 +469,7 @@ function flowmodoro_stats_shortcode() {
                 first: filteredRaw[0]?.timestamp,
                 last: filteredRaw.at(-1)?.timestamp,
                 byDate,
-                filtered: slicedEntries
+                filtered: slicedEntries,
                 original: filteredRaw
             };
         }
