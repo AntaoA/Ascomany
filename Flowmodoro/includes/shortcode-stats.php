@@ -384,33 +384,20 @@ function flowmodoro_stats_shortcode() {
                 const d = parseDate(e.timestamp);
                 return d >= startDate && d <= endDate;
             });
+
             const slicedEntries = filteredRaw.flatMap(splitEntryByDay);
-
-
 
             const days = new Set();
             const sessions = [];
             let work = 0, pause = 0, pauseReal = 0;
             const byDate = {};
 
-            // Groupement des entrées en sessions
-            let currentSession = [];
-            let lastEnd = null;
-
+            // ✅ Utilisation de slicedEntries pour bien inclure tous les jours
             slicedEntries.forEach(e => {
                 const start = e.timestamp;
-                const end = start + (e.duration || 0);
                 const d = parseDate(start);
-
                 days.add(d);
                 if (!byDate[d]) byDate[d] = { travail: 0, pause: 0 };
-
-                if (!lastEnd || (start - lastEnd) > 10 * 60 * 1000) {
-                    if (currentSession.length) sessions.push(currentSession);
-                    currentSession = [];
-                }
-                currentSession.push(e);
-                lastEnd = end;
 
                 if (e.type === "Travail") {
                     work += e.duration || 0;
@@ -420,9 +407,25 @@ function flowmodoro_stats_shortcode() {
                     byDate[d].pause += e.duration || 0;
                 }
             });
+
+            // Groupement des entrées en sessions (sur filteredRaw uniquement)
+            let currentSession = [];
+            let lastEnd = null;
+
+            filteredRaw.forEach(e => {
+                const start = e.timestamp;
+                const end = start + (e.duration || 0);
+
+                if (!lastEnd || (start - lastEnd) > 10 * 60 * 1000) {
+                    if (currentSession.length) sessions.push(currentSession);
+                    currentSession = [];
+                }
+                currentSession.push(e);
+                lastEnd = end;
+            });
             if (currentSession.length) sessions.push(currentSession);
 
-            // Pause réelle par session = (dernière pause) - (première pause)
+            // Pause réelle par session
             sessions.forEach(session => {
                 const pauses = session.filter(e => e.type === "Pause");
                 if (pauses.length === 0) return;
@@ -441,19 +444,19 @@ function flowmodoro_stats_shortcode() {
                 ? ((pauseExcess / pauseReal) * 100).toFixed(1) 
                 : "0.0";
 
-                return {
-                    work,
-                    pause,
-                    pauseReal,
-                    sessionCount: sessions.length,
-                    daysActive: days.size,
-                    first: filteredRaw[0]?.timestamp,
-                    last: filteredRaw.at(-1)?.timestamp,
-                    byDate,
-                    filtered: filteredRaw // <- important pour que tout le reste fonctionne
-                };
-
+            return {
+                work,
+                pause,
+                pauseReal,
+                sessionCount: sessions.length,
+                daysActive: days.size,
+                first: filteredRaw[0]?.timestamp,
+                last: filteredRaw.at(-1)?.timestamp,
+                byDate,
+                filtered: filteredRaw // important
+            };
         }
+
 
 
 
