@@ -498,7 +498,7 @@ function flowmodoro_shortcode() {
             if (isTimerRunning()) {
                 window.open("/historique-flowmodoro?session=" + encoded, "_blank");
             } else {
-                window.locate.href = "/historique-flowmodoro";
+                window.location.href = "/historique-flowmodoro";
             }
         });
 
