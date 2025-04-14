@@ -564,7 +564,7 @@ function flowmodoro_stats_shortcode() {
             while (true) {
                 const iso = cursor.toISOString().split("T")[0];
                 const hasWork = dataByDate[iso]?.travail > 0;
-
+                console.log("iso", iso, "hasWork", hasWork, "ongoingStreak", ongoingStreak);
                 if (ongoingStreak === 0 && iso === today && !hasWork) {
                     threatened = true; // aujourd’hui sans travail
                 }
