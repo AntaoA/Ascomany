@@ -392,7 +392,15 @@ function flowmodoro_stats_shortcode() {
             let work = 0, pause = 0, pauseReal = 0;
             const byDate = {};
 
-            // ✅ Utilisation de slicedEntries pour bien inclure tous les jours
+            // ✅ On remplit aussi tous les jours de la période, même sans entrée
+            const cursor = new Date(startDate);
+            const end = new Date(endDate);
+            while (cursor <= end) {
+                const iso = cursor.toISOString().split("T")[0];
+                byDate[iso] = { travail: 0, pause: 0 };
+                cursor.setDate(cursor.getDate() + 1);
+            }
+
             slicedEntries.forEach(e => {
                 const start = e.timestamp;
                 const d = parseDate(start);
@@ -408,7 +416,7 @@ function flowmodoro_stats_shortcode() {
                 }
             });
 
-            // Groupement des entrées en sessions (sur filteredRaw uniquement)
+            // sessions pour pause réelle
             let currentSession = [];
             let lastEnd = null;
 
@@ -425,7 +433,6 @@ function flowmodoro_stats_shortcode() {
             });
             if (currentSession.length) sessions.push(currentSession);
 
-            // Pause réelle par session
             sessions.forEach(session => {
                 const pauses = session.filter(e => e.type === "Pause");
                 if (pauses.length === 0) return;
@@ -439,11 +446,6 @@ function flowmodoro_stats_shortcode() {
                 if (real > 0) pauseReal += real;
             });
 
-            const pauseExcess = pause - pauseReal;
-            const pauseExcessPercentage = pauseReal > 0 
-                ? ((pauseExcess / pauseReal) * 100).toFixed(1) 
-                : "0.0";
-
             return {
                 work,
                 pause,
@@ -453,9 +455,10 @@ function flowmodoro_stats_shortcode() {
                 first: filteredRaw[0]?.timestamp,
                 last: filteredRaw.at(-1)?.timestamp,
                 byDate,
-                filtered: filteredRaw // important
+                filtered: slicedEntries
             };
         }
+
 
 
 
