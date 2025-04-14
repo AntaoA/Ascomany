@@ -380,11 +380,12 @@ function flowmodoro_stats_shortcode() {
         }
  
         function getStatsBetween(startDate, endDate) {
-            const slicedEntries = rawEntries.flatMap(splitEntryByDay);
-            const filtered = slicedEntries.filter(e => {
+            const filteredRaw = rawEntries.filter(e => {
                 const d = parseDate(e.timestamp);
                 return d >= startDate && d <= endDate;
             });
+            const slicedEntries = filteredRaw.flatMap(splitEntryByDay);
+
 
 
             const days = new Set();
@@ -449,7 +450,7 @@ function flowmodoro_stats_shortcode() {
                 first: filtered[0]?.timestamp,
                 last: filtered.at(-1)?.timestamp,
                 byDate,
-                filtered
+                filteredRaw
             };
         }
 
