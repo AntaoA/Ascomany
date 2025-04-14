@@ -503,7 +503,6 @@ function flowmodoro_stats_shortcode() {
             let currentStreak = 0, currentStart = null;
 
             let previousDate = null;
-            let todayIncluded = false;
 
             for (let i = 0; i < dates.length; i++) {
                 const d = dates[i];
@@ -516,19 +515,14 @@ function flowmodoro_stats_shortcode() {
                     continue;
                 }
 
-                if (d === today) {
-                    todayIncluded = true;
-                }
-
                 if (
                     previousDate &&
                     new Date(d).getTime() - new Date(previousDate).getTime() === 86400000
                 ) {
                     currentStreak++;
-                    // on garde le currentStart précédent
                 } else {
                     currentStreak = 1;
-                    currentStart = d; // 🟢 corrige le décalage
+                    currentStart = d;
                 }
 
                 if (currentStreak > maxStreak) {
@@ -540,14 +534,17 @@ function flowmodoro_stats_shortcode() {
                 previousDate = d;
             }
 
-            // streak en cours : recule à partir d'aujourd'hui, même si aujourd’hui n’est pas compté
+            // Calcul du streak actuel
             let ongoingStreak = 0;
             let ongoingStart = null;
             let cursor = new Date(today);
 
             while (true) {
                 const iso = cursor.toISOString().split("T")[0];
-                if (dataByDate[iso]?.travail > 0 || iso === today) {
+                const isToday = iso === today;
+                const hasWork = dataByDate[iso]?.travail > 0;
+
+                if (hasWork || isToday) {
                     ongoingStreak++;
                     ongoingStart = iso;
                     cursor.setDate(cursor.getDate() - 1);
@@ -556,12 +553,19 @@ function flowmodoro_stats_shortcode() {
                 }
             }
 
+            const todayHasWork = dataByDate[today]?.travail > 0;
+
             return {
                 max: { streak: maxStreak, start: maxStart, end: maxEnd },
-                current: { streak: ongoingStreak, start: ongoingStart },
-                todayIncluded
+                current: {
+                    streak: ongoingStreak,
+                    start: ongoingStart,
+                    todayProlongs: todayHasWork,
+                    todayThreatens: !todayHasWork
+                }
             };
         }
+
 
 
 
@@ -596,8 +600,11 @@ function flowmodoro_stats_shortcode() {
                     <li><strong>📉 % de pause comptabilisée :</strong> ${stats.pauseReal > 0 ? ((stats.pause / stats.pauseReal) * 100).toFixed(1) : "100.0"}%</li>
                     <li><strong>Nombre de sessions :</strong> ${stats.sessionCount}</li>
                     <li><strong>Jours actifs :</strong> ${stats.daysActive} / ${getTotalDays(currentRange.start, currentRange.end)} (${((stats.daysActive / getTotalDays(currentRange.start, currentRange.end)) * 100).toFixed(1)}%)</li>
-                    <li><strong>🔥 Streak en cours :</strong> ${streaks.current.streak} jour(s) ${streaks.current.streak > 0 ? `depuis ${streaks.current.start}` : ''} ${!streaks.todayIncluded ? `<span style="color:#e74c3c;">(⚠️ aujourd'hui non compté)</span>` : ''}</li>
-                    <li><strong>🏅 Streak maximum :</strong> ${streaks.max.streak} jour(s) ${streaks.max.streak > 0 ? `(${streaks.max.start} → ${streaks.max.end})` : ''}</li>
+                    <li>
+                    <strong>🔥 Streak en cours :</strong> ${streaks.current.streak} jour(s) ${streaks.current.streak > 0 ? `depuis ${streaks.current.start}` : ''}
+                    ${streaks.current.todayProlongs ? '🔄' : ''}
+                    ${streaks.current.todayThreatens ? '<span style="color:#e74c3c;">⚠️ aujourd’hui sans activité</span>' : ''}
+                    </li>                    <li><strong>🏅 Streak maximum :</strong> ${streaks.max.streak} jour(s) ${streaks.max.streak > 0 ? `(${streaks.max.start} → ${streaks.max.end})` : ''}</li>
                     <li><strong>Première entrée :</strong> ${stats.first ? new Date(stats.first).toLocaleString() : "—"}</li>
                     <li><strong>Dernière entrée :</strong> ${stats.last ? new Date(stats.last).toLocaleString() : "—"}</li>
                     <li><strong>🔁 Taux de continuation :</strong> ${cont.percentage}% (${cont.continued} / ${cont.totalPauses} pauses)</li>
