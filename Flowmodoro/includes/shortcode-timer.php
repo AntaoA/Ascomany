@@ -47,9 +47,16 @@ function flowmodoro_shortcode() {
         <div id="flowmodoro-settings-menu" style="display: none;">
             <label for="pause-factor">Facteur de pause :</label>
             <input type="number" id="pause-factor" value="5" min="0.1" step="0.1" style="width: 75px;">
+
+            <label for="sound-upload">Son de fin de pause :</label>
+            <input type="file" id="sound-upload" accept="audio/mpeg">
+
+            <button id="reset-sound" class="flowmodoro-main-btn">🔁 Son par défaut</button>
             <button id="save-settings" class="flowmodoro-main-btn">Enregistrer</button>
         </div>
-
+        <audio id="flowmodoro-sound" preload="auto">
+            <source id="flowmodoro-sound-src" src="<?php echo plugin_dir_url(__FILE__); ?>assets/end-pause.mp3" type="audio/mpeg">
+        </audio>    
     </div>
 
 
@@ -350,9 +357,22 @@ function flowmodoro_shortcode() {
             }
         }
 
+        
 
 
+        const audioElement = document.getElementById("flowmodoro-sound");
+        const audioSource = document.getElementById("flowmodoro-sound-src");
 
+        function loadCustomSound() {
+            const customSound = localStorage.getItem("flowmodoro_custom_sound");
+            if (customSound) {
+                audioSource.src = customSound;
+            } else {
+                audioSource.src = "<?php echo plugin_dir_url(__FILE__); ?>assets/end-pause.mp3";
+            }
+            audioElement.load();
+        }
+        loadCustomSound();
 
         function renderLiveEntry() {
             clearInterval(liveEntryInterval);
@@ -394,10 +414,31 @@ function flowmodoro_shortcode() {
             if (!isNaN(value) && value > 0) {
                 pauseFactor = value;
                 alert("Paramètres enregistrés : facteur de pause = " + pauseFactor);
-                settingsMenu.style.display = "none";
             } else {
                 alert("Veuillez entrer un nombre valide supérieur à 0.");
+                return;
             }
+
+            // Enregistrement du son personnalisé
+            const file = document.getElementById("sound-upload").files[0];
+            if (file && file.type === "audio/mpeg") {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    localStorage.setItem("flowmodoro_custom_sound", e.target.result);
+                    loadCustomSound();
+                    alert("Son personnalisé enregistré !");
+                };
+                reader.readAsDataURL(file);
+            }
+
+            settingsMenu.style.display = "none";
+        });
+
+
+        document.getElementById("reset-sound").addEventListener("click", () => {
+            localStorage.removeItem("flowmodoro_custom_sound");
+            loadCustomSound();
+            alert("Son réinitialisé !");
         });
 
         let lastUpdateTimestamp = null;
@@ -473,6 +514,10 @@ function flowmodoro_shortcode() {
                         lastPhaseEndedWithPause = true;
                         updatePauseExpected();
                         updateStatusText();
+
+                        // Joue le son à la fin de la pause
+                        const audio = document.getElementById("flowmodoro-sound");
+                        if (audio) audio.play().catch(err => console.warn("Échec du son :", err));
                     }
                 }, 100);
             }
