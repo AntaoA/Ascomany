@@ -325,36 +325,36 @@ function flowmodoro_stats_shortcode() {
 
         function splitEntryByDay(entry) {
             const results = [];
+
             const start = new Date(entry.timestamp);
             const end = new Date(entry.timestamp + entry.duration);
-            if (entry.duration > 86400000) console.log("🌗 Entry interjour détectée", entry);
 
-            let current = new Date(start);
-            current.setHours(0, 0, 0, 0);
+            let cursor = new Date(start);
+            while (cursor < end) {
+                const dayStart = new Date(cursor);
+                dayStart.setHours(0, 0, 0, 0);
 
-            while (current < end) {
-                const nextDay = new Date(current);
-                nextDay.setDate(current.getDate() + 1);
+                const dayEnd = new Date(dayStart);
+                dayEnd.setDate(dayEnd.getDate() + 1);
 
-                const segmentStart = Math.max(current.getTime(), start.getTime());
-                const segmentEnd = Math.min(nextDay.getTime(), end.getTime());
+                const segmentStart = Math.max(start.getTime(), dayStart.getTime());
+                const segmentEnd = Math.min(end.getTime(), dayEnd.getTime());
                 const duration = segmentEnd - segmentStart;
 
                 if (duration > 0) {
                     results.push({
-                        timestamp: segmentStart,
+                        timestamp: dayStart.getTime(),
                         duration,
                         type: entry.type
                     });
                 }
 
-
-
-                current = nextDay;
+                cursor = dayEnd;
             }
 
             return results;
         }
+
 
 
  
@@ -385,7 +385,6 @@ function flowmodoro_stats_shortcode() {
                 const d = parseDate(e.timestamp);
                 return d >= startDate && d <= endDate;
             });
-            console.log("🔍 filtered after split", filtered);
 
 
             const days = new Set();
@@ -1262,11 +1261,6 @@ function flowmodoro_stats_shortcode() {
             shiftDateRange(1, type);
         });
 
-        console.log("✂️ Découpé :", splitEntryByDay({
-            timestamp: 1744145876719,
-            duration: 6786200,
-            type: "Travail"
-        }));
 
         const fullByDate = {};
         rawEntries.forEach(e => {
