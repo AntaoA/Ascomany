@@ -397,7 +397,7 @@ function flowmodoro_stats_shortcode() {
             let currentSession = [];
             let lastEnd = null;
 
-            filtered.forEach(e => {
+            slicedEntries.forEach(e => {
                 const start = e.timestamp;
                 const end = start + (e.duration || 0);
                 const d = parseDate(start);
