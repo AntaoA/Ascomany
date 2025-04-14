@@ -413,10 +413,8 @@ function flowmodoro_shortcode() {
             const value = parseFloat(pauseInput.value);
             if (!isNaN(value) && value > 0) {
                 pauseFactor = value;
-                alert("Paramètres enregistrés : facteur de pause = " + pauseFactor);
             } else {
-                alert("Veuillez entrer un nombre valide supérieur à 0.");
-                return;
+                return; // Ne rien faire si valeur invalide
             }
 
             // Enregistrement du son personnalisé
@@ -426,13 +424,13 @@ function flowmodoro_shortcode() {
                 reader.onload = function (e) {
                     localStorage.setItem("flowmodoro_custom_sound", e.target.result);
                     loadCustomSound();
-                    alert("Son personnalisé enregistré !");
                 };
                 reader.readAsDataURL(file);
             }
 
             settingsMenu.style.display = "none";
         });
+
 
 
         document.getElementById("reset-sound").addEventListener("click", () => {
