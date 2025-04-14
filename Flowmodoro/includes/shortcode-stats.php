@@ -1191,6 +1191,8 @@ function flowmodoro_stats_shortcode() {
             renderChart(grouped);
         });
 
+        
+
 
  
         function shiftDateRange(amount, unit) {
@@ -1262,14 +1264,22 @@ function flowmodoro_stats_shortcode() {
         });
 
 
-        const fullByDate = {};
-        rawEntries.forEach(e => {
-            const d = parseDate(e.timestamp);
-            if (!fullByDate[d]) fullByDate[d] = { travail: 0, pause: 0 };
-            if (e.type === "Travail") fullByDate[d].travail += e.duration || 0;
-            if (e.type === "Pause") fullByDate[d].pause += e.duration || 0;
-        });
-        renderHeatmap(fullByDate);
+        function computeFullByDate(entries) {
+            const byDate = {};
+            entries
+                .flatMap(splitEntryByDay)
+                .forEach(e => {
+                    const d = parseDate(e.timestamp);
+                    if (!byDate[d]) byDate[d] = { travail: 0, pause: 0 };
+                    if (e.type === "Travail") byDate[d].travail += e.duration || 0;
+                    if (e.type === "Pause") byDate[d].pause += e.duration || 0;
+                });
+            return byDate;
+        }
+
+        renderHeatmap(computeFullByDate(rawEntries));
+
+
 
         // Valeurs par défaut (depuis le début jusqu'à maintenant)
         const [defaultStart, defaultEnd] = getMinMaxDates(rawEntries);
