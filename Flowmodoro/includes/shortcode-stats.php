@@ -525,6 +525,7 @@ function flowmodoro_stats_shortcode() {
                     currentStart = d;
                 }
 
+                // correction : maxEnd doit correspondre à la date courante (et pas précédente)
                 if (currentStreak > maxStreak) {
                     maxStreak = currentStreak;
                     maxStart = currentStart;
@@ -538,13 +539,18 @@ function flowmodoro_stats_shortcode() {
             let ongoingStreak = 0;
             let ongoingStart = null;
             let cursor = new Date(today);
+            const todayHasWork = dataByDate[today]?.travail > 0;
 
             while (true) {
                 const iso = cursor.toISOString().split("T")[0];
-                const isToday = iso === today;
                 const hasWork = dataByDate[iso]?.travail > 0;
 
-                if (hasWork || isToday) {
+                if (hasWork) {
+                    ongoingStreak++;
+                    ongoingStart = iso;
+                    cursor.setDate(cursor.getDate() - 1);
+                } else if (iso === today) {
+                    // le jour d'aujourd'hui compte même si vide (on considère "en cours")
                     ongoingStreak++;
                     ongoingStart = iso;
                     cursor.setDate(cursor.getDate() - 1);
@@ -552,8 +558,6 @@ function flowmodoro_stats_shortcode() {
                     break;
                 }
             }
-
-            const todayHasWork = dataByDate[today]?.travail > 0;
 
             return {
                 max: { streak: maxStreak, start: maxStart, end: maxEnd },
@@ -565,6 +569,7 @@ function flowmodoro_stats_shortcode() {
                 }
             };
         }
+
 
 
 
