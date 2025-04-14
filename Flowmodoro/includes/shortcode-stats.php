@@ -496,55 +496,62 @@ function flowmodoro_stats_shortcode() {
 
 
         function computeConsistencyStreaks(dataByDate) {
-            const allDates = Object.keys(dataByDate).sort();
+            const dates = Object.keys(dataByDate).sort();
             const today = new Date().toISOString().split("T")[0];
 
             let maxStreak = 0, maxStart = null, maxEnd = null;
             let currentStreak = 0, currentStart = null;
 
             let previousDate = null;
+            let todayIncluded = false;
 
-            for (let i = 0; i < allDates.length; i++) {
-                const d = allDates[i];
+            for (let i = 0; i < dates.length; i++) {
+                const d = dates[i];
                 const hasWork = dataByDate[d]?.travail > 0;
 
-                if (hasWork) {
-                    if (
-                        previousDate &&
-                        new Date(d).getTime() - new Date(previousDate).getTime() === 86400000
-                    ) {
-                        currentStreak++;
-                    } else {
-                        currentStreak = 1;
-                        currentStart = d;
-                    }
-
-                    if (currentStreak > maxStreak) {
-                        maxStreak = currentStreak;
-                        maxStart = currentStart;
-                        maxEnd = d;
-                    }
-
-                    previousDate = d;
-                } else {
+                if (!hasWork) {
                     currentStreak = 0;
                     currentStart = null;
                     previousDate = null;
+                    continue;
                 }
+
+                if (d === today) {
+                    todayIncluded = true;
+                }
+
+                if (
+                    previousDate &&
+                    new Date(d).getTime() - new Date(previousDate).getTime() === 86400000
+                ) {
+                    currentStreak++;
+                    // on garde le currentStart précédent
+                } else {
+                    currentStreak = 1;
+                    currentStart = d; // 🟢 corrige le décalage
+                }
+
+                if (currentStreak > maxStreak) {
+                    maxStreak = currentStreak;
+                    maxStart = currentStart;
+                    maxEnd = d;
+                }
+
+                previousDate = d;
             }
 
-            // streak actuel = remonter depuis today même s’il est vide
+            // streak en cours : recule à partir d'aujourd'hui, même si aujourd’hui n’est pas compté
             let ongoingStreak = 0;
             let ongoingStart = null;
             let cursor = new Date(today);
 
             while (true) {
                 const iso = cursor.toISOString().split("T")[0];
-                ongoingStreak++;
-                ongoingStart = iso;
-                cursor.setDate(cursor.getDate() - 1);
-
-                if (!dataByDate[iso] || dataByDate[iso].travail === 0) {
+                if (dataByDate[iso]?.travail > 0 || iso === today) {
+                    ongoingStreak++;
+                    ongoingStart = iso;
+                    cursor.setDate(cursor.getDate() - 1);
+                } else {
                     break;
                 }
             }
@@ -552,9 +559,10 @@ function flowmodoro_stats_shortcode() {
             return {
                 max: { streak: maxStreak, start: maxStart, end: maxEnd },
                 current: { streak: ongoingStreak, start: ongoingStart },
-                todayIncluded: true // toujours true désormais
+                todayIncluded
             };
         }
+
 
 
 
