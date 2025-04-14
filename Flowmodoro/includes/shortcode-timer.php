@@ -216,7 +216,7 @@ function flowmodoro_shortcode() {
 
         #flowmodoro-feedback-button {
             position: fixed;
-            top: 15px;
+            top: 35px;
             right: 15px;
             background: #2c80c4;
             color: white;
