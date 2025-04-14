@@ -386,10 +386,12 @@ function flowmodoro_stats_shortcode() {
         }
  
         function getStatsBetween(startDate, endDate) {
+            console.log("✅ Dates de début et de fin :", startDate, endDate);
             const filteredRaw = rawEntries.filter(e => {
                 const d = parseDate(e.timestamp);
                 return d >= startDate && d <= endDate;
             });
+            console.log("✅ Entrées filtrées :", filteredRaw);
 
             const slicedEntries = filteredRaw.flatMap(splitEntryByDay);
 
@@ -451,7 +453,6 @@ function flowmodoro_stats_shortcode() {
 
                 if (real > 0) pauseReal += real;
             });
-
             return {
                 work,
                 pause,
@@ -614,7 +615,6 @@ function flowmodoro_stats_shortcode() {
 
         function renderStats(stats) {
             const el = document.getElementById("stats-summary");
-            console.log("Stats à afficher :", stats);
             const streaks = computeConsistencyStreaks(stats.byDate);
             const cont = computeContinuationRate(stats.filtered);
             el.innerHTML = `
