@@ -349,10 +349,11 @@ function flowmodoro_stats_shortcode() {
 
                 if (duration > 0) {
                     results.push({
-                        timestamp: dayStart.getTime(),
+                        timestamp: new Date(d).getTime(), 
                         duration,
                         type: entry.type
                     });
+
                 }
 
                 cursor = dayEnd;
@@ -368,7 +369,8 @@ function flowmodoro_stats_shortcode() {
  
         const parseDate = ts => {
             const d = new Date(ts);
-            return d.toISOString().split("T")[0];
+            // Forcer date locale pour éviter décalage UTC
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
         };
  
         function fillMissingDates(start, end, dataByDate) {
@@ -424,7 +426,10 @@ function flowmodoro_stats_shortcode() {
                 }
             });
             console.log("✅ Données par date :", byDate);
-
+            console.log("✅ Découpe finale après split (avec date réelle) :");
+            slicedEntries.forEach(e => {
+                console.log(parseDate(e.timestamp), e);
+            });
             // sessions pour pause réelle
             let currentSession = [];
             let lastEnd = null;
