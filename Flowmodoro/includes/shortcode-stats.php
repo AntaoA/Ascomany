@@ -296,7 +296,6 @@ function flowmodoro_stats_shortcode() {
                 .sort();
             
             if (travailDates.length === 0) return [null, null];
-            console.log("✅ Dates de travail :", travailDates);
             return [travailDates[0], travailDates.at(-1)];
         }
 
@@ -615,6 +614,7 @@ function flowmodoro_stats_shortcode() {
 
         function renderStats(stats) {
             const el = document.getElementById("stats-summary");
+            console.log("Stats à afficher :", stats);
             const streaks = computeConsistencyStreaks(stats.byDate);
             const cont = computeContinuationRate(stats.filtered);
             el.innerHTML = `
