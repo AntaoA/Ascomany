@@ -512,6 +512,8 @@ function flowmodoro_stats_shortcode() {
                 dates.sort();
             }
 
+            console.log("✅ Dates utilisées pour analyse du streak :", dates);
+
             let maxStreak = 0;
             let maxStart = null;
             let maxEnd = null;
@@ -523,6 +525,7 @@ function flowmodoro_stats_shortcode() {
 
             for (const d of dates) {
                 const hasWork = (dataByDate[d]?.travail || 0) > 0;
+                console.log(`📅 ${d} : ${hasWork ? "Travail" : "Pas de travail"}`);
 
                 if (hasWork) {
                     if (
@@ -549,7 +552,9 @@ function flowmodoro_stats_shortcode() {
                 }
             }
 
-            // Calcul du streak actuel (recul depuis aujourd’hui)
+            console.log(`🔥 Streak max : ${maxStreak} jours, de ${maxStart} à ${maxEnd}`);
+
+            // Calcul streak en cours
             let ongoingStreak = 0;
             let ongoingStart = null;
 
@@ -558,7 +563,8 @@ function flowmodoro_stats_shortcode() {
                 const iso = cursor.toISOString().split("T")[0];
                 const hasWork = (dataByDate[iso]?.travail || 0) > 0;
 
-                // le jour d’aujourd’hui est toujours inclus au départ
+                console.log(`🔁 Vérif streak actuel pour ${iso} : ${hasWork ? "Travail" : "Rien"}`);
+
                 if (iso === today || hasWork) {
                     ongoingStreak++;
                     ongoingStart = iso;
@@ -568,16 +574,21 @@ function flowmodoro_stats_shortcode() {
                 }
             }
 
+            console.log(`🔥 Streak en cours : ${ongoingStreak} jours, depuis ${ongoingStart}`);
+
+            const todayHasWork = (dataByDate[today]?.travail || 0) > 0;
+
             return {
                 max: { streak: maxStreak, start: maxStart, end: maxEnd },
                 current: {
                     streak: ongoingStreak,
                     start: ongoingStart,
-                    todayProlongs: (dataByDate[today]?.travail || 0) > 0,
-                    todayThreatens: (dataByDate[today]?.travail || 0) === 0
+                    todayProlongs: todayHasWork,
+                    todayThreatens: !todayHasWork
                 }
             };
         }
+
 
 
 
