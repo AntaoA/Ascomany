@@ -569,10 +569,14 @@ function flowmodoro_stats_shortcode() {
                     threatened = true; // aujourd’hui sans travail
                 }
 
-                if (hasWork || iso === today) {
+                if (hasWork) {
                     ongoingStreak++;
                     ongoingStart = iso;
                     if (iso === today && hasWork) todayIncluded = true;
+                    cursor.setDate(cursor.getDate() - 1);
+                } elseif (iso === today) {
+                    ongoingStreak = 0;
+                    ongoingStart = null;
                     cursor.setDate(cursor.getDate() - 1);
                 } else {
                     break;
