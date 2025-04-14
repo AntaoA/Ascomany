@@ -496,7 +496,13 @@ function flowmodoro_stats_shortcode() {
 
 
         function computeConsistencyStreaks(dataByDate) {
-            const dates = Object.keys(dataByDate).sort();
+            const allDates = Object.keys(dataByDate).sort();
+            const min = allDates[0];
+            const max = allDates.at(-1);
+
+            const filled = fillMissingDates(min, max, dataByDate);
+
+            const dates = Object.keys(filled).sort();
             const today = new Date().toISOString().split("T")[0];
 
             console.log("✅ Dates utilisées pour analyse du streak :", dates);
