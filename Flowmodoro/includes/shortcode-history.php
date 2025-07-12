@@ -785,29 +785,21 @@ document.addEventListener('DOMContentLoaded', function () {
     
 
         function computeRealPause(session) {
-            console.log("Session reçue pour calcul pause réelle :", session);
-            if (session.length === 0) return 0;
-
-            const sorted = [...session].sort((a, b) => a.timestamp - b.timestamp);
-            let realPause = 0;
-
-            for (let i = 0; i < sorted.length - 1; i++) {
-                const current = sorted[i];
-                const next = sorted[i + 1];
-
-                if (current.type === "pause" && next.type === "work") {
-                    realPause += next.timestamp - current.timestamp;
+            if (!session || session.length === 0) return 0;
+            let totalPause = 0;
+            let lastEnd = session[0].timestamp + (session[0].duration || 0);
+            session.forEach(e => {
+                if (e.type === "Pause") {
+                    const start = e.timestamp;
+                    if (start > lastEnd) {
+                        totalPause += start - lastEnd; // Pause réelle
+                    }
+                    lastEnd = start + (e.duration || 0);
+                } else {
+                    lastEnd = e.timestamp + (e.duration || 0);
                 }
-            }
-
-            // Si la dernière phase est une pause non suivie
-            const last = sorted[sorted.length - 1];
-            if (last.type === "pause") {
-                const now = Date.now(); // ou tu peux injecter une date de référence
-                realPause += now - last.timestamp;
-            }
-
-            return realPause;
+            });
+            return totalPause;
         }
 
 
