@@ -687,6 +687,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 
+    const globalSessions = groupSessions(allHistory).sort((a, b) => a[0].timestamp - b[0].timestamp);
+    const sessionNumbers = new Map();
+
+    globalSessions.forEach((session, index) => {
+        const sessionNum = index + 1;
+        session.forEach(phase => {
+            sessionNumbers.set(phase.timestamp, sessionNum);
+        });
+    });
+
 
 
     function render() {
@@ -804,14 +814,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
 
-    const globalSessions = groupSessions(allHistory).sort((a, b) => a[0].timestamp - b[0].timestamp);
-    const sessionNumbers = new Map();
-    globalSessions.forEach((s, i) => {
-        const key = s.map(e => e.timestamp).join("-");
-        sessionNumbers.set(key, i + 1);
-    });
-
-
 
     function renderSessions(sessions, container = output) {
         sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
@@ -859,11 +861,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 details.appendChild(line);
             });
 
-
-            
-            const key = session.map(e => e.timestamp).join("-");
-            const sessionNum = sessionNumbers.get(key) || "?";
-
+            const sessionNum = sessionNumbers.get(session[0].timestamp) || "?";
             const firstPhase = session[0];
             const sessionDate = formatDate(firstPhase.timestamp, false);
             const sessionTime = new Date(firstPhase.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
