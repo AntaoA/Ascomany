@@ -784,34 +784,29 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     
 
-        function computeRealPause(phases) {
-            const sessions = groupSessions(deepFlatPhases(phases));
-            let totalRealPause = 0;
+        function computeRealPause(session) {
+            if (session.length === 0) return 0;
 
-            for (const session of sessions) {
-                // On trie les phases dans l’ordre
-                const sorted = [...session].sort((a, b) => a.timestamp - b.timestamp);
+            const sorted = [...session].sort((a, b) => a.timestamp - b.timestamp);
+            let realPause = 0;
 
-                for (let i = 0; i < sorted.length; i++) {
-                    const current = sorted[i];
-                    const next = sorted[i + 1];
+            for (let i = 0; i < sorted.length - 1; i++) {
+                const current = sorted[i];
+                const next = sorted[i + 1];
 
-                    // Si la phase actuelle est une pause
-                    if (current.type === "Pause") {
-                        // Et qu'elle est suivie d'un travail dans la même session
-                        if (next && next.type === "Travail") {
-                            const pauseEnd = current.timestamp + (current.duration || 0);
-                            const nextStart = next.timestamp;
-
-                            const gap = Math.max(0, nextStart - pauseEnd); // temps d'inactivité entre pause et travail
-                            totalRealPause += (current.duration || 0) + gap;
-                        }
-                        // Sinon (pause terminale, ou sans suite de travail) => ignorée
-                    }
+                if (current.type === "pause" && next.type === "work") {
+                    realPause += next.timestamp - current.timestamp;
                 }
             }
 
-            return totalRealPause;
+            // Si la dernière phase est une pause non suivie
+            const last = sorted[sorted.length - 1];
+            if (last.type === "pause") {
+                const now = Date.now(); // ou tu peux injecter une date de référence
+                realPause += now - last.timestamp;
+            }
+
+            return realPause;
         }
 
 
