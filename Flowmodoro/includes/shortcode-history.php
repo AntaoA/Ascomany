@@ -559,6 +559,13 @@ document.addEventListener('DOMContentLoaded', function () {
         return allHistory;
     }
 
+    function sumRealPauseOfSessions(group) {
+        const sessions = groupSessions(deepFlatPhases(group));
+        return sessions.reduce((total, session) => {
+            return total + computeRealPause(session);
+        }, 0);
+    }
+
     function renderGroupedLevel(mode, entries, container) {
         if (!Array.isArray(entries)) {
             console.error("renderGroupedLevel expected an array but got:", entries);
@@ -581,7 +588,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const totalTravail = flatGroup.filter(e => e.type === "Travail").reduce((sum, e) => sum + (e.duration || 0), 0);
             const totalPause = flatGroup.filter(e => e.type === "Pause").reduce((sum, e) => sum + (e.duration || 0), 0);
-            const realPause = computeRealPause(flatGroup);
+            const realPause = sumRealPauseOfSessions(group);
             const percentPause = (realPause === 0 || totalPause === 0) ? 100 : (totalPause / realPause) * 100 || 0;
 
             block.innerHTML = `
@@ -794,7 +801,6 @@ document.addEventListener('DOMContentLoaded', function () {
             let lastEnd = null;
 
             session.forEach(e => {
-                console.log("Traitement de l'événement :", e);
                 if (e.type === "Pause") {
                     durationLastPause = e.duration || 0;
                     lastPhasePause = true;
@@ -808,13 +814,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         fistPhasePause = false;
                     }
                 }
-                console.log("Total pause jusqu'à présent :", totalPause);
-                console.log("Dernier point de fin :", lastEnd);
             });
             if (lastPhasePause) {
                 totalPause += durationLastPause; // on ajoute la dernière pause si elle existe
             }
-            console.log("Pause réelle totale :", totalPause);
             return totalPause;
         }
 
@@ -905,7 +908,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 updatePhaseNumbers();
                 render(); // 🔁 plus propre et suffisant ici
             });
-            console.log("Pause réelle (ms) :", computeRealPause(session));
         });
 
             div.appendChild(details);
