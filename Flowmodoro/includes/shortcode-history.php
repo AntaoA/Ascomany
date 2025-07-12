@@ -789,20 +789,24 @@ document.addEventListener('DOMContentLoaded', function () {
         function computeRealPause(session) {
             if (!session || session.length === 0) return 0;
 
-            const sorted = [...session].sort((a, b) => a.timestamp - b.timestamp);
             let totalPause = 0;
             let lastEnd = null;
 
             sorted.forEach(e => {
+                console.log("Traitement de l'événement :", e);
                 if (e.type === "Pause") {
                     const start = e.timestamp;
                     if (lastEnd !== null && start > lastEnd) {
                         totalPause += start - lastEnd;
                     }
+                    if (lastEnd === null) { //début par une pause
+                        totalPause += (e.duration || 0);
+                    }
                     lastEnd = start + (e.duration || 0);
                 } else if (e.type === "Travail") {
                     lastEnd = e.timestamp + (e.duration || 0);
                 }
+                console.log("Total pause jusqu'à présent :", totalPause);
             });
             console.log("Pause réelle totale :", totalPause);
             return totalPause;
