@@ -804,6 +804,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
 
+    const sessionNumbers = new Map();
+    let sessionCounter = 1;
+    for (const session of sessions) {
+        sessionNumbers.set(session, sessionCounter++);
+    }
+
 
 
     function renderSessions(sessions, container = output) {
@@ -853,8 +859,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
 
-            const sessionKey = session.map(e => e.timestamp).join("-");
-            const sessionNum = sessionNumbers.get(sessionKey);
+            const sessionNum = sessionNumbers.get(session);
             const firstPhase = session[0];
             const sessionDate = formatDate(firstPhase.timestamp, false);
             const sessionTime = new Date(firstPhase.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
