@@ -782,17 +782,15 @@ document.addEventListener('DOMContentLoaded', function () {
             // On utilise JSON.stringify comme clé unique fiable
             phaseNumbers.set(JSON.stringify(e), i + 1);
         });
-
-
-
     
+
         function computeRealPause(session) {
             if (!session || session.length === 0) return 0;
 
             let totalPause = 0;
             let lastEnd = null;
 
-            sorted.forEach(e => {
+            session.forEach(e => {
                 console.log("Traitement de l'événement :", e);
                 if (e.type === "Pause") {
                     const start = e.timestamp;
