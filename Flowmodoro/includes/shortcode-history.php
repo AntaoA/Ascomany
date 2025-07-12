@@ -787,25 +787,33 @@ document.addEventListener('DOMContentLoaded', function () {
         function computeRealPause(session) {
             if (!session || session.length === 0) return 0;
 
+            let lastPhasePause = false;
+            let durationLastPause = 0;
+            let fistPhasePause = session[0].type === "Pause";
             let totalPause = 0;
             let lastEnd = null;
 
             session.forEach(e => {
                 console.log("Traitement de l'événement :", e);
                 if (e.type === "Pause") {
-                    const start = e.timestamp;
-                    if (lastEnd !== null && start > lastEnd) {
-                        totalPause += start - lastEnd;
-                    }
-                    if (lastEnd === null) { //début par une pause
-                        totalPause += (e.duration || 0);
-                    }
-                    lastEnd = start + (e.duration || 0);
+                    durationLastPause = e.duration || 0;
+                    lastPhasePause = true;
                 } else if (e.type === "Travail") {
+                    if (lastEnd) { // on a déjà noté la fin d'un travail
+                        totalPause += e.timestamp - lastEnd;
+                    }
                     lastEnd = e.timestamp + (e.duration || 0);
+                    if (fistPhasePause) { // on commence la session par une pause (entre deux jours)
+                        totalPause += e.timestamp - session[0].timestamp;
+                        fistPhasePause = false;
+                    }
                 }
                 console.log("Total pause jusqu'à présent :", totalPause);
+                console.log("Dernier point de fin :", lastEnd);
             });
+            if (lastPhasePause) {
+                totalPause += durationLastPause; // on ajoute la dernière pause si elle existe
+            }
             console.log("Pause réelle totale :", totalPause);
             return totalPause;
         }
