@@ -782,6 +782,9 @@ document.addEventListener('DOMContentLoaded', function () {
             // On utilise JSON.stringify comme clé unique fiable
             phaseNumbers.set(JSON.stringify(e), i + 1);
         });
+
+
+
     
         function computeRealPause(session) {
             if (!session || session.length === 0) return 0;
@@ -801,7 +804,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     lastEnd = e.timestamp + (e.duration || 0);
                 }
             });
-            console.log("Pause réelle totale :", totalPause, "ms →", formatDuration(totalPause));
+            console.log("Pause réelle totale :", totalPause);
             return totalPause;
         }
 
