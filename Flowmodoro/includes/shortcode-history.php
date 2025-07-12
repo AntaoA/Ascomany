@@ -785,18 +785,24 @@ document.addEventListener('DOMContentLoaded', function () {
     
 
         function computeRealPause(session) {
+            console.log("computeRealPause called with session:", session);
             if (!session || session.length === 0) return 0;
             let totalPause = 0;
             let lastEnd = session[0].timestamp + (session[0].duration || 0);
+            console.log("Initial lastEnd:", lastEnd);
             session.forEach(e => {
+                console.log("Processing entry:", e);
                 if (e.type === "Pause") {
                     const start = e.timestamp;
+                    console.log("Pause start at:", start);
                     if (start > lastEnd) {
                         totalPause += start - lastEnd; // Pause réelle
                     }
                     lastEnd = start + (e.duration || 0);
+                    console.log("Updated lastEnd after Pause:", lastEnd);
                 } else {
                     lastEnd = e.timestamp + (e.duration || 0);
+                    console.log("Updated lastEnd after Travail:", lastEnd);
                 }
             });
             return totalPause;
