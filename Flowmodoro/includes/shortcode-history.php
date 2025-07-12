@@ -785,6 +785,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
 
         function computeRealPause(session) {
+            console.log("Session reçue pour calcul pause réelle :", session);
             if (session.length === 0) return 0;
 
             const sorted = [...session].sort((a, b) => a.timestamp - b.timestamp);
@@ -896,6 +897,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 updatePhaseNumbers();
                 render(); // 🔁 plus propre et suffisant ici
             });
+            console.log("Pause réelle (ms) :", computeRealPause(session));
         });
 
             div.appendChild(details);
@@ -910,6 +912,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         attachDeletePhaseHandlers();
         renderPagination(sessions.length, container);
+
     }
 
 
