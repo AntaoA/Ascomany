@@ -688,12 +688,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
     const globalSessions = groupSessions(allHistory).sort((a, b) => a[0].timestamp - b[0].timestamp);
-    const sessionNumbers = new Map();
 
+    // Cette map associe chaque phase à son numéro de session
+    const sessionNumbers = new Map();
     globalSessions.forEach((session, index) => {
-        const sessionNum = index + 1;
+        const num = index + 1;
         session.forEach(phase => {
-            sessionNumbers.set(phase.timestamp, sessionNum);
+            sessionNumbers.set(phase.timestamp, num);
         });
     });
 
@@ -818,13 +819,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function renderSessions(sessions, container = output) {
         sessions.sort((a, b) => b[0].timestamp - a[0].timestamp);
         const paginated = paginate(sessions, currentPage, itemLimit);
-
-        const globalSessions = groupSessions(allHistory).sort((a, b) => a[0].timestamp - b[0].timestamp);
-        const sessionNumbers = new Map();
-        globalSessions.forEach((s, i) => {
-            const key = s.map(e => e.timestamp).join("-");
-            sessionNumbers.set(key, i + 1);
-        });
 
         paginated.forEach((session, idx) => {
             const div = document.createElement("div");
