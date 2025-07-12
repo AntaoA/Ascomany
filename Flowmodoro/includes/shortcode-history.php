@@ -806,8 +806,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const sessionNumbers = new Map();
     let sessionCounter = 1;
-    for (const session of sessions) {
-        sessionNumbers.set(session, sessionCounter++);
+    const globalSessions = groupSessions(allHistory);
+    for (const session of globalSessions) {
+        sessionNumbers.set(session.map(e => e.timestamp).join("-"), sessionCounter++);
     }
 
 
