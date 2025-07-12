@@ -804,12 +804,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
 
+    const globalSessions = groupSessions(allHistory).sort((a, b) => a[0].timestamp - b[0].timestamp);
     const sessionNumbers = new Map();
-    let sessionCounter = 1;
-    const globalSessions = groupSessions(allHistory);
-    for (const session of globalSessions) {
-        sessionNumbers.set(session.map(e => e.timestamp).join("-"), sessionCounter++);
-    }
+    globalSessions.forEach((s, i) => {
+        const key = s.map(e => e.timestamp).join("-");
+        sessionNumbers.set(key, i + 1);
+    });
 
 
 
@@ -860,7 +860,10 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
 
-            const sessionNum = sessionNumbers.get(session);
+            
+            const key = session.map(e => e.timestamp).join("-");
+            const sessionNum = sessionNumbers.get(key) || "?";
+
             const firstPhase = session[0];
             const sessionDate = formatDate(firstPhase.timestamp, false);
             const sessionTime = new Date(firstPhase.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
