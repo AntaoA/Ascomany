@@ -778,14 +778,26 @@ document.addEventListener('DOMContentLoaded', function () {
             let totalRealPause = 0;
 
             for (const session of sessions) {
-                const pausePhases = session.filter(e => e.type === "Pause");
-                if (pausePhases.length === 0) continue;
+                // On trie les phases dans l’ordre
+                const sorted = [...session].sort((a, b) => a.timestamp - b.timestamp);
 
-                const pauseStart = pausePhases[0].timestamp;
-                const pauseEnd = pausePhases[pausePhases.length - 1].timestamp + (pausePhases[pausePhases.length - 1].duration || 0);
-                const sessionRealPause = Math.max(0, pauseEnd - pauseStart);
+                for (let i = 0; i < sorted.length; i++) {
+                    const current = sorted[i];
+                    const next = sorted[i + 1];
 
-                totalRealPause += sessionRealPause;
+                    // Si la phase actuelle est une pause
+                    if (current.type === "Pause") {
+                        // Et qu'elle est suivie d'un travail dans la même session
+                        if (next && next.type === "Travail") {
+                            const pauseEnd = current.timestamp + (current.duration || 0);
+                            const nextStart = next.timestamp;
+
+                            const gap = Math.max(0, nextStart - pauseEnd); // temps d'inactivité entre pause et travail
+                            totalRealPause += (current.duration || 0) + gap;
+                        }
+                        // Sinon (pause terminale, ou sans suite de travail) => ignorée
+                    }
+                }
             }
 
             return totalRealPause;
