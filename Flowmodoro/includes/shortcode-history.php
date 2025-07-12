@@ -783,28 +783,25 @@ document.addEventListener('DOMContentLoaded', function () {
             phaseNumbers.set(JSON.stringify(e), i + 1);
         });
     
-
         function computeRealPause(session) {
-            console.log("computeRealPause called with session:", session);
             if (!session || session.length === 0) return 0;
+
+            const sorted = [...session].sort((a, b) => a.timestamp - b.timestamp);
             let totalPause = 0;
-            let lastEnd = session[0].timestamp + (session[0].duration || 0);
-            console.log("Initial lastEnd:", lastEnd);
-            session.forEach(e => {
-                console.log("Processing entry:", e);
+            let lastEnd = null;
+
+            sorted.forEach(e => {
                 if (e.type === "Pause") {
                     const start = e.timestamp;
-                    console.log("Pause start at:", start);
-                    if (start > lastEnd) {
-                        totalPause += start - lastEnd; // Pause réelle
+                    if (lastEnd !== null && start > lastEnd) {
+                        totalPause += start - lastEnd;
                     }
                     lastEnd = start + (e.duration || 0);
-                    console.log("Updated lastEnd after Pause:", lastEnd);
-                } else {
+                } else if (e.type === "Travail") {
                     lastEnd = e.timestamp + (e.duration || 0);
-                    console.log("Updated lastEnd after Travail:", lastEnd);
                 }
             });
+            console.log("Pause réelle totale :", totalPause, "ms →", formatDuration(totalPause));
             return totalPause;
         }
 
